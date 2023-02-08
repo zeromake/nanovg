@@ -24,6 +24,8 @@ int blowup = 0;
 int screenshot = 0;
 int premult = 0;
 
+#undef main
+
 int main(int argc, char **argv) {
 
 	DemoData data;

@@ -441,9 +441,9 @@ void nvgBeginFrameEx(NVGcontext* ctx, float windowWidth, float windowHeight, flo
 	}
 }
 
-void nvgBeginFrame(NVGcontext* ctx, float windowWidth, float windowHeight, float devicePixelRatio, enum NVGorientation orientation)
+void nvgBeginFrame(NVGcontext* ctx, float windowWidth, float windowHeight, float devicePixelRatio)
 {
-	nvgBeginFrameEx(ctx, windowWidth, windowHeight, devicePixelRatio, 1, orientation);
+	nvgBeginFrameEx(ctx, windowWidth, windowHeight, devicePixelRatio, 1, NVG_ORIENTATION_0);
 }
 
 void nvgCancelFrame(NVGcontext* ctx)

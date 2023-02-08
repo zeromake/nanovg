@@ -5,7 +5,9 @@
 #ifdef NANOVG_GLEW
 #  include <GL/glew.h>
 #endif
+#ifndef NANOVG_DISABLE_GL
 #include <GLFW/glfw3.h>
+#endif
 #include "nanovg.h"
 
 #ifdef _MSC_VER
@@ -20,6 +22,8 @@
 //typedef void (APIENTRY *pfnGLGETQUERYOBJECTUI64V)(GLuint id, GLenum pname, GLuint64* params);
 //pfnGLGETQUERYOBJECTUI64V glGetQueryObjectui64v = 0;
 #endif
+
+#ifndef NANOVG_DISABLE_GL
 
 void initGPUTimer(GPUtimer* timer)
 {
@@ -38,6 +42,7 @@ void initGPUTimer(GPUtimer* timer)
 		glGenQueries(GPU_QUERY_COUNT, timer->queries);
 	}*/
 }
+
 
 void startGPUTimer(GPUtimer* timer)
 {
@@ -72,7 +77,7 @@ int stopGPUTimer(GPUtimer* timer, float* times, int maxTimes)
 	}
 	return n;
 }
-
+#endif
 
 void initGraph(PerfGraph* fps, int style, const char* name)
 {

@@ -3,8 +3,7 @@ add_rules("mode.debug", "mode.release")
 add_requires("glew")
 add_requires("glfw")
 add_requires("stb")
-
--- add_defines("NANOVG_GL2")
+add_requires("sdl2")
 
 target("nanovg")
     set_kind("static")
@@ -94,3 +93,20 @@ target("example_metal")
     -- add_deps("nanovg_awtk")
     add_frameworks("Metal", "MetalKit", "QuartzCore")
     add_packages("glfw", "stb")
+    add_defines("NANOVG_DISABLE_GL")
+
+target("example_sdl2")
+    add_includedirs("src")
+    -- add_includedirs("src/awtk/base", "src/awtk/gl")
+    add_files(
+        "example/example_sdl2.c"
+    )
+    add_files(
+        "example/demo.c",
+        "example/perf.c"
+    )
+    add_packages("sdl2", "stb", "glew")
+    add_defines("NANOVG_GL3", "NANOVG_GL3_IMPLEMENTATION", "NANOVG_GLEW")
+    add_deps("nanovg")
+    -- add_deps("nanovg_awtk")
+    add_frameworks("OpenGL")

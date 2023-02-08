@@ -160,6 +160,9 @@ void nvgCancelFrame(NVGcontext* ctx);
 // Ends drawing flushing remaining render state.
 void nvgEndFrame(NVGcontext* ctx);
 
+
+void nvgClearWithColor(NVGcontext* ctx, NVGcolor color);
+
 //
 // Composite operation
 //

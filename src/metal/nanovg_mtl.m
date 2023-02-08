@@ -521,12 +521,11 @@ void mnvgDeleteFramebuffer(MNVGframebuffer* framebuffer) {
   free(framebuffer);
 }
 
-void mnvgClearWithColor(NVGcontext* ctx, NVGcolor color) {
+void nvgClearWithColor(NVGcontext* ctx, NVGcolor color) {
   MNVGcontext* mtl = (__bridge MNVGcontext*)nvgInternalParams(ctx)->userPtr;
-  float alpha = (float)color.a;
-  mtl.clearColor = MTLClearColorMake((float)color.r * alpha,
-                                     (float)color.g * alpha,
-                                     (float)color.b * alpha,
+  mtl.clearColor = MTLClearColorMake((float)color.r,
+                                     (float)color.g,
+                                     (float)color.b,
                                      (float)color.a);
   mtl.clearBufferOnFlush = YES;
 }

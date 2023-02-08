@@ -99,11 +99,12 @@ int main(int argc, const char * argv[]) {
         }
         prevWinWidth = winWidth;
         prevWinHeight = winHeight;
-
+		NVGcolor clearColor;
 		if (premult)
-			mnvgClearWithColor(vg, nvgRGBAf(0.0f, 0.0f, 0.0f, 1.0f));
+			clearColor = nvgRGBAf(0.0f, 0.0f, 0.0f, 0.0f);
 		else
-			mnvgClearWithColor(vg, nvgRGBAf(0.3f, 0.3f, 0.32f, 1.0f));
+			clearColor = nvgRGBAf(0.3f, 0.3f, 0.32f, 1.0f);
+		nvgClearWithColor(vg, clearColor);
 
 		nvgBeginFrame(vg, winWidth, winHeight, scaleFactor);
 

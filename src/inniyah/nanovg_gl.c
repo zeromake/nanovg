@@ -1605,6 +1605,11 @@ int nvglCreateImageFromHandleGLES3(NVGcontext* ctx, unsigned int textureId, int 
 	return tex->id;
 }
 
+void nvgClearWithColor(NVGcontext* ctx, NVGcolor color) {
+	glClearColor(color.r, color.g, color.b, color.a);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+}
+
 #if defined NANOVG_GL2
 unsigned int nvglImageHandleGL2(NVGcontext* ctx, int image)
 #elif defined NANOVG_GL3

@@ -94,7 +94,7 @@ void mnvgDeleteFramebuffer(MNVGframebuffer* framebuffer);
 //
 
 // Clear context on next frame, must be called before nvgEndFrame
-void mnvgClearWithColor(NVGcontext* ctx, NVGcolor color);
+void nvgClearWithColor(NVGcontext* ctx, NVGcolor color);
 
 // Returns a pointer to the corresponded `id<MTLCommandQueue>` object.
 void* mnvgCommandQueue(NVGcontext* ctx);

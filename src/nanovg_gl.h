@@ -289,6 +289,11 @@ static unsigned int glnvg__nearestPow2(unsigned int num)
 }
 #endif
 
+void nvgClearWithColor(NVGcontext* ctx, NVGcolor color) {
+	glClearColor(color.r, color.g, color.b, color.a);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+}
+
 static void glnvg__bindTexture(GLNVGcontext* gl, GLuint tex)
 {
 #if NANOVG_GL_USE_STATE_FILTER

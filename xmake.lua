@@ -3,7 +3,9 @@ add_rules("mode.debug", "mode.release")
 add_requires("glew")
 add_requires("glfw")
 add_requires("stb")
-add_requires("sdl2")
+-- add_requires("sdl2")
+
+add_defines("DEMO_USE_CJK")
 
 target("nanovg")
     set_kind("static")
@@ -54,10 +56,14 @@ target("example")
     )
     add_defines("NANOVG_USE_GLEW", "NANOVG_GL3", "NANOVG_GLEW")
     add_packages("glew", "glfw", "stb")
-    add_frameworks("OpenGL")
     add_deps("nanovg")
     if is_plat("windows", "mingw") then
         add_files("src/resource.rc")
+        if is_plat("mingw") then
+            add_ldflags("-static-libgcc", "-static-libstdc++")
+        end
+    elseif is_plat("macosx") then
+        add_frameworks("OpenGL")
     end
 
 target("example_inniyah")
@@ -141,6 +147,9 @@ target("example_d3d11")
     -- add_deps("nanovg_awtk")
     if is_plat("windows", "mingw") then
         add_files("src/resource.rc")
+        if is_plat("mingw") then
+            add_ldflags("-static-libgcc", "-static-libstdc++")
+        end
     end
     add_defines("NANOVG_DISABLE_GL")
     add_syslinks("user32", "d3d11")

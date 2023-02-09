@@ -841,6 +841,16 @@ int loadDemoData(NVGcontext* vg, DemoData* data)
 		printf("Could not add font emoji.\n");
 		return -1;
 	}
+#ifdef DEMO_USE_CJK
+#if defined(_WIN32)
+	data->fontCJK = nvgCreateFont(vg, "cjk", "C:\\Windows\\Fonts\\msyh.ttc");
+#elif defined(__APPLE__)
+	data->fontCJK = nvgCreateFont(vg, "cjk", "/System/Library/Fonts/PingFang.ttc");
+#endif
+	if (data->fontCJK > 0) {
+		nvgAddFallbackFontId(vg, data->fontNormal, data->fontCJK);
+	}
+#endif
 	nvgAddFallbackFontId(vg, data->fontNormal, data->fontEmoji);
 	nvgAddFallbackFontId(vg, data->fontBold, data->fontEmoji);
 
@@ -862,7 +872,11 @@ void drawParagraph(NVGcontext* vg, float x, float y, float width, float height, 
 {
 	NVGtextRow rows[3];
 	NVGglyphPosition glyphs[100];
+#ifdef DEMO_USE_CJK
+	const char* text = "This is longer chunk of text.\n  \n  nanovg正如其名称所示的那样，是一个非常小巧的矢量绘图函数库。相比cairo和skia的数十万行代码，nanovg不足5000行的C语言代码，称为nano也是名副其实了。🎉";
+#else
 	const char* text = "This is longer chunk of text.\n  \n  Would have used lorem ipsum but she    was busy jumping over the lazy dog with the fox and all the men who came to the aid of the party.🎉";
+#endif
 	const char* start;
 	const char* end;
 	int nrows, i, nglyphs, j, lnum = 0;

@@ -24,7 +24,7 @@
 #include "nanovg_d3d11.h"
 #include "demo.h"
 #include "perf.h"
-#include <Windows.h>
+#include <windows.h>
 #include <windowsx.h>
 
 int blowup = 0;
@@ -62,7 +62,7 @@ HWND hWndMain = 0;
 
 // Forward declarations of functions included in this code module:
 ATOM MyRegisterClass(HINSTANCE hInstance);
-BOOL InitInstance(HINSTANCE, int);
+BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, HWND* hWnd);
 BOOL InitializeDX(unsigned int x, unsigned int y);
 void UnInitializeDX();
 HRESULT ResizeWindow(unsigned int x, unsigned int y);
@@ -470,7 +470,7 @@ BOOL InitializeDX(unsigned int x, unsigned int y)
     
     if (SUCCEEDED(hr))
     {
-        hr = ID3D11Device_QueryInterface(pDevice, &IID_IDXGIDevice, &pDXGIDevice);
+        hr = ID3D11Device_QueryInterface(pDevice, &IID_IDXGIDevice, (void**)&pDXGIDevice);
     }
     if (SUCCEEDED(hr))
     {

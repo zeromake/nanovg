@@ -101,7 +101,7 @@ int main(int argc, const char * argv[]) {
         prevWinHeight = winHeight;
 		NVGcolor clearColor;
 		if (premult)
-			clearColor = nvgRGBAf(0.0f, 0.0f, 0.0f, 0.0f);
+			clearColor = nvgRGBAf(0.0f, 0.0f, 0.0f, 1.0f);
 		else
 			clearColor = nvgRGBAf(0.3f, 0.3f, 0.32f, 1.0f);
 		nvgClearWithColor(vg, clearColor);

@@ -122,6 +122,7 @@ int main(int argc, const char * argv[]) {
 		glfwPollEvents();
 	}
 	printf("Average Frame Time: %.2f ms\n", getGraphAverage(&fps) * 1000.0f);
+	printf("          CPU Time: %.2f ms\n", getGraphAverage(&cpuGraph) * 1000.0f);
 	freeDemoData(vg, &data);
     nvgDeleteMTL(vg);
 	glfwTerminate();

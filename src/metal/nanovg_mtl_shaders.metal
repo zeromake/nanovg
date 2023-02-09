@@ -130,7 +130,12 @@ fragment float4 fragmentShaderAA(RasterizerData in [[stage_in]],
                                  sampler sampler [[sampler(0)]]) {
   float scissor = scissorMask(uniforms, in.fpos);
   if (scissor == 0)
-    return float4(0);
+    discard_fragment();
+
+  float strokeAlpha = strokeMask(uniforms, in.ftcoord);
+  if (strokeAlpha < uniforms.strokeThr) {
+    discard_fragment();
+  }
 
   if (uniforms.type == 2) {  // MNVG_SHADER_IMG
     float4 color = texture.sample(sampler, in.ftcoord);
@@ -140,11 +145,6 @@ fragment float4 fragmentShaderAA(RasterizerData in [[stage_in]],
       color = float4(color.x);
     color *= scissor;
     return color * uniforms.innerCol;
-  }
-
-  float strokeAlpha = strokeMask(uniforms, in.ftcoord);
-  if (strokeAlpha < uniforms.strokeThr) {
-    return float4(0);
   }
 
   if (uniforms.type == 0) {  // MNVG_SHADER_FILLGRAD

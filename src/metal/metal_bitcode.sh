@@ -26,9 +26,6 @@
 # This script compiles the metal source file "nanovg_mtl_shaders.metal"
 # into metallib binary data as defined in "nanovg_mtl_metallib_*.h" headers.
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $DIR/../src
-
 result=true
 
 PREFIX="mnvg_bitcode"

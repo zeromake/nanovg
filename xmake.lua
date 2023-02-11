@@ -7,6 +7,10 @@ add_requires("stb")
 
 add_defines("DEMO_USE_CJK")
 
+if is_plat("windows") then
+    add_cxflags("/utf-8")
+end
+
 target("nanovg")
     set_kind("static")
     add_files(

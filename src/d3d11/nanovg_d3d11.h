@@ -63,9 +63,9 @@ void nvd3dImageFlags(struct NVGcontext* ctx, int image, int flags);
 #include "nanovg.h"
 #include <d3d11.h>
 
-#include "D3D11VertexShader.h"
-#include "D3D11PixelShaderAA.h"
-#include "D3D11PixelShader.h"
+#include "nvg_shader/D3D11VertexShader.h"
+#include "nvg_shader/D3D11PixelShaderAA.h"
+#include "nvg_shader/D3D11PixelShader.h"
 
 // The cpp calling is much simpler.
 // For 'c' calling of DX, we need to do pPtr->lpVtbl->Func(pPtr, ...)

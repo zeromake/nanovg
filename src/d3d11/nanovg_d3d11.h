@@ -636,9 +636,7 @@ static int D3Dnvg__renderCreateTexture(void* uptr, int type, int w, int h, int i
 			texDesc.BindFlags |= D3D11_BIND_RENDER_TARGET;
 			texDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 		}
-	}
-	else
-	{
+	} else {
 		texDesc.Format = DXGI_FORMAT_R8_UNORM;
 		pixelWidthBytes = 1;
 		texDesc.MipLevels = 1;
@@ -647,7 +645,12 @@ static int D3Dnvg__renderCreateTexture(void* uptr, int type, int w, int h, int i
 	texDesc.Width = tex->width;
 	texDesc.SampleDesc.Count = 1;
 	texDesc.SampleDesc.Quality = 0;
-	texDesc.Usage = D3D11_USAGE_DEFAULT;
+	if (imageFlags & NVG_IMAGE_STREAMING) {
+		texDesc.Usage = D3D11_USAGE_DYNAMIC;
+		texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	} else {
+		texDesc.Usage = D3D11_USAGE_DEFAULT;
+	}
 
 	hr = D3D_API_3(D3D->pDevice, CreateTexture2D, &texDesc, NULL, &tex->tex);
 	if (FAILED(hr))
@@ -662,7 +665,7 @@ static int D3Dnvg__renderCreateTexture(void* uptr, int type, int w, int h, int i
 
 	viewDesc.Format = texDesc.Format;
 	viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	viewDesc.Texture2D.MipLevels = (UINT)-1;
+	viewDesc.Texture2D.MipLevels = texDesc.MipLevels;
 	viewDesc.Texture2D.MostDetailedMip = 0;
 
 	D3D_API_3(D3D->pDevice, CreateShaderResourceView, (ID3D11Resource*)tex->tex, &viewDesc, &tex->resourceView);

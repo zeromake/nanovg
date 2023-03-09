@@ -624,8 +624,7 @@ static int D3Dnvg__renderCreateTexture(void* uptr, int type, int w, int h, int i
 	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	texDesc.CPUAccessFlags = 0;
 	texDesc.MipLevels = 1;
-	if (type == NVG_TEXTURE_RGBA)
-	{
+	if (type == NVG_TEXTURE_RGBA) {
 		texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		pixelWidthBytes = 4;
 
@@ -716,9 +715,39 @@ static int D3Dnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int 
 		pixelWidthBytes = 1;
 	}
 
-	pData = (unsigned char*)data + (y * (tex->width * pixelWidthBytes)) + (x * pixelWidthBytes);
-	D3D_API_6(D3D->pDeviceContext, UpdateSubresource, (ID3D11Resource*)tex->tex, 0, &box, pData, tex->width, tex->width * tex->height);
+	if (tex->flags & NVG_IMAGE_COPY_SWAP) {
+		ID3D11Texture2D *stagingTexture;
+		D3D11_TEXTURE2D_DESC stagingTextureDesc;
+		D3D11_MAPPED_SUBRESOURCE textureMemory;
+		const Uint8 *src;
+		Uint8 *dst;
 
+		tex->tex->GetDesc(&stagingTextureDesc);
+		stagingTextureDesc.Width = w;
+		stagingTextureDesc.Height = h;
+		stagingTextureDesc.BindFlags = 0;
+		stagingTextureDesc.MiscFlags = 0;
+		stagingTextureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		stagingTextureDesc.Usage = D3D11_USAGE_STAGING;
+
+		HRESULT hr = D3D_API_3(D3D->pDevice, CreateTexture2D, &stagingTextureDesc, NULL, &stagingTexture);
+		if (FAILED(hr)) {
+			return 0;
+		}
+		hr = D3D_API_5(D3D->pDeviceContext, Map, stagingTexture, 0, D3D11_MAP_WRITE, 0, &textureMemory);
+		if (FAILED(hr)) {
+			return 0;
+		}
+		UINT length = w * pixelWidthBytes;
+		src = (const Uint8 *)data;
+		dst = (Uint8 *)textureMemory.pData;
+		memcpy(dst, src, length*h);
+		D3D_API_2(D3D->pDeviceContext, Unmap, stagingTexture, 0);
+		D3D->pDeviceContext->CopySubresourceRegion((ID3D11Resource *)tex->tex, 0, x, y, 0, (ID3D11Resource *)stagingTexture, 0, NULL);
+	} else {
+		pData = (unsigned char*)data + (y * (tex->width * pixelWidthBytes)) + (x * pixelWidthBytes);
+		D3D_API_6(D3D->pDeviceContext, UpdateSubresource, (ID3D11Resource*)tex->tex, 0, &box, pData, tex->width, tex->width * tex->height);
+	}
 	return 1;
 }
 

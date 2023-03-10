@@ -744,6 +744,7 @@ static int D3Dnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int 
 		memcpy(dst, src, length*h);
 		D3D_API_2(D3D->pDeviceContext, Unmap, stagingTexture, 0);
 		D3D->pDeviceContext->CopySubresourceRegion((ID3D11Resource *)tex->tex, 0, x, y, 0, (ID3D11Resource *)stagingTexture, 0, NULL);
+		D3D_API_RELEASE(stagingTexture);
 	} else {
 		pData = (unsigned char*)data + (y * (tex->width * pixelWidthBytes)) + (x * pixelWidthBytes);
 		D3D_API_6(D3D->pDeviceContext, UpdateSubresource, (ID3D11Resource*)tex->tex, 0, &box, pData, tex->width, tex->width * tex->height);

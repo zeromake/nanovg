@@ -132,6 +132,7 @@ struct D3DNVGshader {
 struct D3DNVGtexture {
 	int id;
 	ID3D11Texture2D* tex;
+	ID3D11Texture2D* stagingTex;
 	ID3D11ShaderResourceView* resourceView;
 	int width, height;
 	int type;
@@ -270,6 +271,10 @@ static int D3Dnvg__deleteTexture(struct D3DNVGcontext* D3D, int id)
 			{
 				D3D_API_RELEASE(D3D->textures[i].tex);
 				D3D_API_RELEASE(D3D->textures[i].resourceView);
+				if (D3D->textures[i].stagingTex != NULL) {
+					D3D_API_RELEASE(D3D->textures[i].stagingTex);
+					D3D->textures[i].stagingTex = NULL;
+				}
 			}
 			memset(&D3D->textures[i], 0, sizeof(D3D->textures[i]));
 			return 1;
@@ -719,21 +724,27 @@ static int D3Dnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int 
 		ID3D11Texture2D *stagingTexture;
 		D3D11_TEXTURE2D_DESC stagingTextureDesc;
 		D3D11_MAPPED_SUBRESOURCE textureMemory;
+		HRESULT hr;
 		const Uint8 *src;
 		Uint8 *dst;
-
-		tex->tex->GetDesc(&stagingTextureDesc);
-		stagingTextureDesc.Width = w;
-		stagingTextureDesc.Height = h;
-		stagingTextureDesc.BindFlags = 0;
-		stagingTextureDesc.MiscFlags = 0;
-		stagingTextureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		stagingTextureDesc.Usage = D3D11_USAGE_STAGING;
-
-		HRESULT hr = D3D_API_3(D3D->pDevice, CreateTexture2D, &stagingTextureDesc, NULL, &stagingTexture);
-		if (FAILED(hr)) {
-			return 0;
+		// 缓存临时 texture
+		if (tex->stagingTex) {
+			stagingTexture = tex->stagingTex;
+		} else {
+			tex->tex->GetDesc(&stagingTextureDesc);
+			stagingTextureDesc.Width = w;
+			stagingTextureDesc.Height = h;
+			stagingTextureDesc.BindFlags = 0;
+			stagingTextureDesc.MiscFlags = 0;
+			stagingTextureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			stagingTextureDesc.Usage = D3D11_USAGE_STAGING;
+			hr = D3D_API_3(D3D->pDevice, CreateTexture2D, &stagingTextureDesc, NULL, &stagingTexture);
+			if (FAILED(hr)) {
+				return 0;
+			}
+			tex->stagingTex = stagingTexture;
 		}
+
 		hr = D3D_API_5(D3D->pDeviceContext, Map, stagingTexture, 0, D3D11_MAP_WRITE, 0, &textureMemory);
 		if (FAILED(hr)) {
 			return 0;
@@ -744,7 +755,6 @@ static int D3Dnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int 
 		memcpy(dst, src, length*h);
 		D3D_API_2(D3D->pDeviceContext, Unmap, stagingTexture, 0);
 		D3D->pDeviceContext->CopySubresourceRegion((ID3D11Resource *)tex->tex, 0, x, y, 0, (ID3D11Resource *)stagingTexture, 0, NULL);
-		D3D_API_RELEASE(stagingTexture);
 	} else {
 		pData = (unsigned char*)data + (y * (tex->width * pixelWidthBytes)) + (x * pixelWidthBytes);
 		D3D_API_6(D3D->pDeviceContext, UpdateSubresource, (ID3D11Resource*)tex->tex, 0, &box, pData, tex->width, tex->width * tex->height);

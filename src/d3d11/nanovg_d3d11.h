@@ -79,6 +79,8 @@ void nvd3dImageFlags(struct NVGcontext* ctx, int image, int flags);
 #define D3D_API_4(p, name, arg1, arg2, arg3, arg4) p->name(arg1, arg2, arg3, arg4)
 #define D3D_API_5(p, name, arg1, arg2, arg3, arg4, arg5) p->name(arg1, arg2, arg3, arg4, arg5)
 #define D3D_API_6(p, name, arg1, arg2, arg3, arg4, arg5, arg6) p->name(arg1, arg2, arg3, arg4, arg5, arg6)
+#define D3D_API_7(p, name, arg1, arg2, arg3, arg4, arg5, arg6, arg7) p->name(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+#define D3D_API_8(p, name, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) p->name(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 #define D3D_API_RELEASE(p) { if ( (p) ) { (p)->Release(); (p) = NULL; } }
 #else
 #define D3D_API(p, name) p->lpVtbl->name(p)
@@ -88,6 +90,8 @@ void nvd3dImageFlags(struct NVGcontext* ctx, int image, int flags);
 #define D3D_API_4(p, name, arg1, arg2, arg3, arg4) p->lpVtbl->name(p, arg1, arg2, arg3, arg4)
 #define D3D_API_5(p, name, arg1, arg2, arg3, arg4, arg5) p->lpVtbl->name(p, arg1, arg2, arg3, arg4, arg5)
 #define D3D_API_6(p, name, arg1, arg2, arg3, arg4, arg5, arg6) p->lpVtbl->name(p, arg1, arg2, arg3, arg4, arg5, arg6)
+#define D3D_API_7(p, name, arg1, arg2, arg3, arg4, arg5, arg6, arg7) p->lpVtbl->name(p, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+#define D3D_API_8(p, name, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) p->lpVtbl->name(p, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 #define D3D_API_RELEASE(p) { if ( (p) ) { (p)->lpVtbl->Release((p)); (p) = NULL; } }
 #endif
 
@@ -725,8 +729,8 @@ static int D3Dnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int 
 		D3D11_TEXTURE2D_DESC stagingTextureDesc;
 		D3D11_MAPPED_SUBRESOURCE textureMemory;
 		HRESULT hr;
-		const Uint8 *src;
-		Uint8 *dst;
+		const unsigned char *src;
+		unsigned char *dst;
 		// 缓存临时 texture
 		if (tex->stagingTex) {
 			stagingTexture = tex->stagingTex;
@@ -749,12 +753,25 @@ static int D3Dnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int 
 		if (FAILED(hr)) {
 			return 0;
 		}
-		UINT length = w * pixelWidthBytes;
-		src = (const Uint8 *)data;
-		dst = (Uint8 *)textureMemory.pData;
-		memcpy(dst, src, length*h);
+		unsigned int length = w * pixelWidthBytes;
+		unsigned int pitch = length;
+		src = (const unsigned char *)data;
+		dst = (unsigned char *)textureMemory.pData;
+		if (length == textureMemory.RowPitch) {
+			memcpy(dst, src, length*h);
+		} else {
+			if (length > textureMemory.RowPitch) {
+				length = textureMemory.RowPitch;
+			}
+			int row;
+			for (row = 0; row < h; ++row) {
+				memcpy(dst, src, length);
+				src += pitch;
+				dst += textureMemory.RowPitch;
+			}
+		}
 		D3D_API_2(D3D->pDeviceContext, Unmap, stagingTexture, 0);
-		D3D->pDeviceContext->CopySubresourceRegion((ID3D11Resource *)tex->tex, 0, x, y, 0, (ID3D11Resource *)stagingTexture, 0, NULL);
+		D3D_API_8(D3D->pDeviceContext, CopySubresourceRegion, (ID3D11Resource *)tex->tex, 0, x, y, 0, (ID3D11Resource *)stagingTexture, 0, NULL);
 	} else {
 		pData = (unsigned char*)data + (y * (tex->width * pixelWidthBytes)) + (x * pixelWidthBytes);
 		D3D_API_6(D3D->pDeviceContext, UpdateSubresource, (ID3D11Resource*)tex->tex, 0, &box, pData, tex->width, tex->width * tex->height);

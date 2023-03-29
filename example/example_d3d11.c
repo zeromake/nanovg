@@ -178,7 +178,7 @@ void Draw(HWND hWnd)
 	}
 
     // Don't wait for VBlank
-    IDXGISwapChain_Present(pSwapChain, 0, 0);
+    IDXGISwapChain_Present(pSwapChain, 1, 0);
 }
 
 // Window message loop
@@ -301,11 +301,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, HWND* hWnd)
     RECT rcWin;
     
     hInst = hInstance; // Store instance handle in our global variable
-
+    UINT dpi = GetDpiForSystem() / 96.0f;
     rcWin.left = 0;
-    rcWin.right = 1000;
+    rcWin.right = 1000 * dpi;
     rcWin.top = 0;
-    rcWin.bottom = 600;
+    rcWin.bottom = 600 * dpi;
   
     AdjustWindowRectEx(&rcWin, WS_OVERLAPPEDWINDOW, FALSE, 0);
     

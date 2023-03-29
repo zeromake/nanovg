@@ -118,7 +118,7 @@ int main()
 	if (loadDemoData(vg, &data) == -1)
 		return -1;
 
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 
 	initGPUTimer(&gpuTimer);
 

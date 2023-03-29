@@ -735,7 +735,7 @@ static int D3Dnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int 
 		if (tex->stagingTex) {
 			stagingTexture = tex->stagingTex;
 		} else {
-			tex->tex->GetDesc(&stagingTextureDesc);
+			D3D_API_1(tex->tex, GetDesc, &stagingTextureDesc);
 			stagingTextureDesc.Width = w;
 			stagingTextureDesc.Height = h;
 			stagingTextureDesc.BindFlags = 0;
@@ -749,7 +749,7 @@ static int D3Dnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int 
 			tex->stagingTex = stagingTexture;
 		}
 
-		hr = D3D_API_5(D3D->pDeviceContext, Map, stagingTexture, 0, D3D11_MAP_WRITE, 0, &textureMemory);
+		hr = D3D_API_5(D3D->pDeviceContext, Map, (ID3D11Resource*)stagingTexture, 0, D3D11_MAP_WRITE, 0, &textureMemory);
 		if (FAILED(hr)) {
 			return 0;
 		}
@@ -770,7 +770,7 @@ static int D3Dnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int 
 				dst += textureMemory.RowPitch;
 			}
 		}
-		D3D_API_2(D3D->pDeviceContext, Unmap, stagingTexture, 0);
+		D3D_API_2(D3D->pDeviceContext, Unmap, (ID3D11Resource*)stagingTexture, 0);
 		D3D_API_8(D3D->pDeviceContext, CopySubresourceRegion, (ID3D11Resource *)tex->tex, 0, x, y, 0, (ID3D11Resource *)stagingTexture, 0, NULL);
 	} else {
 		pData = (unsigned char*)data + (y * (tex->width * pixelWidthBytes)) + (x * pixelWidthBytes);

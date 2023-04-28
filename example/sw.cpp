@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
         die("mpv init failed");
 
     mpv_request_log_messages(mpv, "debug");
+    mpv_set_option_string(mpv, "hwdec", "auto");
 
     // Jesus Christ SDL, you suck!
     SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "no");

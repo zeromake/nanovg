@@ -37,7 +37,8 @@ target_end()
 if get_config("example") then
     add_defines("DEMO_USE_CJK")
     add_defines(format('EXAMPLE_PATH="%s"', path.absolute(path.join(os.scriptdir(), "example")):gsub('\\', '/')..'/'))
-    add_requires("sdl2", "mpv", "glew", "glfw")
+    -- add_requires("glew")
+    add_requires("sdl2", {configs={shared=true}})
 
     target("example")
         add_includedirs("src")
@@ -57,6 +58,46 @@ if get_config("example") then
         elseif is_plat("macosx") then
             add_frameworks("OpenGL")
         end
+    target_end()
+
+    target("example_gles")
+        if is_plat("android") then
+            add_defines("ANDROID")
+            set_kind("shared")
+        else
+            set_kind("binary")
+        end
+        add_includedirs("src")
+        add_files(
+            "example/example_sdl_gles3.c"
+        )
+        add_packages("sdl2", "stb")
+        add_deps("nanovg")
+        if is_plat("windows", "mingw") then
+            add_files("src/resource.rc")
+            if is_plat("mingw") then
+                add_ldflags("-static-libgcc", "-static-libstdc++")
+            end
+        elseif is_plat("macosx") then
+            add_frameworks("OpenGL")
+        end
+        after_build(function (target)
+            if target:is_plat("android") then
+                local outDir = "project/android/app/libs/"..target:arch().."/"
+                for _, pkg in pairs(target:pkgs()) do
+                    if pkg:has_shared() then
+                        for _, f in ipairs(pkg:libraryfiles()) do
+                            if f ~= nil and f:endswith(".so") then
+                                os.cp(f, outDir)
+                                print("cp "..f.." "..outDir)
+                            end
+                        end
+                    end
+                end
+                os.cp(target:targetfile(), outDir)
+                return
+            end
+        end)
     target_end()
 
     if is_plat("macosx") then

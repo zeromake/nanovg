@@ -37,8 +37,11 @@ target_end()
 if get_config("example") then
     add_defines("DEMO_USE_CJK")
     add_defines(format('EXAMPLE_PATH="%s"', path.absolute(path.join(os.scriptdir(), "example")):gsub('\\', '/')..'/'))
-    -- add_requires("glew")
-    add_requires("sdl2", {configs={shared=true}})
+    if is_plat("android") then
+        add_requires("sdl2", {configs={shared=true}})
+    else
+        add_requires("glew", "sdl2", "glfw")
+    end
 
     target("example")
         add_includedirs("src")

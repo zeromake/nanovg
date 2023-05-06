@@ -102,12 +102,11 @@ jobs:
           export JAVA_HOME=$JAVA_HOME_11_X64
           cd project/android
           ./gradlew assembleRelease
-          tree ./app/build/outputs
-          cp ./app/build/outputs/apk/release/app-release.apk ../../dist/app-release.apk
+          cp ./app/build/outputs/apk/release/app-release-unsigned.apk ../../dist/app.apk
           cd -
       - uses: actions/upload-artifact@v3
         with:
           name: onscripter-linux-${{ github.run_id }}
           path: |
-            dist/app-release.apk
+            dist/app.apk
             dist/example

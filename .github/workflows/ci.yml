@@ -87,10 +87,10 @@ jobs:
           xmake f -c -y --example=y
           xmake build example
           cp ./build/linux/x86_64/release/example ./dist/
-      - name: build-arm-so
-        run: |
-          xmake f -p android -a armeabi-v7a --ndk_sdkver=16 --ndk=${ANDROID_HOME}/ndk/23.2.8568313 -y -c --example=y
-          xmake build example_gles
+      # - name: build-arm-so
+      #   run: |
+      #     xmake f -p android -a armeabi-v7a --ndk_sdkver=16 --ndk=${ANDROID_HOME}/ndk/23.2.8568313 -y -c --example=y
+      #     xmake build example_gles
       - name: build-arm64-so
         env:
           VERSION: ${{ github.ref_name }}

@@ -23,10 +23,12 @@ jobs:
       - name: pre-repo
         shell: powershell
         run: |
-          xrepo add-repo local https://github.com/zeromake/xrepo.git
+          $env:path+=";C:\Users\$($env:username)\xmake"
+          xmake repo -a local https://github.com/zeromake/xrepo.git
       - name: build
         shell: powershell
         run: |
+          $env:path+=";C:\Users\$($env:username)\xmake"
           xmake f -c -y --example=y
           xmake build example
           xmake build example_d3d11
@@ -41,7 +43,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: pre-repo
         run: |
-          xrepo add-repo local https://github.com/zeromake/xrepo.git
+          xmake repo -a local https://github.com/zeromake/xrepo.git
       - name: build
         run: |
           xmake f -c -y --example=y
@@ -55,12 +57,12 @@ jobs:
         run: |
           sudo add-apt-repository ppa:xmake-io/xmake
           sudo apt update
-          sudo apt-get install xmake build-essential
+          sudo apt-get install xmake build-essential glfw
           xmake --version
       - uses: actions/checkout@v3
       - name: pre-repo
         run: |
-          xrepo add-repo local https://github.com/zeromake/xrepo.git
+          xmake repo -a local https://github.com/zeromake/xrepo.git
       - name: build
         run: |
           xmake f -c -y --example=y

@@ -23,7 +23,7 @@ static void key(GLFWwindow* window, int key, int scancode, int action, int mods)
 	NVG_NOTUSED(scancode);
 	NVG_NOTUSED(mods);
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
+		glfwSetWindowShouldClose(window, 1);
 	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
 		blowup = !blowup;
 	if (key == GLFW_KEY_S && action == GLFW_PRESS)

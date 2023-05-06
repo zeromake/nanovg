@@ -25,6 +25,7 @@ jobs:
         run: |
           $env:path+=";C:\Users\$($env:username)\xmake"
           xmake repo -a local https://github.com/zeromake/xrepo.git
+          mkdir -p dist
       - name: build
         shell: powershell
         run: |
@@ -32,6 +33,14 @@ jobs:
           xmake f -c -y --example=y
           xmake build example
           xmake build example_d3d11
+          cp ./build/windows/x64/release/example.exe ./dist/
+          cp ./build/windows/x64/release/example_d3d11.exe ./dist/
+      - uses: actions/upload-artifact@v3
+        with:
+          name: onscripter-osx-${{ github.run_id }}
+          path: |
+            dist/example.exe
+            dist/example_d3d11.exe
   build-osx:
     name: macos build
     runs-on: macos-latest
@@ -44,11 +53,20 @@ jobs:
       - name: pre-repo
         run: |
           xmake repo -a local https://github.com/zeromake/xrepo.git
+          mkdir -p dist
       - name: build
         run: |
           xmake f -c -y --example=y
           xmake build example
           xmake build example_metal
+          cp ./build/macosx/x86_64/release/example ./dist/
+          cp ./build/macosx/x86_64/release/example_metal ./dist/
+      - uses: actions/upload-artifact@v3
+        with:
+          name: onscripter-osx-${{ github.run_id }}
+          path: |
+            dist/example
+            dist/example_metal
   build-linux:
     name: linux build
     runs-on: ubuntu-latest
@@ -57,13 +75,38 @@ jobs:
         run: |
           sudo add-apt-repository ppa:xmake-io/xmake
           sudo apt update
-          sudo apt-get install xmake build-essential glfw
+          sudo apt-get install xmake build-essential libglfw3-dev
           xmake --version
       - uses: actions/checkout@v3
       - name: pre-repo
         run: |
           xmake repo -a local https://github.com/zeromake/xrepo.git
+          mkdir -p dist
       - name: build
         run: |
           xmake f -c -y --example=y
           xmake build example
+          cp ./build/linux/x86_64/release/example ./dist/
+      - name: build-arm-so
+        run: |
+          xmake f -p android -a armeabi-v7a --ndk_sdkver=16 --ndk=${ANDROID_HOME}/ndk/23.2.8568313 -y -c
+          xmake build -y example_gles
+      - name: build-arm64-so
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          xmake f -p android -a arm64-v8a --ndk_sdkver=21 --ndk=${ANDROID_NDK} -y -c
+          xmake build -y example_gles
+      - name: build-apk
+        run: |
+          export JAVA_HOME=$JAVA_HOME_11_X64
+          cd project/android
+          ./gradlew assembleRelease
+          cp ./app/build/outputs/apk/release/app-release.apk ../../dist/app-release.apk
+          cd -
+      - uses: actions/upload-artifact@v3
+        with:
+          name: onscripter-linux-${{ github.run_id }}
+          path: |
+            dist/app-release.apk
+            dist/example

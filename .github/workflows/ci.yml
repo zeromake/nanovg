@@ -75,7 +75,7 @@ jobs:
         run: |
           sudo add-apt-repository ppa:xmake-io/xmake
           sudo apt update
-          sudo apt-get install xmake build-essential libglfw3-dev
+          sudo apt-get install xmake build-essential libglfw3-dev tree
           xmake --version
       - uses: actions/checkout@v3
       - name: pre-repo
@@ -102,6 +102,7 @@ jobs:
           export JAVA_HOME=$JAVA_HOME_11_X64
           cd project/android
           ./gradlew assembleRelease
+          tree ./app/build/outputs
           cp ./app/build/outputs/apk/release/app-release.apk ../../dist/app-release.apk
           cd -
       - uses: actions/upload-artifact@v3

@@ -2,7 +2,8 @@
 
 @vs vs
 uniform VS_CONSTANTS {
-    vec2 viewSize;
+    mat4 dummy;
+    vec4 viewSize;
 };
 in vec2 vertex;
 in vec2 tcoord;
@@ -57,16 +58,24 @@ float scissorMask(vec2 p) {
     sc = vec2(0.5,0.5) - sc * scissorScale;
     return clamp(sc.x,0.0,1.0) * clamp(sc.y,0.0,1.0);
 }
+
+#ifdef EDGE_AA
 // Stroke - from [0..1] to clipped pyramid, where the slope is 1px.
 float strokeMask() {
     return min(1.0, (1.0-abs(ftcoord.x*2.0-1.0))*strokeMult) * min(1.0, ftcoord.y);
 }
+#endif
 
 void main(void) {
     vec4 result;
-    float scissor = scissorMask(fpos);
+
+#ifdef EDGE_AA
     float strokeAlpha = strokeMask();
-    // if (strokeAlpha < strokeThr) discard;
+    if (strokeAlpha < strokeThr) discard;
+#else
+    float strokeAlpha = 1.0;
+#endif
+    float scissor = scissorMask(fpos);
     if (type == 0) {    // Gradient
         // Calculate gradient color using box gradient
         vec2 pt = (paintMat * vec3(fpos,1.0)).xy;

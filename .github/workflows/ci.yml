@@ -15,23 +15,18 @@ jobs:
         with:
           sdk-version: 20348
       - name: Install NSIS
+        shell: powershell
         run: |
-          iwr -useb get.scoop.sh -outfile 'install.ps1'
-          .\install.ps1 -RunAsAdmin
-          scoop update
-          scoop bucket add extras
-          scoop install xmake
+          Invoke-Expression (Invoke-Webrequest 'https://xmake.io/psget.text' -UseBasicParsing).Content
+          xmake --version
+      - uses: actions/checkout@v3
       - name: pre-repo
         shell: powershell
         run: |
-          $env:path+=";$Home\scoop\shims"
           xrepo add-repo local https://github.com/zeromake/xrepo.git
       - name: build
-        env:
-          VERSION: ${{ github.ref_name }}
         shell: powershell
         run: |
-          $env:path+=";$Home\scoop\shims"
           xmake f -c -y --example=y
           xmake build example
           xmake build example_d3d11
@@ -58,6 +53,8 @@ jobs:
     steps:
       - name: install-xmake
         run: |
+          sudo add-apt-repository ppa:xmake-io/xmake
+          sudo apt update
           sudo apt-get install xmake build-essential
           xmake --version
       - uses: actions/checkout@v3

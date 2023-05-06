@@ -18,6 +18,7 @@ target("nanovg")
     )
     add_packages("stb")
     add_headerfiles("src/*.h")
+target_end()
 
 if is_plat("macosx") then
 target("nanovg_metal")
@@ -26,6 +27,7 @@ target("nanovg_metal")
     add_headerfiles("src/metal/*.h")
     add_headerfiles("src/metal/mnvg_bitcode/*.h", {prefixdir="mnvg_bitcode"})
     add_files("src/metal/nanovg_mtl.m")
+target_end()
 end
 
 target("nanovg_d3d11")
@@ -40,7 +42,7 @@ if get_config("example") then
     if is_plat("android") then
         add_requires("sdl2", {configs={shared=true}})
     else
-        add_requires("glew", "sdl2", "glfw")
+        add_requires("glew", "glfw")
     end
 
     target("example")
@@ -106,7 +108,6 @@ if get_config("example") then
     if is_plat("macosx") then
         target("example_metal")
             add_includedirs("src")
-            -- add_includedirs("src/awtk/base")
             add_includedirs("src/metal")
             add_files("example/example_metal.mm")
             add_files(
@@ -115,31 +116,30 @@ if get_config("example") then
             )
             add_deps("nanovg")
             add_deps("nanovg_metal")
-            -- add_deps("nanovg_awtk")
             add_frameworks("Metal", "MetalKit", "QuartzCore")
             add_packages("glfw", "stb")
             add_defines("NANOVG_DISABLE_GL")
-
-            target("example_sdl2")
-            add_includedirs("src")
-            -- add_includedirs("src/awtk/base", "src/awtk/gl")
-            add_files(
-                "example/example_sdl2.c"
-            )
-            add_files(
-                "example/demo.c",
-                "example/perf.c"
-            )
-            add_packages("sdl2", "stb", "glew", "glfw")
-            add_defines("NANOVG_GL3", "NANOVG_GL3_IMPLEMENTATION", "NANOVG_GLEW")
-            add_deps("nanovg")
-            -- add_deps("nanovg_awtk")
-            add_frameworks("OpenGL")
-            if is_plat("windows", "mingw") then
-                add_files("src/resource.rc")
-            end
         target_end()
     end
+
+    target("example_sdl2")
+        add_includedirs("src")
+        add_files(
+            "example/example_sdl2.c"
+        )
+        add_files(
+            "example/demo.c",
+            "example/perf.c"
+        )
+        add_packages("sdl2", "stb", "glew")
+        add_defines("NANOVG_GLEW")
+        add_deps("nanovg")
+        if is_plat("windows", "mingw") then
+            add_files("src/resource.rc")
+        elseif is_plat("macosx") then
+            add_frameworks("OpenGL")
+        end
+    target_end()
 
     target("example_d3d11")
         add_includedirs("src")

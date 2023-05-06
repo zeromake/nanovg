@@ -37,7 +37,7 @@ jobs:
           cp ./build/windows/x64/release/example_d3d11.exe ./dist/
       - uses: actions/upload-artifact@v3
         with:
-          name: onscripter-osx-${{ github.run_id }}
+          name: onscripter-windows-${{ github.run_id }}
           path: |
             dist/example.exe
             dist/example_d3d11.exe

@@ -6,23 +6,65 @@ env:
   BUILD_TYPE: release
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ ubuntu-latest]
-
+  build-windows:
+    name: windows build
+    runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Install required packages
-      run: sudo apt-get install premake4 build-essential libglfw3-dev libglew-dev pkg-config
-
-    - name: Premake
-      run:  premake4 gmake
-
-# due to glew problems with in the current ubuntu-latest, we don't build the examples (yet)
-# https://github.com/openai/mujoco-py/issues/383 has the same problem for reference
-# this doesn't happen in focal 
-    - name: Make
-      run:  cd build && make nanovg 
+      - name: Setup Windows 10 SDK
+        uses: GuillaumeFalourd/setup-windows10-sdk-action@v1.11
+        with:
+          sdk-version: 20348
+      - name: Install NSIS
+        run: |
+          iwr -useb get.scoop.sh -outfile 'install.ps1'
+          .\install.ps1 -RunAsAdmin
+          scoop update
+          scoop bucket add extras
+          scoop install xmake
+      - name: pre-repo
+        shell: powershell
+        run: |
+          $env:path+=";$Home\scoop\shims"
+          xrepo add-repo local https://github.com/zeromake/xrepo.git
+      - name: build
+        env:
+          VERSION: ${{ github.ref_name }}
+        shell: powershell
+        run: |
+          $env:path+=";$Home\scoop\shims"
+          xmake f -c -y --example=y
+          xmake build example
+          xmake build example_d3d11
+  build-osx:
+    name: macos build
+    runs-on: macos-latest
+    steps:
+      - name: install-xmake
+        run: |
+          brew install xmake
+          xmake --version
+      - uses: actions/checkout@v3
+      - name: pre-repo
+        run: |
+          xrepo add-repo local https://github.com/zeromake/xrepo.git
+      - name: build
+        run: |
+          xmake f -c -y --example=y
+          xmake build example
+          xmake build example_metal
+  build-linux:
+    name: linux build
+    runs-on: ubuntu-latest
+    steps:
+      - name: install-xmake
+        run: |
+          sudo apt-get install xmake build-essential
+          xmake --version
+      - uses: actions/checkout@v3
+      - name: pre-repo
+        run: |
+          xrepo add-repo local https://github.com/zeromake/xrepo.git
+      - name: build
+        run: |
+          xmake f -c -y --example=y
+          xmake build example

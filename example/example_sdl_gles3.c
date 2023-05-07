@@ -37,6 +37,12 @@
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
+#include <android/log.h>
+#define TAG "sdl"
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__);
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__);
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__);
+
 #ifndef ANDROID
 #undef main
 #endif
@@ -117,42 +123,61 @@ int main(int argc, char **argv) {
     int quit=0;
     SDL_Event event;
     glViewport(0, 0, fbWidth, fbHeight);
-
 #if defined(_WIN32)
-	int fontCJK = nvgCreateFont(vg, "cjk", "C:\\Windows\\Fonts\\msyh.ttc");
+	int fontCJK = nvgCreateFont(vg, "cjk", "/system/fonts/NotoSansCJK-Regular.ttc");
 #elif defined(__APPLE__)
 	int fontCJK = nvgCreateFont(vg, "cjk", "/System/Library/Fonts/PingFang.ttc");
 #elif defined(ANDROID)
+    int fontNormal = nvgCreateFont(vg, "sans", "/system/fonts/Roboto-Regular.ttf");
 	int fontCJK = nvgCreateFont(vg, "cjk", "/system/fonts/DroidSansFallback.ttf");
+    nvgAddFallbackFontId(vg, fontNormal, fontCJK);
 #endif
+    // int fontEmoji = nvgCreateFont(vg, "emoji", "/system/fonts/NotoColorEmoji.ttf");
+    // nvgAddFallbackFontId(vg, fontNormal, fontEmoji);
+    const char* text = "🕊️nanovg正如其名称所示的那样，是一个非常小巧的矢量绘图函数库。相比cairo和skia的数十万行代码，nanovg不足5000行的C语言代码，称为nano也是名副其实了。🎉";
     while (!quit) {
         SDL_PollEvent(&event);
-
         switch(event.type) {
             case SDL_QUIT:
                 quit=1;
                 break;
         }
-        
+
 		// Update and render
 		glClearColor(0,0,0,0);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
         nvgBeginFrame(vg, winWidth, winHeight, fbRatio);
+
         nvgBeginPath(vg);
-        nvgRect(vg, 300, 300, 300, 300);
-        nvgFillColor(vg, nvgRGBA(0, 0, 192, 255));
+        nvgRect(vg, 0, 0, winWidth, winHeight);
+        nvgFillColor(vg, nvgRGBA(0xef, 0xe6, 0xc7, 255));
         nvgFill(vg);
 
-		nvgFillColor(vg, nvgRGBA(255,255,255,255));
-        nvgFontSize(vg, 36.0f);
-	    nvgFontFaceId(vg, fontCJK);
+	    const char* start;
+	    const char* end;
+        int nrows;
+        int x = 100;
+        int y = 100;
+        float lineh = 0;
+		nvgFillColor(vg, nvgRGBA(0x49,0x43,0x30,255));
+        nvgFontSize(vg, 72.0f);
+	    nvgFontFace(vg, "sans");
         nvgTextAlign(vg, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
-        nvgTextBoxBounds(vg, 600, 600, 300, "nanovg正如其名称所示的那样，"
-        "是一个非常小巧的矢量绘图函数库。"
-        "相比cairo和skia的数十万行代码，"
-        "nanovg不足5000行的C语言代码，"
-        "称为nano也是名副其实了。🎉", NULL, NULL);
+	    nvgTextMetrics(vg, NULL, NULL, &lineh);
+
+	    NVGtextRow rows[3];
+	    start = text;
+	    end = text + strlen(text);
+
+	    while ((nrows = nvgTextBreakLines(vg, start, end, 1000, rows, 3))) {
+            for (int i = 0; i < nrows; i++) {
+                NVGtextRow* row = &rows[i];
+                nvgText(vg, x, y, row->start, row->end);
+                y += lineh;
+            }
+		    start = rows[nrows-1].next;
+        }
         nvgEndFrame(vg);
 
         SDL_GL_SwapWindow(window);

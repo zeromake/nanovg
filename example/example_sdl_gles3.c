@@ -144,6 +144,7 @@ int main(int argc, char **argv) {
         nvgFillColor(vg, nvgRGBA(0, 0, 192, 255));
         nvgFill(vg);
 
+		nvgFillColor(vg, nvgRGBA(255,255,255,255));
         nvgFontSize(vg, 36.0f);
 	    nvgFontFaceId(vg, fontCJK);
         nvgTextAlign(vg, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);

@@ -128,12 +128,15 @@ int main(int argc, char **argv) {
 #elif defined(__APPLE__)
 	int fontCJK = nvgCreateFont(vg, "cjk", "/System/Library/Fonts/PingFang.ttc");
 #elif defined(ANDROID)
+    // DroidSansFallback.ttf
+    // DroidSansChinese.ttf
+    // NotoSansSC-Regular.otf
     int fontNormal = nvgCreateFont(vg, "sans", "/system/fonts/Roboto-Regular.ttf");
-	int fontCJK = nvgCreateFont(vg, "cjk", "/system/fonts/DroidSansFallback.ttf");
-    nvgAddFallbackFontId(vg, fontNormal, fontCJK);
-#endif
+	int fontCJK = nvgCreateFont(vg, "cjk", "/system/fonts/NotoSansSC-Regular.otf");
     // int fontEmoji = nvgCreateFont(vg, "emoji", "/system/fonts/NotoColorEmoji.ttf");
     // nvgAddFallbackFontId(vg, fontNormal, fontEmoji);
+    nvgAddFallbackFontId(vg, fontNormal, fontCJK);
+#endif
     const char* text = "🕊️nanovg正如其名称所示的那样，是一个非常小巧的矢量绘图函数库。相比cairo和skia的数十万行代码，nanovg不足5000行的C语言代码，称为nano也是名副其实了。🎉";
     while (!quit) {
         SDL_PollEvent(&event);

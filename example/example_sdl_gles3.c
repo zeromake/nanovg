@@ -17,16 +17,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#ifdef NANOVG_GLEW
-#include <GL/glew.h>
-#else
+#if __ANDROID_API__ >= 24
+#include <GLES3/gl32.h>
+#elif __ANDROID_API__ >= 21
+#include <GLES3/gl31.h>
+#elif __ANDROID_API__ >= 18
 #include <GLES3/gl3.h>
+#else
+#include <GLES2/gl2.h>
+#define NANOVG_GL2_IMPLEMENTATION 1
+#endif
+
+#ifndef NANOVG_GL2_IMPLEMENTATION
+#define NANOVG_GL3_IMPLEMENTATION 1
 #endif
 
 #include <SDL2/SDL.h>
 
 #include "nanovg.h"
-#define NANOVG_GLES3_IMPLEMENTATION
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
@@ -42,10 +50,20 @@ int main(int argc, char **argv) {
 
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+#ifdef NANOVG_GL2
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+#elif defined(NANOVG_GL3)
+#if __ANDROID_API__ >= 24
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+#elif __ANDROID_API__ >= 21
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+#else
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#endif
+#endif
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     // Try with these GL attributes
@@ -79,8 +97,12 @@ int main(int argc, char **argv) {
 	// GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.
 	glGetError();
 #endif
-
-    NVGcontext* vg = nvgCreateGLES3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+    NVGcontext* vg = NULL;
+#if defined(NANOVG_GL3)
+    vg = nvgCreateGLES3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+#elif defined(NANOVG_GL2)
+    vg = nvgCreateGLES2(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+#endif
     if (vg == NULL) {
         printf("ERROR: NanoVG init failed");
         return EXIT_FAILURE;
@@ -120,6 +142,10 @@ int main(int argc, char **argv) {
         SDL_GL_SwapWindow(window);
         SDL_Delay(10);
     }
+#if defined(NANOVG_GL3)
     nvgDeleteGLES3(vg);
+#elif defined(NANOVG_GL2)
+    nvgDeleteGLES2(vg);
+#endif
     return EXIT_SUCCESS;
 }

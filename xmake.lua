@@ -5,7 +5,15 @@ option("example")
     set_showmenu(true)
 option_end()
 
+option("freetype")
+    set_default(false)
+    set_showmenu(true)
+option_end()
+
 add_requires("stb")
+if get_config("freetype") then
+    add_requires("freetype")
+end
 
 if is_plat("windows") then
     add_cxflags("/utf-8")
@@ -18,6 +26,10 @@ target("nanovg")
     )
     add_packages("stb")
     add_headerfiles("src/*.h")
+    if get_config("freetype") then
+        add_defines("FONS_USE_FREETYPE")
+        add_packages("freetype")
+    end
 target_end()
 
 if is_plat("macosx") then

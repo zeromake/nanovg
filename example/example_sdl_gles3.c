@@ -118,6 +118,13 @@ int main(int argc, char **argv) {
     SDL_Event event;
     glViewport(0, 0, fbWidth, fbHeight);
 
+#if defined(_WIN32)
+	int fontCJK = nvgCreateFont(vg, "cjk", "C:\\Windows\\Fonts\\msyh.ttc");
+#elif defined(__APPLE__)
+	int fontCJK = nvgCreateFont(vg, "cjk", "/System/Library/Fonts/PingFang.ttc");
+#elif defined(ANDROID)
+	int fontCJK = nvgCreateFont(vg, "cjk", "/system/fonts/DroidSansFallback.ttf");
+#endif
     while (!quit) {
         SDL_PollEvent(&event);
 
@@ -136,6 +143,15 @@ int main(int argc, char **argv) {
         nvgRect(vg, 300, 300, 300, 300);
         nvgFillColor(vg, nvgRGBA(0, 0, 192, 255));
         nvgFill(vg);
+
+        nvgFontSize(vg, 36.0f);
+	    nvgFontFaceId(vg, fontCJK);
+        nvgTextAlign(vg, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
+        nvgTextBoxBounds(vg, 600, 600, 300, "nanovg正如其名称所示的那样，"
+        "是一个非常小巧的矢量绘图函数库。"
+        "相比cairo和skia的数十万行代码，"
+        "nanovg不足5000行的C语言代码，"
+        "称为nano也是名副其实了。🎉", NULL, NULL);
         nvgEndFrame(vg);
 
         SDL_GL_SwapWindow(window);

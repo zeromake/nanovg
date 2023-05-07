@@ -30,6 +30,9 @@
 #include "nanovg_gl.h"
 #include "demo.h"
 #include "perf.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 
 void errorcb(int error, const char* desc)
@@ -82,11 +85,16 @@ int main()
 #endif
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 
+#ifdef _WIN32
+	float sizeScale = GetDpiForSystem() / 96.0f;
+#else
+	float sizeScale = 1.0f;
+#endif
+
 #ifdef DEMO_MSAA
 	glfwWindowHint(GLFW_SAMPLES, 4);
 #endif
 	window = glfwCreateWindow(1000, 600, "NanoVG", NULL, NULL);
-//	window = glfwCreateWindow(1000, 600, "NanoVG", glfwGetPrimaryMonitor(), NULL);
 	if (!window) {
 		glfwTerminate();
 		return -1;
@@ -155,6 +163,9 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
 		nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
+		// if (sizeScale != 1.0f) {
+		// 	nvgScale(vg, sizeScale, sizeScale);
+		// }
 
 		renderDemo(vg, mx,my, winWidth,winHeight, t, blowup, &data);
 

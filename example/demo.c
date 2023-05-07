@@ -850,6 +850,8 @@ int loadDemoData(NVGcontext* vg, DemoData* data)
 	data->fontCJK = nvgCreateFont(vg, "cjk", "C:\\Windows\\Fonts\\msyh.ttc");
 #elif defined(__APPLE__)
 	data->fontCJK = nvgCreateFont(vg, "cjk", "/System/Library/Fonts/PingFang.ttc");
+#elif defined(ANDROID)
+	data->fontCJK = nvgCreateFont(vg, "cjk", "/system/fonts/DroidSansFallback.ttf");
 #endif
 	if (data->fontCJK > 0) {
 		nvgAddFallbackFontId(vg, data->fontNormal, data->fontCJK);

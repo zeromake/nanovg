@@ -25,15 +25,14 @@
 #include <GLES3/gl3.h>
 #else
 #include <GLES2/gl2.h>
-#define NANOVG_GL2_IMPLEMENTATION 1
+#define NANOVG_GLES2_IMPLEMENTATION 1
 #endif
 
-#ifndef NANOVG_GL2_IMPLEMENTATION
-#define NANOVG_GL3_IMPLEMENTATION 1
+#ifndef NANOVG_GLES2_IMPLEMENTATION
+#define NANOVG_GLES3_IMPLEMENTATION 1
 #endif
 
 #include <SDL2/SDL.h>
-
 #include "nanovg.h"
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
@@ -50,11 +49,11 @@ int main(int argc, char **argv) {
 
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-#ifdef NANOVG_GL2
+#ifdef NANOVG_GLES2
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#elif defined(NANOVG_GLES3)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-#elif defined(NANOVG_GL3)
 #if __ANDROID_API__ >= 24
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 #elif __ANDROID_API__ >= 21
@@ -98,9 +97,9 @@ int main(int argc, char **argv) {
 	glGetError();
 #endif
     NVGcontext* vg = NULL;
-#if defined(NANOVG_GL3)
+#if defined(NANOVG_GLES3)
     vg = nvgCreateGLES3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-#elif defined(NANOVG_GL2)
+#elif defined(NANOVG_GLES2)
     vg = nvgCreateGLES2(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 #endif
     if (vg == NULL) {

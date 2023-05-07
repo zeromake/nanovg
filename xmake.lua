@@ -78,13 +78,12 @@ if get_config("example") then
         )
         add_packages("sdl2", "stb")
         add_deps("nanovg")
-        if is_plat("windows", "mingw") then
-            add_files("src/resource.rc")
-            if is_plat("mingw") then
-                add_ldflags("-static-libgcc", "-static-libstdc++")
+        if is_plat("android") then
+            if is_arch("arm64*") then
+                add_syslinks("GLESv3")
+            else
+                add_syslinks("GLESv2")
             end
-        elseif is_plat("macosx") then
-            add_frameworks("OpenGL")
         end
         after_build(function (target)
             if target:is_plat("android") then

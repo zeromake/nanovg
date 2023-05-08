@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">ONScripter</string>
+    <string name="app_name">nanovg</string>
     <string name="crash_log">获取日志</string>
 </resources>

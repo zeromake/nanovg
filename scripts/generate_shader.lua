@@ -2,6 +2,7 @@ import("net.http")
 
 local languages = {
     "glsl330",
+    "glsl100",
     "glsl300es",
     "hlsl5",
     "metal_macos",
@@ -17,7 +18,7 @@ end
 
 local downloads = {
     windows="https://raw.githubusercontent.com/floooh/sokol-tools-bin/master/bin/win32/sokol-shdc.exe",
-    osx="https://raw.githubusercontent.com/floooh/sokol-tools-bin/master/bin/osx/sokol-shdc",
+    macosx="https://raw.githubusercontent.com/floooh/sokol-tools-bin/master/bin/osx/sokol-shdc",
     linux="https://raw.githubusercontent.com/floooh/sokol-tools-bin/master/bin/linux/sokol-shdc",
 }
 
@@ -28,17 +29,20 @@ function main()
         local url = downloads[os.host()]
         print("download: "..url.." -> "..shdc_path)
         http.download(url, shdc_path)
+        if os.host() ~= "windows" then
+            os.vexecv("chmod", {"+x", shdc_path})
+        end
     end
     os.mkdir(path.join(os.scriptdir(), "../build/shader"))
     os.mkdir(path.join(os.scriptdir(), "../build/shader_aa"))
     os.cd(path.join(os.scriptdir(), "../build/shader"))
     for _, language in ipairs(languages) do
-        os.vexecv(shdc_path, {"-i", shdc_shader_path, "-l", language, "-f", "bare", "-o", "._"})
+        os.vexecv(shdc_path, {"-i", shdc_shader_path, "-l", language, "-f", "bare", "-o", "."})
     end
     os.cd("-")
     os.cd(path.join(os.scriptdir(), "../build/shader_aa"))
     for _, language in ipairs(languages) do
-        os.vexecv(shdc_path, {"-i", shdc_shader_path, "-l", language, "-f", "bare", "--defines=EDGE_AA", "-o", "._"})
+        os.vexecv(shdc_path, {"-i", shdc_shader_path, "-l", language, "-f", "bare", "--defines=EDGE_AA", "-o", "."})
     end
     os.cd("-")
 end

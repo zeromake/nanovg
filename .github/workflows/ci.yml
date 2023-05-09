@@ -73,9 +73,8 @@ jobs:
     steps:
       - name: install-xmake
         run: |
-          sudo add-apt-repository ppa:xmake-io/xmake
-          sudo apt update
-          sudo apt-get install xmake build-essential libglfw3-dev tree
+          sudo apt-get install libglfw3-dev tree
+          curl -fsSL https://xmake.io/shget.text | bash
           xmake --version
       - uses: actions/checkout@v3
       - name: pre-repo

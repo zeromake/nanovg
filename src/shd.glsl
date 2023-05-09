@@ -2,8 +2,8 @@
 
 @vs vs
 uniform VS_CONSTANTS {
-    mat4 dummy;
-    vec4 viewSize;
+    // mat4 dummy;
+    vec2 viewSize;
 };
 in vec2 vertex;
 in vec2 tcoord;

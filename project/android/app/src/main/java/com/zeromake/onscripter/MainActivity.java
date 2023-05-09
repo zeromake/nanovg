@@ -18,12 +18,12 @@ import java.util.List;
 
 public class MainActivity extends SDLActivity implements OnPermissionCallback {
     public static String ARGS_KEY = "args";
-    private String[]  arguments = new String[]{};
+    private String[] arguments = new String[]{};
     private String rootPath = null;
 
     @Override
     protected boolean initWindowStyle() {
-        return false;
+        return true;
     }
 
     @Override

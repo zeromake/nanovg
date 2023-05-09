@@ -151,9 +151,11 @@ void fonsDrawDebug(FONScontext* s, float x, float y);
 #include FT_FREETYPE_H
 #include FT_ADVANCES_H
 #include <math.h>
+#include <stdbool.h>
 
 struct FONSttFontImpl {
 	FT_Face font;
+	bool color_font;
 };
 typedef struct FONSttFontImpl FONSttFontImpl;
 
@@ -324,6 +326,7 @@ int fons__tt_loadFont(FONScontext *context, FONSttFontImpl *font, unsigned char 
 	FONS_NOTUSED(context);
 
 	ftError = FT_New_Memory_Face(context->ftLibrary, (const FT_Byte*)data, dataSize, fontIndex, &font->font);
+	font->color_font = FT_HAS_COLOR(font->font);
 	return ftError == 0;
 }
 
@@ -354,10 +357,10 @@ int fons__tt_buildGlyphBitmap(FONSttFontImpl *font, int glyph, float size, float
 
 	ftError = FT_Set_Pixel_Sizes(font->font, 0, size);
 	if (ftError) return 0;
-    int flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT | FT_LOAD_TARGET_LIGHT;
-    if (FT_HAS_COLOR(font->font)) {
-        flags |= FT_LOAD_COLOR;
-    }
+    int flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;// | FT_LOAD_RENDER | FT_LOAD_TARGET_LIGHT;
+	// if (font->color_font) {
+	// 	flags |= FT_LOAD_COLOR;
+	// }
 	ftError = FT_Load_Glyph(font->font, glyph, flags);
 	if (ftError) return 0;
 	ftError = FT_Render_Glyph(font->font->glyph, FT_RENDER_MODE_NORMAL);

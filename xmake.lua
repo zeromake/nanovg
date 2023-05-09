@@ -12,7 +12,12 @@ option_end()
 
 add_requires("stb")
 if get_config("freetype") then
-    add_requires("freetype")
+    add_requires("freetype", {configs={
+        zlib=true,
+        bzip2=true,
+        brotli=true,
+        png=true
+    }})
 end
 
 if is_plat("windows") then
@@ -37,7 +42,6 @@ target("nanovg_metal")
     set_kind("$(kind)")
     add_includedirs("src")
     add_headerfiles("src/metal/*.h")
-    add_headerfiles("src/metal/mnvg_bitcode/*.h", {prefixdir="mnvg_bitcode"})
     add_files("src/metal/nanovg_mtl.m")
 target_end()
 end
@@ -54,7 +58,7 @@ if get_config("example") then
     if is_plat("android") then
         add_requires("sdl2", {configs={shared=true}})
     else
-        add_requires("glew", "glfw")
+        add_requires("glew", "glfw", "sdl2")
     end
 
     target("example")
@@ -83,6 +87,8 @@ if get_config("example") then
             set_kind("shared")
         else
             set_kind("binary")
+            add_defines("NANOVG_GLEW")
+            add_packages("glew")
         end
         add_includedirs("src")
         add_files(
@@ -96,6 +102,9 @@ if get_config("example") then
             else
                 add_syslinks("GLESv2")
             end
+        end
+        if is_plat("windows", "mingw") then
+            add_files("src/resource.rc")
         end
         after_build(function (target)
             if target:is_plat("android") then

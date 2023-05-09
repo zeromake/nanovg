@@ -69,12 +69,14 @@ jobs:
             dist/example_metal
   build-linux:
     name: linux build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: install-xmake
         run: |
           sudo apt-get install libglfw3-dev tree
-          curl -fsSL https://xmake.io/shget.text | bash
+          curl -L -o xmake-amd64.deb https://launchpad.net/~xmake-io/+archive/ubuntu/xmake/+files/xmake_2.7.8+1jammy_amd64.deb
+          sudo apt-get install -y ./xmake-amd64.deb
+          rm ./xmake-amd64.deb
           xmake --version
       - uses: actions/checkout@v3
       - name: pre-repo

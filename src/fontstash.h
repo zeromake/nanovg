@@ -357,7 +357,8 @@ int fons__tt_buildGlyphBitmap(FONSttFontImpl *font, int glyph, float size, float
 
 	ftError = FT_Set_Pixel_Sizes(font->font, 0, size);
 	if (ftError) return 0;
-    int flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;// | FT_LOAD_RENDER | FT_LOAD_TARGET_LIGHT;
+    int flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;// | FT_LOAD_NO_HINTING | FT_LOAD_RENDER | FT_LOAD_TARGET_LIGHT;
+	// font tex is r8 not support rgba
 	// if (font->color_font) {
 	// 	flags |= FT_LOAD_COLOR;
 	// }

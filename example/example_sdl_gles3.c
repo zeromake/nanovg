@@ -124,7 +124,8 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 #endif
-    NVGcontext* vg = nvgCreate(NVG_ANTIALIAS | NVG_STENCIL_STROKES, window);
+    int createFlags = NVG_ANTIALIAS | NVG_STENCIL_STROKES;
+    NVGcontext* vg = nvgCreate(createFlags, window);
     if (vg == NULL) {
         printf("ERROR: NanoVG init failed");
         return EXIT_FAILURE;
@@ -135,10 +136,6 @@ int main(int argc, char **argv) {
     int fbWidth = winWidth;
     int fbHeight = winHeight;
     SDL_GetWindowSizeInPixels(window, &fbWidth, &fbHeight);
-
-    float fbRatio = (float)fbWidth / (float)winWidth;
-
-#define DP(px) (int)((float)px * fbRatio)
 
     int quit=0;
     SDL_Event event;
@@ -190,6 +187,9 @@ int main(int argc, char **argv) {
     bool change = true;
     int prevW = winWidth;
     int prevH = winHeight;
+    float fbRatio = (float)fbWidth / (float)winWidth;
+
+#define DP(px) (int)((float)px * fbRatio)
     while (!quit) {
         SDL_PollEvent(&event);
         switch(event.type) {
@@ -205,6 +205,7 @@ int main(int argc, char **argv) {
         }
         if (change) {
             SDL_GetWindowSizeInPixels(window, &fbWidth, &fbHeight);
+            fbRatio = (float)fbWidth / (float)winWidth;
             nvgResetFrameBuffer(vg, fbWidth, fbHeight);
 
             // Update and render
@@ -224,7 +225,7 @@ int main(int argc, char **argv) {
             int y = DP(50);
             float lineh = 0;
             nvgFillColor(vg, nvgRGBA(0x49,0x43,0x30,255));
-            nvgFontSize(vg, 36.0f);
+            nvgFontSize(vg, 48.0f);
             nvgFontFace(vg, "sans");
             nvgTextAlign(vg, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
             nvgTextMetrics(vg, NULL, NULL, &lineh);

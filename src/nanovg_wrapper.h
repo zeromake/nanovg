@@ -4,8 +4,10 @@
 
 #include "nanovg.h"
 
-NVGcontext* nvgCreate(int flags);
+NVGcontext* nvgCreate(int flags, void* window);
 void nvgDelete(NVGcontext* ctx);
+void nvgClearWithColor(NVGcontext* ctx, NVGcolor color);
+void nvgResetFrameBuffer(NVGcontext* ctx, int width, int height);
 
 #ifdef NANOVG_IMPLEMENTATION
 #if defined(NANOVG_USE_GL)
@@ -20,7 +22,7 @@ void nvgDelete(NVGcontext* ctx);
 #endif
 #include "nanovg_gl.h"
 
-NVGcontext* nvgCreate(int flags) {
+NVGcontext* nvgCreate(int flags, void* window) {
 #if defined(NANOVG_USE_GL2)
     return nvgCreateGL2(flags);
 #elif defined(NANOVG_USE_GL3)
@@ -44,11 +46,33 @@ void nvgDelete(NVGcontext* ctx) {
 #endif
 }
 
+void nvgResetFrameBuffer(NVGcontext* ctx, int width, int height) {
+    glViewport(0, 0, width, height);
+}
+
 #elif defined(NANOVG_USE_D3D11)
 #define NANOVG_D3D11_IMPLEMENTATION
 #include "nanovg_d3d11.h"
 #elif defined(NANOVG_USE_METAL)
 #include "nanovg_mtl.h"
+#include "metal_helper.h"
+NVGcontext* nvgCreate(int flags, void* window) {
+    MetalContext* ctx = CreateMetalContext(window);
+    void* metalLayer = GetMetalLayer(ctx);
+    NVGcontext* vg = nvgCreateMTL(metalLayer, flags);
+    nvgSetUserPtr(vg, (void*)ctx);
+    return vg;
+}
+void nvgDelete(NVGcontext* ctx) {
+    nvgDeleteMTL(ctx);
+    void* metalCtx = nvgGetUserPtr(ctx);
+    DestroyMetalContext((MetalContext*)metalCtx);
+    nvgSetUserPtr(ctx, NULL);
+}
+
+void nvgResetFrameBuffer(NVGcontext* ctx, int width, int height) {
+    ResizeMetalDrawable((MetalContext*)nvgGetUserPtr(ctx), width, height);
+}
 #else
 #error "you need define NANOVG_USE_GL|NANOVG_USE_D3D11|NANOVG_USE_METAL"
 #endif

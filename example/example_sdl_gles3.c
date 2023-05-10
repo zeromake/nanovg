@@ -49,6 +49,8 @@
 #ifdef NANOVG_GLEW
 #include <GL/glew.h>
 #endif
+#elif defined(__APPLE__)
+#define NANOVG_USE_METAL 1
 #endif
 
 #include <SDL2/SDL.h>
@@ -67,6 +69,7 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+#ifdef NANOVG_USE_GL
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
 #ifdef NANOVG_USE_GLES2
@@ -89,11 +92,15 @@ int main(int argc, char **argv) {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_CORE);
 #endif
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+#endif
 
     // Try with these GL attributes
     // SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
     // SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
-    int windowflags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
+    int windowflags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI;
+#ifdef NANOVG_USE_GL
+    windowflags |= SDL_WINDOW_OPENGL;
+#endif
 #ifndef ANDROID
     windowflags |= SDL_WINDOW_RESIZABLE;
 #endif
@@ -106,8 +113,10 @@ int main(int argc, char **argv) {
         800,
         windowflags);
 
+#ifdef NANOVG_USE_GL
     SDL_GLContext context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, context);
+#endif
 #ifdef NANOVG_GLEW
 	glewExperimental = GL_TRUE;
 	if(glewInit() != GLEW_OK) {
@@ -115,7 +124,7 @@ int main(int argc, char **argv) {
 		return -1;
 	}
 #endif
-    NVGcontext* vg = nvgCreate(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+    NVGcontext* vg = nvgCreate(NVG_ANTIALIAS | NVG_STENCIL_STROKES, window);
     if (vg == NULL) {
         printf("ERROR: NanoVG init failed");
         return EXIT_FAILURE;
@@ -123,20 +132,27 @@ int main(int argc, char **argv) {
 
     int winWidth = 0, winHeight = 0;
     SDL_GetWindowSize(window, &winWidth, &winHeight);
-
     int fbWidth = winWidth;
     int fbHeight = winHeight;
+    SDL_GetWindowSizeInPixels(window, &fbWidth, &fbHeight);
+
     float fbRatio = (float)fbWidth / (float)winWidth;
+
+#define DP(px) (int)((float)px * fbRatio)
 
     int quit=0;
     SDL_Event event;
-    glViewport(0, 0, fbWidth, fbHeight);
+    NVGcolor bgColor = nvgRGBA(0xef, 0xe6, 0xc7, 255);
+    nvgResetFrameBuffer(vg, fbWidth, fbHeight);
+    nvgClearWithColor(vg, bgColor);
 #if defined(_WIN32)
 	int fontNormal = nvgCreateFont(vg, "sans", "C:\\Windows\\Fonts\\msyh.ttc");
     int fontEmoji = nvgCreateFont(vg, "emoji", "C:\\Windows\\Fonts\\seguiemj.ttf");
     nvgAddFallbackFontId(vg, fontNormal, fontEmoji);
 #elif defined(__APPLE__)
 	int fontNormal = nvgCreateFont(vg, "sans", "/System/Library/Fonts/PingFang.ttc");
+    int fontEmoji = nvgCreateFont(vg, "emoji", "/System/Library/Fonts/Apple Color Emoji.ttc");
+    nvgAddFallbackFontId(vg, fontNormal, fontEmoji);
 #elif defined(ANDROID)
     char* cjks[] = {
         "/system/fonts/NotoSansSC-Regular.otf",
@@ -188,29 +204,27 @@ int main(int argc, char **argv) {
             change = true;
         }
         if (change) {
-            fbWidth = winWidth;
-            fbHeight = winHeight;
-            glViewport(0, 0, fbWidth, fbHeight);
+            SDL_GetWindowSizeInPixels(window, &fbWidth, &fbHeight);
+            nvgResetFrameBuffer(vg, fbWidth, fbHeight);
 
             // Update and render
-            glClearColor(0,0,0,0);
-            glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+            nvgClearWithColor(vg, bgColor);
 
             nvgBeginFrame(vg, winWidth, winHeight, fbRatio);
 
-            nvgBeginPath(vg);
-            nvgRect(vg, 0, 0, winWidth, winHeight);
-            nvgFillColor(vg, nvgRGBA(0xef, 0xe6, 0xc7, 255));
-            nvgFill(vg);
+            // nvgBeginPath(vg);
+            // nvgRect(vg, 0, 0, winWidth, winHeight);
+            // nvgFillColor(vg, nvgRGBA(0xef, 0xe6, 0xc7, 255));
+            // nvgFill(vg);
 
             const char* start;
             const char* end;
             int nrows;
-            int x = 100;
-            int y = 100;
+            int x = DP(50);
+            int y = DP(50);
             float lineh = 0;
             nvgFillColor(vg, nvgRGBA(0x49,0x43,0x30,255));
-            nvgFontSize(vg, 72.0f);
+            nvgFontSize(vg, 36.0f);
             nvgFontFace(vg, "sans");
             nvgTextAlign(vg, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
             nvgTextMetrics(vg, NULL, NULL, &lineh);
@@ -218,12 +232,12 @@ int main(int argc, char **argv) {
             NVGtextRow rows[3];
             start = text;
             end = text + strlen(text);
-            while ((nrows = nvgTextBreakLines(vg, start, end, winWidth - 200, rows, 3))) {
+            while ((nrows = nvgTextBreakLines(vg, start, end, winWidth - DP(80), rows, 3))) {
                 for (int i = 0; i < nrows; i++) {
                     NVGtextRow* row = &rows[i];
                     nvgText(vg, x, y, row->start, row->end);
                     y += lineh;
-                    if (y > (winHeight - 100)) {
+                    if (y > (winHeight - DP(50))) {
                         goto loop;
                     }
                 }

@@ -135,6 +135,7 @@ struct NVGcontext {
 	int fillTriCount;
 	int strokeTriCount;
 	int textTriCount;
+    void* userPtr;
 };
 
 static float nvg__sqrtf(float a) { return sqrtf(a); }
@@ -2948,5 +2949,12 @@ void nvgTextMetrics(NVGcontext* ctx, float* ascender, float* descender, float* l
 		*descender *= invscale;
 	if (lineh != NULL)
 		*lineh *= invscale;
+}
+
+void nvgSetUserPtr(NVGcontext* ctx, void* userPtr) {
+    ctx->userPtr = userPtr;
+}
+void* nvgGetUserPtr(NVGcontext* ctx) {
+    return ctx->userPtr;
 }
 // vim: ft=c nu noet ts=4

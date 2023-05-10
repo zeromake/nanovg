@@ -12,7 +12,7 @@ option_end()
 
 add_requires("stb")
 if get_config("freetype") then
-    add_requires("freetype", {configs={
+    add_requires("freetype", {system=false,configs={
         zlib=true,
         bzip2=true,
         brotli=true,
@@ -85,6 +85,11 @@ if get_config("example") then
         if is_plat("android") then
             add_defines("ANDROID")
             set_kind("shared")
+        elseif is_plat("macosx") then
+            set_kind("binary")
+            add_deps("nanovg_metal")
+            add_includedirs("src/metal")
+            add_files("src/metal/metal_helper.mm")
         else
             set_kind("binary")
             add_defines("NANOVG_GLEW")
@@ -105,6 +110,8 @@ if get_config("example") then
         end
         if is_plat("windows", "mingw") then
             add_files("src/resource.rc")
+        elseif is_plat("macosx") then
+            add_frameworks("OpenGL", "QuartzCore")
         end
         after_build(function (target)
             if target:is_plat("android") then

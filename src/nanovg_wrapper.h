@@ -54,10 +54,16 @@ void nvgResetFrameBuffer(NVGcontext* ctx, int width, int height) {
 #define NANOVG_D3D11_IMPLEMENTATION
 #include "nanovg_d3d11.h"
 #elif defined(NANOVG_USE_METAL)
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
 #include "nanovg_mtl.h"
 #include "metal_helper.h"
+
 NVGcontext* nvgCreate(int flags, void* window) {
-    MetalContext* ctx = CreateMetalContext(window);
+    SDL_SysWMinfo windowinfo;
+    SDL_GetVersion(&windowinfo.version);
+    SDL_GetWindowWMInfo(window, &windowinfo);
+    MetalContext* ctx = CreateMetalContext((void*)windowinfo.info.cocoa.window);
     void* metalLayer = GetMetalLayer(ctx);
     NVGcontext* vg = nvgCreateMTL(metalLayer, flags);
     nvgSetUserPtr(vg, (void*)ctx);
@@ -67,6 +73,7 @@ void nvgDelete(NVGcontext* ctx) {
     nvgDeleteMTL(ctx);
     void* metalCtx = nvgGetUserPtr(ctx);
     DestroyMetalContext((MetalContext*)metalCtx);
+    metalCtx = NULL;
     nvgSetUserPtr(ctx, NULL);
 }
 

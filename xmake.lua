@@ -43,6 +43,7 @@ target("nanovg_metal")
     add_includedirs("src")
     add_headerfiles("src/metal/*.h")
     add_files("src/metal/nanovg_mtl.m")
+    add_files("src/metal/metal_helper.mm")
 target_end()
 end
 
@@ -89,7 +90,6 @@ if get_config("example") then
             set_kind("binary")
             add_deps("nanovg_metal")
             add_includedirs("src/metal")
-            add_files("src/metal/metal_helper.mm")
         else
             set_kind("binary")
             add_defines("NANOVG_GLEW")
@@ -227,23 +227,23 @@ if get_config("example") then
         end)
     package_end()
 
-    target("demo/sw")
-        add_includedirs("src")
-        add_includedirs("src/d3d11")
-        add_packages(
-            "mpv",
-            "sdl2"
-        )
-        add_defines("__SDL2__")
-        if is_plat("windows", "mingw") then
-            add_files("src/resource.rc")
-            if is_plat("mingw") then
-                add_ldflags("-static-libgcc", "-static-libstdc++")
-            end
-        end
-        add_files("example/sw.cpp")
-        add_files("example/d3d11.cpp")
-        add_deps("nanovg")
-        add_syslinks("d3d11")
-    target_end()
+    -- target("demo/sw")
+    --     add_includedirs("src")
+    --     add_includedirs("src/d3d11")
+    --     add_packages(
+    --         "mpv",
+    --         "sdl2"
+    --     )
+    --     add_defines("__SDL2__")
+    --     if is_plat("windows", "mingw") then
+    --         add_files("src/resource.rc")
+    --         if is_plat("mingw") then
+    --             add_ldflags("-static-libgcc", "-static-libstdc++")
+    --         end
+    --     end
+    --     add_files("example/sw.cpp")
+    --     add_files("example/d3d11.cpp")
+    --     add_deps("nanovg")
+    --     add_syslinks("d3d11")
+    -- target_end()
 end

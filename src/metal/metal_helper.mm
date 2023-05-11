@@ -1,6 +1,4 @@
 #include "metal_helper.h"
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_syswm.h>
 #import <Metal/Metal.h>
 #import <QuartzCore/QuartzCore.h>
 #import <AppKit/AppKit.h>
@@ -19,13 +17,9 @@ extern "C" void DestroyMetalContext(struct MetalContext *ctx) {
     free(ctx);
 }
 
-extern "C" struct MetalContext *CreateMetalContext(void* _window) {
-    SDL_Window* window = (SDL_Window*)_window;
-    struct MetalContext* mtl = (struct MetalContext*)calloc(1, sizeof(struct MetalContext));
-    SDL_SysWMinfo windowinfo;
-    SDL_GetVersion(&windowinfo.version);
-    SDL_GetWindowWMInfo(window, &windowinfo);
-    NSWindow* nswin = (NSWindow*)windowinfo.info.cocoa.window;
+extern "C" struct MetalContext *CreateMetalContext(void* window) {
+    struct MetalContext* mtl = (struct MetalContext*)malloc(1, sizeof(struct MetalContext));
+    NSWindow* nswin = (__bridge NSWindow*)window;
     mtl->win = nswin;
     mtl->device = MTLCreateSystemDefaultDevice();
     mtl->layer = [CAMetalLayer layer];

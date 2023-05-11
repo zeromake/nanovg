@@ -102,7 +102,7 @@ if get_config("example") then
         add_packages("sdl2", "stb")
         add_deps("nanovg")
         if is_plat("android") then
-            if is_arch("arm64*") then
+            if is_arch("arm64-v8a") then
                 add_syslinks("GLESv3")
             else
                 add_syslinks("GLESv2")

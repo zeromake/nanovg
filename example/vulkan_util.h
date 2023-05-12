@@ -565,6 +565,10 @@ FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface
       swapchainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
       break;
     }
+    if (presentModes[i] == VK_PRESENT_MODE_FIFO_KHR) {
+      swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
+      break;
+    }
     if ((swapchainPresentMode != VK_PRESENT_MODE_MAILBOX_KHR) && (presentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR)) {
       swapchainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
     }

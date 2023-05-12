@@ -10,13 +10,13 @@
 #include <vulkan/vulkan.h>
 
 #ifndef DEMO_ANTIALIAS
-#   define DEMO_ANTIALIAS 1
+#define DEMO_ANTIALIAS 1
 #endif
 #ifndef DEMO_STENCIL_STROKES
-#   define DEMO_STENCIL_STROKES 1
+#define DEMO_STENCIL_STROKES 1
 #endif
 #ifndef DEMO_VULKAN_VALIDATON_LAYER
-#   define DEMO_VULKAN_VALIDATON_LAYER 0
+#define DEMO_VULKAN_VALIDATON_LAYER 0
 #endif
 #define NANOVG_VULKAN_IMPLEMENTATION 1
 #include "nanovg.h"
@@ -26,9 +26,12 @@
 #include "perf.h"
 
 #include "vulkan_util.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
-
-void errorcb(int error, const char *desc) {
+void errorcb(int error, const char *desc)
+{
   printf("GLFW error %d: %s\n", error, desc);
 }
 
@@ -37,7 +40,8 @@ int screenshot = 0;
 int premult = 0;
 bool resize_event = false;
 
-static void key(GLFWwindow *window, int key, int scancode, int action, int mods) {
+static void key(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
@@ -48,7 +52,8 @@ static void key(GLFWwindow *window, int key, int scancode, int action, int mods)
     premult = !premult;
 }
 
-void prepareFrame(VkDevice device, VkCommandBuffer cmd_buffer, FrameBuffers *fb) {
+void prepareFrame(VkDevice device, VkCommandBuffer cmd_buffer, FrameBuffers *fb)
+{
   VkResult res;
 
   // Get the index of the next available swapchain image:
@@ -58,9 +63,9 @@ void prepareFrame(VkDevice device, VkCommandBuffer cmd_buffer, FrameBuffers *fb)
                               &fb->current_buffer);
   if (res == VK_ERROR_OUT_OF_DATE_KHR)
   {
-      resize_event = true;
-      res = 0;
-      return;
+    resize_event = true;
+    res = 0;
+    return;
   }
   assert(res == VK_SUCCESS);
 
@@ -91,18 +96,19 @@ void prepareFrame(VkDevice device, VkCommandBuffer cmd_buffer, FrameBuffers *fb)
   vkCmdBeginRenderPass(cmd_buffer, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
 
   VkViewport viewport;
-  viewport.width = (float) fb->buffer_size.width;
-  viewport.height = (float) fb->buffer_size.height;
-  viewport.minDepth = (float) 0.0f;
-  viewport.maxDepth = (float) 1.0f;
-  viewport.x = (float) rp_begin.renderArea.offset.x;
-  viewport.y = (float) rp_begin.renderArea.offset.y;
+  viewport.width = (float)fb->buffer_size.width;
+  viewport.height = (float)fb->buffer_size.height;
+  viewport.minDepth = (float)0.0f;
+  viewport.maxDepth = (float)1.0f;
+  viewport.x = (float)rp_begin.renderArea.offset.x;
+  viewport.y = (float)rp_begin.renderArea.offset.y;
   vkCmdSetViewport(cmd_buffer, 0, 1, &viewport);
 
   VkRect2D scissor = rp_begin.renderArea;
   vkCmdSetScissor(cmd_buffer, 0, 1, &scissor);
 }
-void submitFrame(VkDevice device, VkQueue queue, VkCommandBuffer cmd_buffer, FrameBuffers *fb) {
+void submitFrame(VkDevice device, VkQueue queue, VkCommandBuffer cmd_buffer, FrameBuffers *fb)
+{
   VkResult res;
 
   vkCmdEndRenderPass(cmd_buffer);
@@ -125,12 +131,12 @@ void submitFrame(VkDevice device, VkQueue queue, VkCommandBuffer cmd_buffer, Fra
       },
   };
   vkCmdPipelineBarrier(cmd_buffer,
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-            0,
-            0, NULL,
-            0, NULL,
-            1, &image_barrier);
+                       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                       VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                       0,
+                       0, NULL,
+                       0, NULL,
+                       1, &image_barrier);
 
   vkEndCommandBuffer(cmd_buffer);
 
@@ -163,25 +169,28 @@ void submitFrame(VkDevice device, VkQueue queue, VkCommandBuffer cmd_buffer, Fra
   res = vkQueuePresentKHR(queue, &present);
   if (res == VK_ERROR_OUT_OF_DATE_KHR)
   {
-      res = vkQueueWaitIdle(queue);
-      resize_event = true;
-      res = 0;
-      return;
+    res = vkQueueWaitIdle(queue);
+    resize_event = true;
+    res = 0;
+    return;
   }
   assert(res == VK_SUCCESS);
 
   res = vkQueueWaitIdle(queue);
 }
 
-int main() {
+int main()
+{
   GLFWwindow *window;
 
-  if (!glfwInit()) {
+  if (!glfwInit())
+  {
     printf("Failed to init GLFW.");
     return -1;
   }
 
-  if (!glfwVulkanSupported()) {
+  if (!glfwVulkanSupported())
+  {
     printf("vulkan dose not supported\n");
     return 1;
   }
@@ -191,7 +200,8 @@ int main() {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
   window = glfwCreateWindow(1000, 600, "NanoVG Example Vulkan", NULL, NULL);
-  if (!window) {
+  if (!window)
+  {
     glfwTerminate();
     return -1;
   }
@@ -210,7 +220,8 @@ int main() {
   VkResult res;
   VkSurfaceKHR surface;
   res = glfwCreateWindowSurface(instance, window, 0, &surface);
-  if (VK_SUCCESS != res) {
+  if (VK_SUCCESS != res)
+  {
     printf("glfwCreateWindowSurface failed\n");
     exit(-1);
   }
@@ -218,18 +229,21 @@ int main() {
   uint32_t gpu_count = 0;
 
   res = vkEnumeratePhysicalDevices(instance, &gpu_count, NULL);
-  if (VK_SUCCESS != res && res != VK_INCOMPLETE) {
+  if (VK_SUCCESS != res && res != VK_INCOMPLETE)
+  {
     printf("vkEnumeratePhysicalDevices failed %d \n", res);
     exit(-1);
   }
-  if (gpu_count < 1){
+  if (gpu_count < 1)
+  {
     printf("No Vulkan device found.\n");
     exit(-1);
   }
 
   VkPhysicalDevice gpu[32];
   res = vkEnumeratePhysicalDevices(instance, &gpu_count, gpu);
-  if (res != VK_SUCCESS && res != VK_INCOMPLETE) {
+  if (res != VK_SUCCESS && res != VK_INCOMPLETE)
+  {
     printf("vkEnumeratePhysicalDevices failed %d \n", res);
     exit(-1);
   }
@@ -241,7 +255,8 @@ int main() {
   {
     uint32_t qfc = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(gpu[i], &qfc, NULL);
-    if (qfc < 1)continue;
+    if (qfc < 1)
+      continue;
 
     VkQueueFamilyProperties *queue_family_properties;
     queue_family_properties = malloc(qfc * sizeof(VkQueueFamilyProperties));
@@ -260,7 +275,8 @@ int main() {
         vkGetPhysicalDeviceProperties(gpu[i], &pr);
         idx = i;
         use_idx = true;
-        if(pr.deviceType==VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU){
+        if (pr.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+        {
           discrete_idx = true;
         }
         break;
@@ -268,12 +284,13 @@ int main() {
     }
     free(queue_family_properties);
   }
-  if (!use_idx){
-      printf("Not found suitable queue which supports graphics.\n");
-      exit(-1);
+  if (!use_idx)
+  {
+    printf("Not found suitable queue which supports graphics.\n");
+    exit(-1);
   }
 
-  printf("Using GPU device %lu\n", (unsigned long) idx);
+  printf("Using GPU device %lu\n", (unsigned long)idx);
 
   VulkanDevice *device = createVulkanDevice(gpu[idx]);
 
@@ -305,48 +322,58 @@ int main() {
   NVGcontext *vg = nvgCreateVk(create_info, flags, queue);
 
   DemoData data;
-  PerfGraph fps;//, cpuGraph, gpuGraph;
+  GPUtimer gpuTimer;
+  PerfGraph fps, cpuGraph; //, gpuGraph;
+  double prevt = 0, cpuTime = 0;
   if (loadDemoData(vg, &data) == -1)
     return -1;
 
   initGraph(&fps, GRAPH_RENDER_FPS, "Frame Time");
-  //initGraph(&cpuGraph, GRAPH_RENDER_MS, "CPU Time");
-  //initGraph(&gpuGraph, GRAPH_RENDER_MS, "GPU Time");
-  double prevt = glfwGetTime();
+  initGraph(&cpuGraph, GRAPH_RENDER_MS, "CPU Time");
+  // initGraph(&gpuGraph, GRAPH_RENDER_MS, "GPU Time");
+  initGPUTimer(&gpuTimer);
+  glfwSetTime(0);
+  prevt = glfwGetTime();
 
-  while (!glfwWindowShouldClose(window)) {
+  while (!glfwWindowShouldClose(window))
+  {
     float pxRatio;
     double mx, my, t, dt;
 
     int cwinWidth, cwinHeight;
     glfwGetWindowSize(window, &cwinWidth, &cwinHeight);
-    if ((resize_event)||(winWidth != cwinWidth || winHeight != cwinHeight)) {
+    if ((resize_event) || (winWidth != cwinWidth || winHeight != cwinHeight)) {
       winWidth = cwinWidth;
       winHeight = cwinHeight;
       destroyFrameBuffers(device, &fb);
       fb = createFrameBuffers(device, surface, queue, winWidth, winHeight, 0);
-      resize_event=false;
-    }else{
+      resize_event = false;
+    } else {
+      t = glfwGetTime();
+      prepareFrame(device->device, cmd_buffer, &fb);
+      if (resize_event)
+        continue;
+      dt = t - prevt;
+      prevt = t;
+      pxRatio = (float)fb.buffer_size.width / (float)winWidth;
 
-    prepareFrame(device->device, cmd_buffer, &fb);
-    if(resize_event)continue;
-    t = glfwGetTime();
-    dt = t - prevt;
-    prevt = t;
-    updateGraph(&fps, (float)dt);
-    pxRatio = (float)fb.buffer_size.width / (float)winWidth;
+      glfwGetCursorPos(window, &mx, &my);
 
-    glfwGetCursorPos(window, &mx, &my);
+      nvgBeginFrame(vg, (float)winWidth, (float)winHeight, pxRatio);
+      renderDemo(vg, (float)mx, (float)my, (float)winWidth, (float)winHeight, (float)t, blowup, &data);
+      renderGraph(vg, 5, 5, &fps);
+      renderGraph(vg, 5 + 200 + 5, 5, &cpuGraph);
 
-    nvgBeginFrame(vg, (float)winWidth, (float)winHeight, pxRatio);
-    renderDemo(vg, (float)mx, (float)my, (float)winWidth, (float)winHeight, (float)t, blowup, &data);
-    renderGraph(vg, 5, 5, &fps);
-
-    nvgEndFrame(vg);
-
-    submitFrame(device->device, queue, cmd_buffer, &fb);
-}
+      nvgEndFrame(vg);
+      submitFrame(device->device, queue, cmd_buffer, &fb);
+      cpuTime = glfwGetTime() - t;
+      updateGraph(&fps, (float)dt);
+      updateGraph(&cpuGraph, cpuTime);
+    }
     glfwPollEvents();
+#ifdef _WIN32
+    Sleep(8 - cpuTime);
+#endif
   }
 
   freeDemoData(vg, &data);
@@ -363,8 +390,8 @@ int main() {
   glfwDestroyWindow(window);
 
   printf("Average Frame Time: %.2f ms\n", getGraphAverage(&fps) * 1000.0f);
-  //printf("          CPU Time: %.2f ms\n", getGraphAverage(&cpuGraph) * 1000.0f);
-  //printf("          GPU Time: %.2f ms\n", getGraphAverage(&gpuGraph) * 1000.0f);
+  printf("          CPU Time: %.2f ms\n", getGraphAverage(&cpuGraph) * 1000.0f);
+  // printf("          GPU Time: %.2f ms\n", getGraphAverage(&gpuGraph) * 1000.0f);
 
   glfwTerminate();
   return 0;

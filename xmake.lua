@@ -10,6 +10,11 @@ option("freetype")
     set_showmenu(true)
 option_end()
 
+option("vulkan")
+    set_default("")
+    set_showmenu(true)
+option_end()
+
 add_requires("stb")
 if get_config("freetype") then
     add_requires("freetype", {system=false,configs={
@@ -136,7 +141,15 @@ if get_config("example") then
         add_deps("nanovg")
         add_includedirs("src", "src/vulkan")
         add_defines("NANOVG_DISABLE_GL")
-        add_links("MoltenVK")
+        if is_plat("windows", "mingw") then
+            add_includedirs(path.join(get_config("vulkan"), "include"))
+            add_linkdirs(path.join(get_config("vulkan"), "Lib"))
+            add_links("vulkan-1")
+        elseif is_plat("macosx") then
+            add_includedirs("/usr/local/include")
+            add_linkdirs("/usr/local/lib")
+            add_links("MoltenVK")
+        end
         add_packages("glfw", "stb", "vulkan")
         add_files(
             "example/example_vulkan.c",

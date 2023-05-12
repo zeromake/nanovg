@@ -1,14 +1,14 @@
 // use https://github.com/floooh/sokol-tools demo
 
 @vs vs
-uniform VS_CONSTANTS {
+layout (binding = 0) uniform VS_CONSTANTS {
     // mat4 dummy;
     vec2 viewSize;
 };
-in vec2 vertex;
-in vec2 tcoord;
-out vec2 ftcoord;
-out vec2 fpos;
+layout (location = 0) in vec2 vertex;
+layout (location = 1) in vec2 tcoord;
+layout (location = 0) out vec2 ftcoord;
+layout (location = 1) out vec2 fpos;
 
 void main(void) {
 	ftcoord = tcoord;
@@ -26,7 +26,7 @@ void main(void) {
 
 @fs fs
 precision highp float;
-uniform frag {
+layout(std140,binding = 1) uniform frag {
     mat3 scissorMat;
     mat3 paintMat;
     vec4 innerCol;
@@ -41,10 +41,10 @@ uniform frag {
     int texType;
     int type;
 };
-uniform sampler2D tex;
-in vec2 ftcoord;
-in vec2 fpos;
-out vec4 outColor;
+layout(binding = 2) uniform sampler2D tex;
+layout(location = 0) in vec2 ftcoord;
+layout(location = 1) in vec2 fpos;
+layout(location = 0) out vec4 outColor;
 
 float sdroundrect(vec2 pt, vec2 ext, float rad) {
     vec2 ext2 = ext - vec2(rad,rad);

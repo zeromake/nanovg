@@ -4,7 +4,7 @@
 
 #include "nanovg.h"
 
-NVGcontext* nvgCreate(int flags, void* window);
+NVGcontext* nvgCreate(int flags, void* params);
 void nvgDelete(NVGcontext* ctx);
 void nvgClearWithColor(NVGcontext* ctx, NVGcolor color);
 void nvgResetFrameBuffer(NVGcontext* ctx, int width, int height);
@@ -22,16 +22,19 @@ void nvgResetFrameBuffer(NVGcontext* ctx, int width, int height);
 #endif
 #include "nanovg_gl.h"
 
-NVGcontext* nvgCreate(int flags, void* window) {
+NVGcontext* nvgCreate(int flags, void* params) {
+    NVGcontext *vg = NULL;
 #if defined(NANOVG_USE_GL2)
-    return nvgCreateGL2(flags);
+    vg = nvgCreateGL2(flags);
 #elif defined(NANOVG_USE_GL3)
-    return nvgCreateGL3(flags);
+    vg = nvgCreateGL3(flags);
 #elif defined(NANOVG_USE_GLES2)
-    return nvgCreateGLES2(flags);
+    vg = nvgCreateGLES2(flags);
 #elif defined(NANOVG_USE_GLES3)
-    return nvgCreateGLES3(flags);
+    vg = nvgCreateGLES3(flags);
 #endif
+    nvgSetUserPtr(vg, params);
+    return vg;
 }
 
 void nvgDelete(NVGcontext* ctx) {
@@ -59,16 +62,17 @@ void nvgResetFrameBuffer(NVGcontext* ctx, int width, int height) {
 #include "nanovg_mtl.h"
 #include "metal_helper.h"
 
-NVGcontext* nvgCreate(int flags, void* window) {
-    SDL_SysWMinfo windowinfo;
-    SDL_GetVersion(&windowinfo.version);
-    SDL_GetWindowWMInfo(window, &windowinfo);
-    MetalContext* ctx = CreateMetalContext((void*)windowinfo.info.cocoa.window);
+NVGcontext* nvgCreate(int flags, void* params) {
+    SDL_SysWMinfo info;
+    SDL_GetVersion(&info.version);
+    SDL_GetWindowWMInfo((SDL_Window*)params, &info);
+    MetalContext* ctx = CreateMetalContext((void*)info.info.cocoa.window);
     void* metalLayer = GetMetalLayer(ctx);
     NVGcontext* vg = nvgCreateMTL(metalLayer, flags);
     nvgSetUserPtr(vg, (void*)ctx);
     return vg;
 }
+
 void nvgDelete(NVGcontext* ctx) {
     nvgDeleteMTL(ctx);
     void* metalCtx = nvgGetUserPtr(ctx);

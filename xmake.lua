@@ -132,6 +132,19 @@ if get_config("example") then
         end)
     target_end()
 
+    target("example_vulkan")
+        add_deps("nanovg")
+        add_includedirs("src", "src/vulkan")
+        add_defines("NANOVG_DISABLE_GL")
+        add_links("MoltenVK")
+        add_packages("glfw", "stb", "vulkan")
+        add_files(
+            "example/example_vulkan.c",
+            "example/demo.c",
+            "example/perf.c"
+        )
+    target_end()
+
     if is_plat("macosx") then
         target("example_metal")
             add_includedirs("src")

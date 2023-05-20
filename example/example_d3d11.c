@@ -115,7 +115,7 @@ void Draw(HWND hWnd)
     t = getCPUTime();
     dt = t - prevt;
 	prevt = t;
-    
+
     if (premult)
     {
         clearColor[0] = 0.0f;
@@ -125,7 +125,7 @@ void Draw(HWND hWnd)
     }
 	else
     {
-                    
+
         clearColor[0] = 0.3f;
         clearColor[1] = 0.3f;
         clearColor[2] = 0.32f;
@@ -133,7 +133,7 @@ void Draw(HWND hWnd)
     }
 
     ID3D11DeviceContext_OMSetRenderTargets(pDeviceContext, 1, &pRenderTargetView, pDepthStencilView);
-          
+
     viewport.Height = (float)yWin;
     viewport.Width = (float)xWin;
     viewport.MaxDepth = 1.0f;
@@ -229,15 +229,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	
         // Mouse pos
         case WM_MOUSEMOVE:
-        {     
+        {
             xm = GET_X_LPARAM(lParam);
             ym = GET_Y_LPARAM(lParam);
         }
         break;
-    
+
         // Painting
 	    case WM_PAINT:
-        { 
+        {
             Draw(hWnd);
             ValidateRect(hWnd, NULL);
         }
@@ -280,7 +280,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	WNDCLASSEX wcex;
 
 	wcex.cbSize = sizeof(WNDCLASSEX);
-   
+
 	wcex.style			= CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 	wcex.lpfnWndProc	= WndProc;
 	wcex.cbClsExtra		= 0;
@@ -299,19 +299,19 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, HWND* hWnd)
 {
     RECT rcWin;
-    
+
     hInst = hInstance; // Store instance handle in our global variable
     UINT dpi = GetDpiForSystem() / 96.0f;
     rcWin.left = 0;
     rcWin.right = 1000 * dpi;
     rcWin.top = 0;
     rcWin.bottom = 600 * dpi;
-  
+
     AdjustWindowRectEx(&rcWin, WS_OVERLAPPEDWINDOW, FALSE, 0);
-    
+
     rcWin.right += -rcWin.left;
     rcWin.bottom += -rcWin.top;
-  
+
     hWndMain = CreateWindowEx(0, pszWindowClass, "Nanovg", WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, (int)rcWin.right, (int)rcWin.bottom, NULL, NULL, hInstance, NULL);
 
@@ -325,13 +325,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, HWND* hWnd)
         printf("Could not init DX\n");
         return FALSE;
     }
-    
+
 #ifdef DEMO_MSAA
 	vg = nvgCreateD3D11(pDevice, NVG_STENCIL_STROKES);
 #else
 	vg = nvgCreateD3D11(pDevice, NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 #endif
-	if (vg == NULL) 
+	if (vg == NULL)
     {
 		printf("Could not init nanovg.\n");
 		return FALSE;
@@ -361,7 +361,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, HWND* hWnd)
 int main()
 {
     MSG msg;
-    
+
     hInst = GetModuleHandle(NULL);
 	MyRegisterClass(hInst);
     HWND hWnd;
@@ -387,7 +387,7 @@ int main()
             Draw(hWnd);
         }
     }
-    
+
     freeDemoData(vg, &data);
 
 	nvgDeleteD3D11(vg);
@@ -402,7 +402,7 @@ int main()
 
 // Frees everything
 void UnInitializeDX()
-{ 
+{
     // Detach RTs
     if (pDeviceContext)
     {
@@ -467,7 +467,7 @@ BOOL InitializeDX(unsigned int x, unsigned int y)
 
     }
 
-    
+
     if (SUCCEEDED(hr))
     {
         hr = ID3D11Device_QueryInterface(pDevice, &IID_IDXGIDevice, (void**)&pDXGIDevice);
@@ -489,7 +489,7 @@ BOOL InitializeDX(unsigned int x, unsigned int y)
 
         swapDesc.SampleDesc.Count = 1;        //The Number of Multisamples per Level
         swapDesc.SampleDesc.Quality = 0;      //between 0(lowest Quality) and one lesser than pDevice->CheckMultisampleQualityLevels
-      
+
         // Enable if you want to use multisample AA for the rendertarget
 #ifdef DEMO_MSAA
         for (i = 1; i <= D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT; i++)
@@ -562,7 +562,7 @@ HRESULT ResizeWindow(unsigned int x, unsigned int y)
 
     xWin = x;
     yWin = y;
-   
+
     if (!pDevice || !pDeviceContext)
         return E_FAIL;
 
@@ -579,7 +579,7 @@ HRESULT ResizeWindow(unsigned int x, unsigned int y)
     {
         return hr;
     }
-   
+
     // Create the render target view and set it on the device
     hr = IDXGISwapChain_GetBuffer(pSwapChain,
         0,
@@ -630,7 +630,7 @@ HRESULT ResizeWindow(unsigned int x, unsigned int y)
     return hr;
 }
 
-    
+
 // High perf counter.
 static unsigned __int64 getRawTime(void)
 {

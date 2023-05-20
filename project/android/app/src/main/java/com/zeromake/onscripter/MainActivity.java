@@ -21,11 +21,10 @@ public class MainActivity extends SDLActivity implements OnPermissionCallback {
     private String[] arguments = new String[]{};
     private String rootPath = null;
 
-    @Override
-    protected boolean initWindowStyle() {
-        return true;
-    }
-
+    // @Override
+    // protected boolean initWindowStyle() {
+    //     return true;
+    // }
     @Override
     protected String[] getLibraries() {
         return new String[]{
@@ -59,6 +58,7 @@ public class MainActivity extends SDLActivity implements OnPermissionCallback {
         super.onCreate(savedInstanceState);
 //        externalStoragePermission();
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        setWindowStyle(true);
     }
 
     protected void onDestroy() {

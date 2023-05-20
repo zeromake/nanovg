@@ -68,10 +68,10 @@ int main(int argc, const char * argv[]) {
     glfwSetKeyCallback(window, key);
 	glfwMakeContextCurrent(window);
 
-    
+
 	if (loadDemoData(vg, &data) == -1)
 		return -1;
-    
+
 	glfwSwapInterval(0);
     glfwSetTime(0);
 	prevt = glfwGetTime();
@@ -126,5 +126,5 @@ int main(int argc, const char * argv[]) {
 	freeDemoData(vg, &data);
     nvgDeleteMTL(vg);
 	glfwTerminate();
-	return 0;  
+	return 0;
 }

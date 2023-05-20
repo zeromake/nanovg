@@ -5,10 +5,10 @@ struct PS_INPUT
 {
     float4 position   : SV_Position;    // vertex position
     float2 ftcoord    : TEXCOORD0;      // float 2 tex coord
-    float2 fpos       : TEXCOORD1;      // float 2 position 
+    float2 fpos       : TEXCOORD1;      // float 2 position
 };
 
-cbuffer PS_CONSTANTS 
+cbuffer PS_CONSTANTS
 {
     float4x4 scissorMat;
     float4 scissorExt;
@@ -24,8 +24,8 @@ cbuffer PS_CONSTANTS
     int type;
 };
 
- 
-float sdroundrect(float2 pt, float2 ext, float rad) 
+
+float sdroundrect(float2 pt, float2 ext, float rad)
 {
     float2 ext2 = ext - float2(rad,rad);
     float2 d = abs(pt) - ext2;
@@ -33,7 +33,7 @@ float sdroundrect(float2 pt, float2 ext, float rad)
 }
 
 // Scissoring
-float scissorMask(float2 p) 
+float scissorMask(float2 p)
 {
     float2 sc = (abs((mul((float3x3)scissorMat, float3(p.x, p.y, 1.0))).xy) - scissorExt.xy);
     sc = float2(0.5,0.5) - sc * scissorScale.xy;
@@ -63,13 +63,13 @@ float4 D3D11PixelShader_Main(PS_INPUT input) : SV_TARGET
 #else
     float strokeAlpha = 1.0f;
 #endif
-    if (type == 0) 
+    if (type == 0)
     {
         // Calculate gradient color using box gradient
         float2 pt = (mul((float3x3)paintMat, float3(input.fpos,1.0))).xy;
         float d = clamp((sdroundrect(pt, extent.xy, radius.x) + feather.x*0.5) / feather.x, 0.0, 1.0);
         float4 color = lerp(innerCol, outerCol, d);
-        
+
         // Combine alpha
         color *= strokeAlpha * scissor;
         result = color;
@@ -92,8 +92,8 @@ float4 D3D11PixelShader_Main(PS_INPUT input) : SV_TARGET
     {
         // Stencil fill
         result = float4(1,1,1,1);
-    } 
-    else 
+    }
+    else
     {
         // Textured tris
         float4 color = g_texture.Sample(g_sampler, input.ftcoord);

@@ -32,7 +32,7 @@ public class CrashHandler extends Activity {
         Process process;
         @SuppressLint("StaticFieldLeak")
         CrashHandler a;
-  
+
         LogTask(CrashHandler a) {
             super();
             this.a = a;
@@ -56,7 +56,7 @@ public class CrashHandler extends Activity {
             }
             return null;
         }
-  
+
         @Override
         protected void onCancelled() {
             Log.e(CrashHandler.TAG, "onCancelled");

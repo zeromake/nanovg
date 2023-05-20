@@ -1,7 +1,7 @@
 // Danil, 2022+ https://github.com/danilw/nanovg_vulkan
 
 // this is Nanovg demo without using any libraries (no GLFW)
-// scroll to <main> functions to see implementation 
+// scroll to <main> functions to see implementation
 // Nanovg integration is just single function init_nanovg_vulkan where VKNVGCreateInfo create_info initialized
 
 // glfw replased by minimal code(inilializing vulkan surface(x11 and Win32)), code come from https://github.com/danilw/vulkan-shader-launcher
@@ -63,7 +63,7 @@ struct app_data_struct{
     float iTime; //time
     float iTimeDelta; //time delta
     int iFrame; //frames
-    
+
     bool pause; //pause clicked
     bool quit; //quit clicked/happend
     bool blowup; // nanovg demo test (space hotkey)
@@ -84,9 +84,9 @@ struct app_os_window {
 #endif
     char name[APP_NAME_STR_LEN];
     bool fps_lock; //key pressed event
-    
+
     bool is_minimized; //window controled events
-    
+
     struct app_data_struct app_data;
 };
 
@@ -97,7 +97,7 @@ struct my_time_struct{
   int hour;
   int day;
   int month;
-  int year; 
+  int year;
 };
 
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
@@ -286,7 +286,7 @@ void submitFrame(VkDevice device, VkQueue queue, VkCommandBuffer cmd_buffer, Fra
   res = vkQueueWaitIdle(queue);
 }
 
-void init_nanovg_vulkan(VkPhysicalDevice gpu, VkSurfaceKHR *surface, int winWidth, int winHeight, VkQueue *queue, NVGcontext **vg, 
+void init_nanovg_vulkan(VkPhysicalDevice gpu, VkSurfaceKHR *surface, int winWidth, int winHeight, VkQueue *queue, NVGcontext **vg,
                         FrameBuffers *fb, VkCommandBuffer *cmd_buffer, VulkanDevice **device, PerfGraph *fps, DemoData *data){
   *device = createVulkanDevice(gpu);
 
@@ -312,7 +312,7 @@ void init_nanovg_vulkan(VkPhysicalDevice gpu, VkSurfaceKHR *surface, int winWidt
 #endif
 
   *vg = nvgCreateVk(create_info, flags, *queue);
-  
+
   if (loadDemoData(*vg, data) == -1)
       exit(-1);
 
@@ -340,36 +340,36 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
 {
     MSG msg;
     bool done;
-    
+
     VkResult res;
     int retval = EXIT_FAILURE;
     init_win_params(&os_window);
 
     os_window.connection = hInstance;
-    
+
     const char *extension_names[] = {
       VK_KHR_SURFACE_EXTENSION_NAME,
       VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
     };
     res = vk_init_ext(&instance, extension_names, sizeof extension_names / sizeof *extension_names);
-    
+
     app_create_window(&os_window);
     res = vk_create_surface(instance, &surface, &os_window);
     if (VK_SUCCESS != res)
     {
         printf("CreateSurface failed\n");
-        
+
         vkDestroyInstance(instance, NULL);
-        
+
         return retval;
     }
-    
+
     VkPhysicalDevice gpu = init_vk_gpu(instance, &surface);
-    
+
     int winWidth = os_window.app_data.iResolution[0];
     int winHeight = os_window.app_data.iResolution[1];
     init_nanovg_vulkan(gpu, &surface, winWidth, winHeight, &queue, &vg, &fb, &cmd_buffer, &device, &fps, &data);
-    
+
     done = false;
     while (!done)
     {
@@ -377,14 +377,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
         process_msg(&msg, &done);
         RedrawWindow(os_window.window, NULL, NULL, RDW_INTERNALPAINT);
     }
-    
+
     freeDemoData(vg, &data);
     nvgDeleteVk(vg);
     destroyFrameBuffers(device, &fb);
     vkDestroySurfaceKHR(instance, surface, NULL);
     destroyVulkanDevice(device);
-    
-    
+
+
     vkDestroyInstance(instance, NULL);
 
     return (int)msg.wParam;
@@ -399,11 +399,11 @@ int main(int argc, char **argv)
     init_win_params(&os_window);
 
     srand(time(NULL));
-  
-    
+
+
     VkInstance instance;
     VkSurfaceKHR surface;
-    
+
     const char *extension_names[] = {
       VK_KHR_SURFACE_EXTENSION_NAME,
   #if defined(VK_USE_PLATFORM_WIN32_KHR)
@@ -421,18 +421,18 @@ int main(int argc, char **argv)
     if (VK_SUCCESS != res)
     {
         printf("CreateSurface failed\n");
-        
+
         xcb_destroy_window(os_window.connection, os_window.xcb_window);
         xcb_disconnect(os_window.connection);
         free(os_window.atom_wm_delete_window);
-        
+
         vkDestroyInstance(instance, NULL);
-        
+
         return retval;
     }
 
   VkPhysicalDevice gpu = init_vk_gpu(instance, &surface);
-  
+
   int winWidth = os_window.app_data.iResolution[0];
   int winHeight = os_window.app_data.iResolution[1];
   VulkanDevice *device;
@@ -443,7 +443,7 @@ int main(int argc, char **argv)
   DemoData data;
   PerfGraph fps;
   init_nanovg_vulkan(gpu, &surface, winWidth, winHeight, &queue, &vg, &fb, &cmd_buffer, &device, &fps, &data);
-  
+
     while (!os_window.app_data.quit)
     {
         xcb_generic_event_t *event;
@@ -473,7 +473,7 @@ int main(int argc, char **argv)
           fb = createFrameBuffers(device, surface, queue, winWidth, winHeight, 0);
           resize_event=false;
         }else{
-          
+
           if (!os_window.is_minimized){
             prepareFrame(device->device, cmd_buffer, &fb);
             if(resize_event)continue;
@@ -483,13 +483,13 @@ int main(int argc, char **argv)
 
           int mx = os_window.app_data.iMouse[0];
           int my = os_window.app_data.iResolution[1] - os_window.app_data.iMouse[1];
-        
+
           nvgBeginFrame(vg, (float)winWidth, (float)winHeight, pxRatio);
           renderDemo(vg, (float)mx, (float)my, (float)winWidth, (float)winHeight, (float)os_window.app_data.iTime, (int)os_window.app_data.blowup, &data);
           renderGraph(vg, 5, 5, &fps);
 
           nvgEndFrame(vg);
-          
+
           if (os_window.is_minimized)
           { // I do not delete everything on minimize, only stop rendering
               sleep_ms(10);
@@ -500,19 +500,19 @@ int main(int argc, char **argv)
           update_params(&os_window.app_data, os_window.fps_lock);
         }
     }
-    
+
     freeDemoData(vg, &data);
     nvgDeleteVk(vg);
     destroyFrameBuffers(device, &fb);
     vkDestroySurfaceKHR(instance, surface, NULL);
     destroyVulkanDevice(device);
-    
+
     xcb_destroy_window(os_window.connection, os_window.xcb_window);
     xcb_disconnect(os_window.connection);
     free(os_window.atom_wm_delete_window);
-    
+
     vkDestroyInstance(instance, NULL);
-    
+
     retval = 0;
 
     return retval;
@@ -579,7 +579,7 @@ VkResult vk_create_surface(VkInstance vk, VkSurfaceKHR *surface, struct app_os_w
     createInfo.flags = 0;
     createInfo.connection = os_window->connection;
     createInfo.window = os_window->xcb_window;
-    
+
     res = vkCreateXcbSurfaceKHR(vk, &createInfo, NULL, surface);
 #endif
     return res;
@@ -629,7 +629,7 @@ VkPhysicalDevice init_vk_gpu(VkInstance instance, VkSurfaceKHR *surface){
 
       if ((queue_family_properties[j].queueFlags & VK_QUEUE_GRAPHICS_BIT) && supports_present)
       {
-        
+
         VkPhysicalDeviceProperties pr;
         vkGetPhysicalDeviceProperties(gpu[i], &pr);
         idx = i;
@@ -679,7 +679,7 @@ void process_msg(MSG *msg, bool *done){
     default: break;
     }
   }
-  
+
   if (msg->message == WM_MOUSEMOVE) {
     os_window.app_data.iMouse[0] = (int)LOWORD(msg->lParam);
     os_window.app_data.iMouse[1] = os_window.app_data.iResolution[1] - (int)HIWORD(msg->lParam);
@@ -712,7 +712,7 @@ void process_msg(MSG *msg, bool *done){
     }
   }
   if(!os_window.app_data.iMouse_click[0]&&(!mouse_click[0])){
-    
+
   }else{
     if(os_window.app_data.iMouse_click[0]&&(!mouse_click[0])){
       mouse_click[0]=true;
@@ -727,7 +727,7 @@ void process_msg(MSG *msg, bool *done){
     }
   }
   if(!os_window.app_data.iMouse_click[1]&&(!mouse_click[1])){
-    
+
   }else{
     if(os_window.app_data.iMouse_click[1]&&(!mouse_click[1])){
       mouse_click[1]=true;
@@ -741,7 +741,7 @@ void process_msg(MSG *msg, bool *done){
       }
     }
   }
-  
+
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -750,7 +750,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     PostQuitMessage(0);
     break;
   case WM_PAINT:
-    
+
     float pxRatio;
 
     int winWidth = os_window.app_data.iResolution[0];
@@ -769,13 +769,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
       int mx = os_window.app_data.iMouse[0];
       int my = os_window.app_data.iResolution[1] - os_window.app_data.iMouse[1];
-    
+
       nvgBeginFrame(vg, (float)winWidth, (float)winHeight, pxRatio);
       renderDemo(vg, (float)mx, (float)my, (float)winWidth, (float)winHeight, (float)os_window.app_data.iTime, (int)os_window.app_data.blowup, &data);
       renderGraph(vg, 5, 5, &fps);
 
       nvgEndFrame(vg);
-      
+
       if (os_window.is_minimized)
       { // I do not delete everything on minimize, only stop rendering
           sleep_ms(10);
@@ -785,9 +785,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       }
       update_params(&os_window.app_data, os_window.fps_lock);
     }
-    
+
     if(os_window.app_data.quit) PostQuitMessage(0);
-    
+
     break;
   case WM_GETMINMAXINFO:
     ((MINMAXINFO *)lParam)->ptMinTrackSize = os_window.minsize;
@@ -1008,12 +1008,12 @@ static void app_init_connection(struct app_os_window *os_window) {
 
 static void app_create_xcb_window(struct app_os_window *os_window) {
     uint32_t value_mask, value_list[32];
-    
+
     os_window->xcb_window = xcb_generate_id(os_window->connection);
-    
+
     value_mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
     value_list[0] = os_window->screen->black_pixel;
-    
+
     value_list[1] = XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_POINTER_MOTION |
         XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
@@ -1025,15 +1025,15 @@ static void app_create_xcb_window(struct app_os_window *os_window) {
 
     xcb_intern_atom_cookie_t cookie2 = xcb_intern_atom(os_window->connection, 0, 16, "WM_DELETE_WINDOW");
     os_window->atom_wm_delete_window = xcb_intern_atom_reply(os_window->connection, cookie2, 0);
-    
+
     xcb_change_property (os_window->connection, XCB_PROP_MODE_REPLACE, os_window->xcb_window,
                        XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8,
                        strlen (os_window->name), os_window->name);
-    
+
     xcb_change_property (os_window->connection, XCB_PROP_MODE_REPLACE, os_window->xcb_window,
                        XCB_ATOM_WM_ICON_NAME, XCB_ATOM_STRING, 8,
                        strlen(os_window->name), os_window->name);
-    
+
     xcb_change_property(os_window->connection, XCB_PROP_MODE_REPLACE, os_window->xcb_window, (*reply).atom, 4, 32, 1,
         &(*os_window->atom_wm_delete_window).atom);
     free(reply);
@@ -1094,7 +1094,7 @@ void get_local_time(struct my_time_struct *my_time){
 #include <sys/time.h>
 
 void get_local_time(struct my_time_struct *my_time){
-    struct timeval te; 
+    struct timeval te;
     gettimeofday(&te, NULL);
     time_t T= time(NULL);
     struct tm tm = *localtime(&T);
@@ -1121,9 +1121,9 @@ double get_time_ticks(){
 float update_fps_delta(){
   static double before_time=0;
   if((int)before_time==0)before_time=get_time_ticks();
-  
+
     double now_time = get_time_ticks();
-    
+
     if ((long)before_time==(long)now_time) { //this happend on IMMEDIATE and MAILBOX
     return 1.0/9999.0;
     }
@@ -1141,7 +1141,7 @@ float update_fps_delta(){
 }
 
 // cross-platform sleep function
-void sleep_ms(int milliseconds) 
+void sleep_ms(int milliseconds)
 {
 #ifdef WIN32
     Sleep(milliseconds);
@@ -1169,9 +1169,9 @@ void FPS_LOCK(int fps){
   }
   sleep_ms((int)rdelta);
   before_time=get_time_ticks();
-  
+
   return;
-  
+
 }
 
 

@@ -70,6 +70,7 @@ int main(int argc, char **argv) {
     }
 
 #ifdef NANOVG_USE_GL
+    SDL_GL_SetSwapInterval(1);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
 #ifdef NANOVG_USE_GLES2
@@ -185,9 +186,9 @@ int main(int argc, char **argv) {
     "这柄剑于是跟随着它的新主人默默无闻地走过整个卡那多斯，一直到了严寒的诺德森大陆，之后再也没有人见过云耀，直到伊修托利与路维丝的战争拉开序幕之时。\n";
 
     bool change = true;
-    int prevW = winWidth;
-    int prevH = winHeight;
-    float fbRatio = (float)fbWidth / (float)winWidth;
+    int prevW = fbWidth;
+    int prevH = fbHeight;
+    float fbRatio = nvgDevicePixelRatio(vg);
 
 #define DP(px) (int)((float)px * fbRatio)
     while (!quit) {
@@ -196,27 +197,40 @@ int main(int argc, char **argv) {
             case SDL_QUIT:
                 quit=1;
                 break;
-        }
-        SDL_GetWindowSize(window, &winWidth, &winHeight);
-        if (prevW != winWidth || prevH != winHeight) {
-            prevW = winWidth;
-            prevH = winHeight;
-            change = true;
+			case SDL_WINDOWEVENT:
+			    switch (event.window.event) {
+                    case SDL_WINDOWEVENT_EXPOSED:
+                        // 最大化恢复
+                    case SDL_WINDOWEVENT_FOCUS_GAINED:
+                        // 窗口焦点获得
+                    case SDL_APP_DIDENTERFOREGROUND:
+                        // 应用回到前台
+                        change = true;
+                        break;
+                    case SDL_APP_WILLENTERBACKGROUND:
+                        // 应用后台
+                        break;
+                    case SDL_WINDOWEVENT_FOCUS_LOST:
+                        // 失去焦点
+                        break;
+                    case SDL_WINDOWEVENT_RESIZED:
+                        // 尺寸变化
+                        SDL_GetWindowSize(window, &winWidth, &winHeight);
+                        break;
+                    case SDL_WINDOWEVENT_SIZE_CHANGED:
+                        // 窗口大小变化完成
+                        SDL_GetWindowSizeInPixels(window, &fbWidth, &fbHeight);
+                        fbRatio = nvgDevicePixelRatio(vg);
+                        nvgResetFrameBuffer(vg, fbWidth, fbHeight);
+                        change = true;
+                        break;
+                }
+              break;
         }
         if (change) {
-            SDL_GetWindowSizeInPixels(window, &fbWidth, &fbHeight);
-            fbRatio = (float)fbWidth / (float)winWidth;
-            nvgResetFrameBuffer(vg, fbWidth, fbHeight);
-
             // Update and render
             nvgClearWithColor(vg, bgColor);
-
             nvgBeginFrame(vg, winWidth, winHeight, fbRatio);
-
-            // nvgBeginPath(vg);
-            // nvgRect(vg, 0, 0, winWidth, winHeight);
-            // nvgFillColor(vg, nvgRGBA(0xef, 0xe6, 0xc7, 255));
-            // nvgFill(vg);
 
             const char* start;
             const char* end;
@@ -248,9 +262,8 @@ int main(int argc, char **argv) {
             nvgEndFrame(vg);
             SDL_GL_SwapWindow(window);
             change = false;
-        } else {
-            SDL_Delay(16);
         }
+        SDL_Delay(16);
     }
     nvgDelete(vg);
     SDL_DestroyWindow(window);

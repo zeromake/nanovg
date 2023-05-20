@@ -11,4 +11,4 @@
 - `nanovg.h` add `nvgGetStateXfrom`, `nvgIntersectScissor_ex`, `nvgGetCurrScissor`, `nvgIntersectScissorForOtherRect` support more scissor.
 - `nanovg.h` add NVGparams's `setLineCap`, `setLineJoin`, `clearCache`, `findTexture`, `setStateXfrom`, `globalSreenOrientation` support agg, agge.
 - `nanovg.c` nvgEndFrame clear all images after j
-- `nanovg_gl.h` support 
+- `nanovg_gl.h` support

@@ -288,7 +288,7 @@ static int glnvg__renderCreate(void* uptr)
 		"	gl_Position = vec4(2.0*vertex.x/viewSize.x - 1.0, 1.0 - 2.0*vertex.y/viewSize.y, 0, 1);\n"
 		"}\n";
 
-	static const char* fillFragShaderEdgeAA = 
+	static const char* fillFragShaderEdgeAA =
 #ifdef NANOVG_GLES2
 		"#version 100\n"
 		"precision mediump float;\n"
@@ -358,7 +358,7 @@ static int glnvg__renderCreate(void* uptr)
 		"	}\n"
 		"}\n";
 
-	static const char* fillFragShader = 
+	static const char* fillFragShader =
 #ifdef NANOVG_GLES2
 		"#version 100\n"
 		"precision mediump float;\n"

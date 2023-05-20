@@ -26,10 +26,10 @@ struct NVGcontext* vg = nvgCreateGL2(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 
 The first parameter defines flags for creating the renderer.
 
-- `NVG_ANTIALIAS` means that the renderer adjusts the geometry to include anti-aliasing. If you're using MSAA, you can omit this flags. 
+- `NVG_ANTIALIAS` means that the renderer adjusts the geometry to include anti-aliasing. If you're using MSAA, you can omit this flags.
 - `NVG_STENCIL_STROKES` means that the render uses better quality rendering for (overlapping) strokes. The quality is mostly visible on wider strokes. If you want speed, you can omit this flag.
 
-Currently there is an OpenGL back-end for NanoVG: [nanovg_gl.h](https://github.com/zeromake/nanovg/blob/master/src/nanovg_gl.h) for OpenGL 2.0, OpenGL ES 2.0, OpenGL 3.2 core profile and OpenGL ES 3. The implementation can be chosen using a define as in above example. See the header file and examples for further info. 
+Currently there is an OpenGL back-end for NanoVG: [nanovg_gl.h](https://github.com/zeromake/nanovg/blob/master/src/nanovg_gl.h) for OpenGL 2.0, OpenGL ES 2.0, OpenGL 3.2 core profile and OpenGL ES 3. The implementation can be chosen using a define as in above example. See the header file and examples for further info.
 
 *NOTE:* The render target you're rendering to must have stencil buffer.
 
@@ -98,7 +98,7 @@ The data for the whole frame is buffered and flushed in `nvgEndFrame()`. The fol
 
 ## API Reference
 
-See the header file [nanovg.h](https://github.com/zeromake/nanovg/blob/master/src/nanovg.h) for API reference. 
+See the header file [nanovg.h](https://github.com/zeromake/nanovg/blob/master/src/nanovg.h) for API reference.
 
 或者可以看 [中文说明](api-zh_CN.md)
 

@@ -27,6 +27,10 @@
 using namespace metal;
 
 typedef struct {
+    float2 viewSize;
+} VS_CONSTANTS;
+
+typedef struct {
   float2 pos [[attribute(0)]];
   float2 tcoord [[attribute(1)]];
 } Vertex;
@@ -78,12 +82,12 @@ float strokeMask(constant Uniforms& uniforms, float2 ftcoord) {
 
 // Vertex Function
 vertex RasterizerData vertexShader(Vertex vert [[stage_in]],
-                                   constant float2& viewSize [[buffer(1)]]) {
+                                   constant VS_CONSTANTS& viewSize [[buffer(1)]]) {
   RasterizerData out;
   out.ftcoord = vert.tcoord;
   out.fpos = vert.pos;
-  out.pos = float4(2.0 * vert.pos.x / viewSize.x - 1.0,
-                   1.0 - 2.0 * vert.pos.y / viewSize.y,
+  out.pos = float4(2.0 * vert.pos.x / viewSize.viewSize.x - 1.0,
+                   1.0 - 2.0 * vert.pos.y / viewSize.viewSize.y,
                    0, 1);
   return out;
 }

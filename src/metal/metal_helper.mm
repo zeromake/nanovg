@@ -18,7 +18,7 @@ extern "C" void DestroyMetalContext(struct MetalContext *ctx) {
 }
 
 extern "C" struct MetalContext *CreateMetalContext(void* window) {
-    struct MetalContext* mtl = (struct MetalContext*)malloc(sizeof(struct MetalContext));
+    struct MetalContext* mtl = (struct MetalContext*)calloc(1, sizeof(struct MetalContext));
     NSWindow* nswin = (__bridge NSWindow*)window;
     mtl->win = nswin;
     mtl->device = MTLCreateSystemDefaultDevice();

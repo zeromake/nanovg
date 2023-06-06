@@ -36,6 +36,27 @@
 
 #include "nanovg.h"
 
+#ifdef NVG_USE_SHD_SHADER
+#if TARGET_OS_SIMULATOR
+#  include "mnvg_bitcode/simulator_fs.h"
+#  include "mnvg_bitcode/simulator_fs_aa.h"
+#  include "mnvg_bitcode/simulator_vs.h"
+#elif TARGET_OS_IOS
+#  include "mnvg_bitcode/ios_fs.h"
+#  include "mnvg_bitcode/ios_fs_aa.h"
+#  include "mnvg_bitcode/ios_vs.h"
+#elif TARGET_OS_OSX
+#  include "mnvg_bitcode/macos_fs.h"
+#  include "mnvg_bitcode/macos_fs_aa.h"
+#  include "mnvg_bitcode/macos_vs.h"
+#elif TARGET_OS_TV
+#  include "mnvg_bitcode/tvos_fs.h"
+#  include "mnvg_bitcode/tvos_fs_aa.h"
+#  include "mnvg_bitcode/tvos_vs.h"
+#else
+#  define MNVG_INVALID_TARGET
+#endif
+#else
 #if TARGET_OS_SIMULATOR
 #  include "mnvg_bitcode/simulator.h"
 #elif TARGET_OS_IOS
@@ -46,6 +67,7 @@
 #  include "mnvg_bitcode/tvos.h"
 #else
 #  define MNVG_INVALID_TARGET
+#endif
 #endif
 
 typedef enum MNVGvertexInputIndex {
@@ -965,6 +987,90 @@ enum MNVGTarget mnvgTarget() {
 #endif
 
   bool creates_pseudo_texture = false;
+
+#ifdef NVG_USE_SHD_SHADER
+  unsigned char* metal_library_bitcode_fs;
+  unsigned int metal_library_bitcode_fs_len;
+  unsigned char* metal_library_bitcode_fs_aa;
+  unsigned int metal_library_bitcode_fs_aa_len;
+  unsigned char* metal_library_bitcode_vs;
+  unsigned int metal_library_bitcode_vs_len;
+#if TARGET_OS_SIMULATOR
+  metal_library_bitcode_fs = mnvg_bitcode_simulator_fs;
+  metal_library_bitcode_fs_aa = mnvg_bitcode_simulator_fs_aa;
+  metal_library_bitcode_vs = mnvg_bitcode_simulator_vs;
+  metal_library_bitcode_fs_len = mnvg_bitcode_simulator_fs_len;
+  metal_library_bitcode_fs_aa_len = mnvg_bitcode_simulator_fs_aa_len;
+  metal_library_bitcode_vs_len = mnvg_bitcode_simulator_vs_len;
+#elif TARGET_OS_IOS
+  if (@available(iOS 10, *)) {
+  } else if (@available(iOS 8, *)) {
+    creates_pseudo_texture = true;
+  } else {
+    return 0;
+  }
+  metal_library_bitcode_fs = mnvg_bitcode_ios_fs;
+  metal_library_bitcode_fs_aa = mnvg_bitcode_ios_fs_aa;
+  metal_library_bitcode_vs = mnvg_bitcode_ios_vs;
+  metal_library_bitcode_fs_len = mnvg_bitcode_ios_fs_len;
+  metal_library_bitcode_fs_aa_len = mnvg_bitcode_ios_fs_aa_len;
+  metal_library_bitcode_vs_len = mnvg_bitcode_ios_vs_len;
+#elif TARGET_OS_OSX
+  if (@available(macOS 10.11, *)) {
+    metal_library_bitcode_fs = mnvg_bitcode_macos_fs;
+    metal_library_bitcode_fs_aa = mnvg_bitcode_macos_fs_aa;
+    metal_library_bitcode_vs = mnvg_bitcode_macos_vs;
+    metal_library_bitcode_fs_len = mnvg_bitcode_macos_fs_len;
+    metal_library_bitcode_fs_aa_len = mnvg_bitcode_macos_fs_aa_len;
+    metal_library_bitcode_vs_len = mnvg_bitcode_macos_vs_len;
+  } else {
+    return 0;
+  }
+#elif TARGET_OS_TV
+  metal_library_bitcode_fs = mnvg_bitcode_tvos_fs;
+  metal_library_bitcode_fs_aa = mnvg_bitcode_tvos_fs_aa;
+  metal_library_bitcode_vs = mnvg_bitcode_tvos_vs;
+  metal_library_bitcode_fs_len = mnvg_bitcode_tvos_fs_len;
+  metal_library_bitcode_fs_aa_len = mnvg_bitcode_tvos_fs_aa_len;
+  metal_library_bitcode_vs_len = mnvg_bitcode_tvos_vs_len;
+#endif
+
+  dispatch_data_t data_fs = dispatch_data_create(metal_library_bitcode_fs,
+                                              metal_library_bitcode_fs_len,
+                                              NULL,
+                                              DISPATCH_DATA_DESTRUCTOR_DEFAULT);
+  dispatch_data_t data_fs_aa = dispatch_data_create(metal_library_bitcode_fs_aa,
+                                              metal_library_bitcode_fs_aa_len,
+                                              NULL,
+                                              DISPATCH_DATA_DESTRUCTOR_DEFAULT);
+
+  dispatch_data_t data_vs = dispatch_data_create(metal_library_bitcode_vs,
+                                              metal_library_bitcode_vs_len,
+                                              NULL,
+                                              DISPATCH_DATA_DESTRUCTOR_DEFAULT);
+  id<MTLLibrary> library_fs = [device newLibraryWithData:data_fs error:&error];
+  [self checkError:error withMessage:"init library ps"];
+  if (library_fs == nil) {
+    return 0;
+  }
+  id<MTLLibrary> library_fs_aa = [device newLibraryWithData:data_fs_aa error:&error];
+  [self checkError:error withMessage:"init library ps aa"];
+  if (library_fs_aa == nil) {
+    return 0;
+  }
+  id<MTLLibrary> library_vs = [device newLibraryWithData:data_vs error:&error];
+  [self checkError:error withMessage:"init library vs"];
+  if (library_vs == nil) {
+    return 0;
+  }
+
+  _vertexFunction = [library_vs newFunctionWithName:@"main0"];
+  if (_flags & NVG_ANTIALIAS) {
+    _fragmentFunction = [library_fs_aa newFunctionWithName:@"main0"];
+  } else {
+    _fragmentFunction = [library_fs newFunctionWithName:@"main0"];
+  }
+#else
   unsigned char* metal_library_bitcode;
   unsigned int metal_library_bitcode_len;
 #if TARGET_OS_SIMULATOR
@@ -1008,6 +1114,7 @@ enum MNVGTarget mnvgTarget() {
   } else {
     _fragmentFunction = [library newFunctionWithName:@"fragmentShader"];
   }
+#endif
 
   _commandQueue = [device newCommandQueue];
 
@@ -1678,6 +1785,11 @@ error:
   return 1;
 }
 
+struct VS_CONSTANTS {
+	vector_float2 viewSize;
+};
+typedef struct VS_CONSTANTS VS_CONSTANTS;
+
 - (void)renderViewportWithWidth:(float)width
                          height:(float)height
                devicePixelRatio:(float)devicePixelRatio {
@@ -1696,12 +1808,11 @@ error:
   // Initializes view size buffer for vertex function.
   if (_buffers.viewSizeBuffer == nil) {
     _buffers.viewSizeBuffer = [_metalLayer.device
-        newBufferWithLength:sizeof(vector_float2)
+        newBufferWithLength:sizeof(VS_CONSTANTS)
         options:kMetalBufferOptions];
   }
-  float* viewSize = (float*)[_buffers.viewSizeBuffer contents];
-  viewSize[0] = width;
-  viewSize[1] = height;
+  VS_CONSTANTS* vs_constants = (VS_CONSTANTS*)[_buffers.viewSizeBuffer contents];
+  vs_constants->viewSize = simd_make_float2(width, height);
 }
 
 - (void)setUniforms:(int)uniformOffset image:(int)image {

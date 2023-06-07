@@ -74,7 +74,7 @@ jobs:
       - name: install-xmake
         run: |
           sudo apt-get install libglfw3-dev tree
-          curl -L -o xmake-amd64.deb https://launchpad.net/~xmake-io/+archive/ubuntu/xmake/+files/xmake_2.7.8+1jammy_amd64.deb
+          ./scripts/xmake-install.sh xmake-amd64.deb
           sudo apt-get install -y ./xmake-amd64.deb
           rm ./xmake-amd64.deb
           xmake --version

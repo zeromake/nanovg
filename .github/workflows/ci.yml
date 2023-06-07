@@ -71,6 +71,7 @@ jobs:
     name: linux build
     runs-on: ubuntu-22.04
     steps:
+      - uses: actions/checkout@v3
       - name: install-xmake
         run: |
           sudo apt-get install libglfw3-dev tree
@@ -78,7 +79,6 @@ jobs:
           sudo apt-get install -y ./xmake-amd64.deb
           rm ./xmake-amd64.deb
           xmake --version
-      - uses: actions/checkout@v3
       - name: pre-repo
         run: |
           xmake repo -a local https://github.com/zeromake/xrepo.git

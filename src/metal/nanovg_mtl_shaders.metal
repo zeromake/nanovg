@@ -86,9 +86,14 @@ vertex RasterizerData vertexShader(Vertex vert [[stage_in]],
   RasterizerData out;
   out.ftcoord = vert.tcoord;
   out.fpos = vert.pos;
-  out.pos = float4(2.0 * vert.pos.x / viewSize.viewSize.x - 1.0,
-                   1.0 - 2.0 * vert.pos.y / viewSize.viewSize.y,
-                   0, 1);
+  float x = 2.0 * vert.pos.x / viewSize.viewSize.x - 1.0;
+  float y = 1.0 - 2.0 * vert.pos.y / viewSize.viewSize.y;
+  out.pos = float4(
+    x,
+    y,
+    0,
+    1
+  );
   return out;
 }
 
@@ -116,7 +121,9 @@ fragment float4 fragmentShader(RasterizerData in [[stage_in]],
       color = float4(color.x);
     color *= scissor;
     return color * uniforms.innerCol;
-  } else {  // MNVG_SHADER_IMG
+  } else if (uniforms.type == 2) {
+    return float4(1.0, 1.0, 1.0, 1.0);
+  } else if (uniforms.type == 3) {  // MNVG_SHADER_IMG
     float4 color = texture.sample(sampler, in.ftcoord);
     if (uniforms.texType == 1)
       color = float4(color.xyz * color.w, color.w);
@@ -125,6 +132,7 @@ fragment float4 fragmentShader(RasterizerData in [[stage_in]],
     color *= scissor;
     return color * uniforms.innerCol;
   }
+  return float4();
 }
 
 // Fragment function (AA)
@@ -141,16 +149,6 @@ fragment float4 fragmentShaderAA(RasterizerData in [[stage_in]],
     discard_fragment();
   }
 
-  if (uniforms.type == 2) {  // MNVG_SHADER_IMG
-    float4 color = texture.sample(sampler, in.ftcoord);
-    if (uniforms.texType == 1)
-      color = float4(color.xyz * color.w, color.w);
-    else if (uniforms.texType == 2)
-      color = float4(color.x);
-    color *= scissor;
-    return color * uniforms.innerCol;
-  }
-
   if (uniforms.type == 0) {  // MNVG_SHADER_FILLGRAD
     float2 pt = (uniforms.paintMat * float3(in.fpos, 1.0)).xy;
     float d = saturate((uniforms.feather * 0.5 + sdroundrect(uniforms, pt))
@@ -159,7 +157,7 @@ fragment float4 fragmentShaderAA(RasterizerData in [[stage_in]],
     color *= scissor;
     color *= strokeAlpha;
     return color;
-  } else {  // MNVG_SHADER_FILLIMG
+  } else if (uniforms.type == 1){  // MNVG_SHADER_FILLIMG
     float2 pt = (uniforms.paintMat * float3(in.fpos, 1.0)).xy / uniforms.extent;
     float4 color = texture.sample(sampler, pt);
     if (uniforms.texType == 1)
@@ -169,5 +167,16 @@ fragment float4 fragmentShaderAA(RasterizerData in [[stage_in]],
     color *= scissor;
     color *= strokeAlpha;
     return color * uniforms.innerCol;
+  } else if (uniforms.type == 2) {
+    return float4(1.0, 1.0, 1.0, strokeAlpha);
+  } else if (uniforms.type == 3) {  // MNVG_SHADER_IMG
+    float4 color = texture.sample(sampler, in.ftcoord);
+    if (uniforms.texType == 1)
+      color = float4(color.xyz * color.w, color.w);
+    else if (uniforms.texType == 2)
+      color = float4(color.x);
+    color *= scissor;
+    return color * uniforms.innerCol;
   }
+  return float4();
 }

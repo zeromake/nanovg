@@ -6,8 +6,6 @@ local languages = {
     "glsl300es",
     "hlsl5",
     "metal_macos",
-    "metal_ios",
-    "metal_sim"
 }
 
 local shdc = "sokol-shdc"
@@ -20,6 +18,18 @@ local downloads = {
     windows="https://raw.githubusercontent.com/floooh/sokol-tools-bin/master/bin/win32/sokol-shdc.exe",
     macosx="https://raw.githubusercontent.com/floooh/sokol-tools-bin/master/bin/osx/sokol-shdc",
     linux="https://raw.githubusercontent.com/floooh/sokol-tools-bin/master/bin/linux/sokol-shdc",
+}
+
+function generate_glsl_headers(dir, language, suffix, edgeAA) {
+    local include_path = path.absolute(path.join(os.scriptdir(), "../build/include"))
+    os.mkdir(include_path)
+    local file = path.join(dir, "._nanovg_"..language.."_"..suffix..".glsl")
+    local inputFile = io.open(file, "rb")
+    local outFile = io.open(path.join(include_path, language.."_"..suffix..(edgeAA and "_aa" or "")..".h"))
+    for line in inputFile:lines() do
+    end
+    outFile:close()
+    inputFile:close()
 }
 
 function main()
@@ -38,6 +48,9 @@ function main()
     os.cd(path.join(os.scriptdir(), "../build/shader"))
     for _, language in ipairs(languages) do
         os.vexecv(shdc_path, {"-i", shdc_shader_path, "-l", language, "-f", "bare", "-o", "."})
+        if language:startswith("glsl") then
+
+        end
     end
     os.cd("-")
     os.cd(path.join(os.scriptdir(), "../build/shader_aa"))

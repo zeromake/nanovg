@@ -78,6 +78,7 @@ typedef enum MNVGvertexInputIndex {
 typedef enum MNVGshaderType {
   MNVG_SHADER_FILLGRAD,
   MNVG_SHADER_FILLIMG,
+  MNVG_SHADER_SIMPLE,
   MNVG_SHADER_IMG,
 } MNVGshaderType;
 

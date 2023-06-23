@@ -31,12 +31,12 @@
 
 ## 3.变换
 
-变换有 3 种：缩放（scal）、倾斜（skew）、平移（translate）。在 nanovg 中使用了一个变换矩阵（第二个矩阵只是说明在程序中对应的 a、b、c…… 等参数）：
+变换有 3 种：缩放（scal）、倾斜（skew）、平移（translate）。在 nanovg 中使用了一个变换矩阵（第二个矩阵只是说明在程序中对应的 a、b、c…… 等参数，第三个矩阵标注内部 `float[6] xform` 的对应下标）：
 
 ```
-[sx kx tx]          [a  c  e]
-[ky xy ty]  ==>     [b  d  f]
-[0   0  1]          [0  0  1]
+[sx kx tx]       [a  c  e]       [0  2  4]
+[ky sy ty]  ==>  [b  d  f]  ==>  [1  3  5]
+[0   0  1]       [0  0  1]       [x  x  x]
 ```
 
 其中 sx、sy 为缩放，kx、ky 为歪斜，tx、ty 为平移。后面的 `[0  0  1]` 不做存储。

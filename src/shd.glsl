@@ -1,9 +1,9 @@
 // use https://github.com/floooh/sokol-tools demo
 
 @vs vs
-layout (binding = 0) uniform VS_CONSTANTS {
+layout (binding = 0) uniform viewSize {
     // mat4 dummy;
-    vec2 viewSize;
+    vec2 _viewSize;
 };
 layout (location = 0) in vec2 vertex;
 layout (location = 1) in vec2 tcoord;
@@ -13,8 +13,8 @@ layout (location = 1) out vec2 fpos;
 void main(void) {
 	ftcoord = tcoord;
 	fpos = vertex;
-    float x = 2.0 * vertex.x / viewSize.x - 1.0;
-    float y = 1.0 - 2.0 * vertex.y / viewSize.y;
+    float x = 2.0 * vertex.x / _viewSize.x - 1.0;
+    float y = 1.0 - 2.0 * vertex.y / _viewSize.y;
 	gl_Position = vec4(
         x,
         y,

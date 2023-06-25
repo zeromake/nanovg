@@ -231,7 +231,7 @@ typedef struct GLNVGfragUniforms GLNVGfragUniforms;
 struct GLNVGcontext {
 	GLNVGshader shader;
 	GLNVGtexture* textures;
-	float view[2];
+	float view[4];
 	int ntextures;
 	int ctextures;
 	int textureId;
@@ -438,7 +438,7 @@ static int glnvg__createShader(GLNVGshader* shader, const char* name, const char
 	GLint status;
 	GLuint prog, vert, frag;
 	const char* str[3];
-	str[0] = header;
+	str[0] = header != NULL ? header : "";
 	str[1] = opts != NULL ? opts : "";
 
 	memset(shader, 0, sizeof(*shader));
@@ -507,6 +507,22 @@ static void glnvg__getUniforms(GLNVGshader* shader)
 #endif
 }
 
+#ifdef NVG_USE_SHD_SHADER
+#if defined NANOVG_GL3
+#include "nvg_shader/glsl330_vs.h"
+#include "nvg_shader/glsl330_fs.h"
+#include "nvg_shader/glsl330_fs_aa.h"
+#elif defined NANOVG_GLES2
+#include "nvg_shader/glsl100_vs.h"
+#include "nvg_shader/glsl100_fs.h"
+#include "nvg_shader/glsl100_fs_aa.h"
+#elif defined NANOVG_GLES3
+#include "nvg_shader/glsl300es_vs.h"
+#include "nvg_shader/glsl300es_fs.h"
+#include "nvg_shader/glsl300es_fs_aa.h"
+#endif
+#endif
+
 static int glnvg__renderCreateTexture(void* uptr, int type, int w, int h, int imageFlags, const unsigned char* data);
 
 static int glnvg__renderCreate(void* uptr)
@@ -537,9 +553,10 @@ static int glnvg__renderCreate(void* uptr)
 #endif
 	"\n";
 
+#ifndef NVG_USE_SHD_SHADER
 	static const char* fillVertShader =
 		"#ifdef NANOVG_GL3\n"
-		"	uniform vec2 viewSize;\n"
+		"	uniform vec4 viewSize[1];\n"
 		"	in vec2 vertex;\n"
 		"	in vec2 tcoord;\n"
 		"	out vec2 ftcoord;\n"
@@ -554,7 +571,7 @@ static int glnvg__renderCreate(void* uptr)
 		"void main(void) {\n"
 		"	ftcoord = tcoord;\n"
 		"	fpos = vertex;\n"
-		"	gl_Position = vec4(2.0*vertex.x/viewSize.x - 1.0, 1.0 - 2.0*vertex.y/viewSize.y, 0, 1);\n"
+		"	gl_Position = vec4(2.0*vertex.x/viewSize[0].x - 1.0, 1.0 - 2.0*vertex.y/viewSize[0].y, 0, 1);\n"
 		"}\n";
 
 	static const char* fillFragShader =
@@ -681,16 +698,27 @@ static int glnvg__renderCreate(void* uptr)
 		"	gl_FragColor = result;\n"
 		"#endif\n"
 		"}\n";
+#endif
 
 	glnvg__checkError(gl, "init");
 
+#ifdef NVG_USE_SHD_SHADER
 	if (gl->flags & NVG_ANTIALIAS) {
+		if (glnvg__createShader(&gl->shader, "shader", shaderHeader, NULL, (const char *)__shader_vs, (const char *)__shader_fs_aa) == 0)
+			return 0;
+	} else {
+		if (glnvg__createShader(&gl->shader, "shader", shaderHeader, NULL, (const char *)__shader_vs, (const char *)__shader_fs) == 0)
+			return 0;
+	}
+#else
+    if (gl->flags & NVG_ANTIALIAS) {
 		if (glnvg__createShader(&gl->shader, "shader", shaderHeader, "#define EDGE_AA 1\n", fillVertShader, fillFragShader) == 0)
 			return 0;
 	} else {
 		if (glnvg__createShader(&gl->shader, "shader", shaderHeader, NULL, fillVertShader, fillFragShader) == 0)
 			return 0;
 	}
+#endif
 
 	glnvg__checkError(gl, "uniform locations");
 	glnvg__getUniforms(&gl->shader);
@@ -1234,7 +1262,7 @@ static void glnvg__renderFlush(void* uptr)
 
 		// Set view and texture just once per frame.
 		glUniform1i(gl->shader.loc[GLNVG_LOC_TEX], 0);
-		glUniform2fv(gl->shader.loc[GLNVG_LOC_VIEWSIZE], 1, gl->view);
+		glUniform4fv(gl->shader.loc[GLNVG_LOC_VIEWSIZE], 1, gl->view);
 
 #if NANOVG_GL_USE_UNIFORMBUFFER
 		glBindBuffer(GL_UNIFORM_BUFFER, gl->fragBuf);

@@ -26,7 +26,7 @@ void main(void) {
 
 @fs fs
 precision highp float;
-layout(std140,binding = 1) uniform frag {
+layout(std140,binding=1) uniform frag {
     mat3 scissorMat;
     mat3 paintMat;
     vec4 innerCol;
@@ -41,7 +41,7 @@ layout(std140,binding = 1) uniform frag {
     int texType;
     int type;
 };
-layout(binding = 2) uniform sampler2D tex;
+layout(binding=2) uniform sampler2D tex;
 layout(location = 0) in vec2 ftcoord;
 layout(location = 1) in vec2 fpos;
 layout(location = 0) out vec4 outColor;
@@ -96,13 +96,12 @@ void main(void) {
         color *= strokeAlpha * scissor;
         result = color;
     } else if (type == 2) {// Stencil fill
-        result = vec4(1,1,1,strokeAlpha);
+        result = vec4(1,1,1,1);
     } else if (type == 3) {// Textured tris
         vec4 color = texture(tex, ftcoord);
         if (texType == 1) color = vec4(color.xyz*color.w,color.w);
         if (texType == 2) color = vec4(color.x);
-        color *= strokeAlpha * scissor * innerCol;
-        result = color;
+        result = color * scissor * innerCol;
     }
     outColor = result;
 }

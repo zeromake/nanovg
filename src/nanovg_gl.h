@@ -536,7 +536,7 @@ static int glnvg__renderCreate(void* uptr)
 #if defined NANOVG_GL2
 		"#define NANOVG_GL2 1\n"
 #elif defined NANOVG_GL3
-		"#version 150 core\n"
+		"#version 330 core\n"
 		"#define NANOVG_GL3 1\n"
 #elif defined NANOVG_GLES2
 		"#version 100\n"

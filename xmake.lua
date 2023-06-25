@@ -59,7 +59,7 @@ target("nanovg_d3d11")
 target_end()
 
 if get_config("example") then
-    add_defines("DEMO_USE_CJK")
+    add_defines("DEMO_USE_CJK", "NVG_USE_SHD_SHADER")
     add_defines(format('EXAMPLE_PATH="%s"', path.absolute(path.join(os.scriptdir(), "example")):gsub('\\', '/')..'/'))
     if is_plat("android") then
         add_requires("sdl2", {configs={shared=true}})

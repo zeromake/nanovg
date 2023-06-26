@@ -295,7 +295,11 @@ NVGcontext* nvgCreateInternal(NVGparams* params)
 	FONSparams fontParams;
 	NVGcontext* ctx = (NVGcontext*)malloc(sizeof(NVGcontext));
 	int i;
-	if (ctx == NULL) goto error;
+	if (ctx == NULL) {
+        // ctx not init but gl is init
+        if (params->renderDelete != NULL) params->renderDelete(params->userPtr);
+        return 0;
+    }
 	memset(ctx, 0, sizeof(NVGcontext));
 
 	ctx->params = *params;

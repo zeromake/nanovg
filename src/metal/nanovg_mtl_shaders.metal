@@ -142,7 +142,7 @@ fragment float4 fragmentShaderAA(RasterizerData in [[stage_in]],
                                  sampler sampler [[sampler(0)]]) {
   float scissor = scissorMask(uniforms, in.fpos);
   if (scissor == 0)
-    discard_fragment();
+    return float4(0);
 
   float strokeAlpha = strokeMask(uniforms, in.ftcoord);
   if (strokeAlpha < uniforms.strokeThr) {
@@ -178,5 +178,5 @@ fragment float4 fragmentShaderAA(RasterizerData in [[stage_in]],
     color *= scissor;
     return color * uniforms.innerCol;
   }
-  return float4();
+  return float4(0);
 }

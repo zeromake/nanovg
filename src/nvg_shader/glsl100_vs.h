@@ -1,0 +1,15 @@
+const char __shader_vs[] = 
+"\n"
+"uniform vec4 viewSize[1];\n"
+"varying vec2 ftcoord;\n"
+"attribute vec2 tcoord;\n"
+"varying vec2 fpos;\n"
+"attribute vec2 vertex;\n"
+"\n"
+"void main()\n"
+"{\n"
+"    ftcoord = tcoord;\n"
+"    fpos = vertex;\n"
+"    gl_Position = vec4(((2.0 * vertex.x) / viewSize[0].x) - 1.0, 1.0 - ((2.0 * vertex.y) / viewSize[0].y), 0.0, 1.0);\n"
+"}\n"
+"\n";

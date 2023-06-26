@@ -3,7 +3,7 @@
 @vs vs
 layout (binding = 0) uniform viewSize {
     // mat4 dummy;
-    vec2 _viewSize;
+    vec4 _viewSize;
 };
 layout (location = 0) in vec2 vertex;
 layout (location = 1) in vec2 tcoord;
@@ -76,6 +76,11 @@ void main(void) {
     float strokeAlpha = 1.0;
 #endif
     float scissor = scissorMask(fpos);
+
+    if (scissor == 0) {
+        return;
+    }
+
     if (type == 0) {    // Gradient
         // Calculate gradient color using box gradient
         vec2 pt = (paintMat * vec3(fpos,1.0)).xy;

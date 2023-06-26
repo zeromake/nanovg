@@ -1786,10 +1786,9 @@ error:
   return 1;
 }
 
-struct VS_CONSTANTS {
-	vector_float2 viewSize;
-};
-typedef struct VS_CONSTANTS VS_CONSTANTS;
+typedef struct VS_CONSTANTS {
+	vector_float4 viewSize;
+} VS_CONSTANTS;
 
 - (void)renderViewportWithWidth:(float)width
                          height:(float)height
@@ -1813,7 +1812,7 @@ typedef struct VS_CONSTANTS VS_CONSTANTS;
         options:kMetalBufferOptions];
   }
   VS_CONSTANTS* vs_constants = (VS_CONSTANTS*)[_buffers.viewSizeBuffer contents];
-  vs_constants->viewSize = simd_make_float2(width, height);
+  vs_constants->viewSize = simd_make_float4(width, height, 0, 0);
 }
 
 - (void)setUniforms:(int)uniformOffset image:(int)image {

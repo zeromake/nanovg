@@ -34,7 +34,7 @@ local downloads = {
 }
 
 function generate_glsl_headers(language, suffix, edgeAA)
-    local include_path = path.join("../../src/nvg_shader")
+    local include_path = path.join("../../src/nvg_shader/glsl")
     os.mkdir(include_path)
     local file = "._nanovg_"..language.."_"..suffix..".glsl"
     local inputFile = io.open(file, "r")
@@ -90,7 +90,15 @@ function main()
     local curr = path.join(os.scriptdir(), "../build/shader")
     os.cd(curr)
     for _, language in ipairs(languages) do
-        os.vexecv(shdc_path, {"-i", shdc_shader_path, "-l", language, "-f", "bare", "-o", "."})
+        local defines = ''
+        if language == "glsl330" or not language:startswith("glsl") then
+            defines = '--defines=USE_UNIFORMBUFFER'
+        end
+        local argv = {"-i", shdc_shader_path, "-l", language, "-f", "bare", "-o", "."}
+        if defines ~= '' then
+            table.insert(argv, defines)
+        end
+        os.vexecv(shdc_path, argv)
         if language:startswith("glsl") then
             generate_glsl_headers(language, "fs", false)
             generate_glsl_headers(language, "vs", false)
@@ -100,7 +108,11 @@ function main()
     curr = path.join(os.scriptdir(), "../build/shader_aa")
     os.cd(curr)
     for i, language in ipairs(languages) do
-        os.vexecv(shdc_path, {"-i", shdc_shader_path, "-l", language, "-f", "bare", "--defines=EDGE_AA", "-o", "."})
+        local defines = '--defines=EDGE_AA'
+        if language == "glsl330" or not language:startswith("glsl") then
+            defines = defines..':USE_UNIFORMBUFFER'
+        end
+        os.vexecv(shdc_path, {"-i", shdc_shader_path, "-l", language, "-f", "bare", defines, "-o", "."})
         if language:startswith("glsl") then
             generate_glsl_headers(language, "fs", true)
         end
@@ -147,7 +159,7 @@ function main()
                 if #f > 3 then
                     table.insert(argv, f[4])
                 end
-                local VARIABLE_NAME = path.join("src/metal/mnvg_bitcode", f[2].."_"..n)
+                local VARIABLE_NAME = path.join("src/nvg_shader/metal", f[2].."_"..n)
                 local AIR_FILE_NAME = VARIABLE_NAME..".air"
                 local HEADER_NAME = VARIABLE_NAME..".h"
                 table.insert(argv, "-o")

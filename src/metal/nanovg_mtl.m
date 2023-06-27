@@ -38,21 +38,21 @@
 
 #ifdef NVG_USE_SHD_SHADER
 #if TARGET_OS_SIMULATOR
-#  include "mnvg_bitcode/simulator_fs.h"
-#  include "mnvg_bitcode/simulator_fs_aa.h"
-#  include "mnvg_bitcode/simulator_vs.h"
+#  include "nvg_shader/metal/simulator_fs.h"
+#  include "nvg_shader/metal/simulator_fs_aa.h"
+#  include "nvg_shader/metal/simulator_vs.h"
 #elif TARGET_OS_IOS
-#  include "mnvg_bitcode/ios_fs.h"
-#  include "mnvg_bitcode/ios_fs_aa.h"
-#  include "mnvg_bitcode/ios_vs.h"
+#  include "nvg_shader/metal/ios_fs.h"
+#  include "nvg_shader/metal/ios_fs_aa.h"
+#  include "nvg_shader/metal/ios_vs.h"
 #elif TARGET_OS_OSX
-#  include "mnvg_bitcode/macos_fs.h"
-#  include "mnvg_bitcode/macos_fs_aa.h"
-#  include "mnvg_bitcode/macos_vs.h"
+#  include "nvg_shader/metal/macos_fs.h"
+#  include "nvg_shader/metal/macos_fs_aa.h"
+#  include "nvg_shader/metal/macos_vs.h"
 #elif TARGET_OS_TV
-#  include "mnvg_bitcode/tvos_fs.h"
-#  include "mnvg_bitcode/tvos_fs_aa.h"
-#  include "mnvg_bitcode/tvos_vs.h"
+#  include "nvg_shader/metal/tvos_fs.h"
+#  include "nvg_shader/metal/tvos_fs_aa.h"
+#  include "nvg_shader/metal/tvos_vs.h"
 #else
 #  define MNVG_INVALID_TARGET
 #endif

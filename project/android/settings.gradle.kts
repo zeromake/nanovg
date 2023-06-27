@@ -12,7 +12,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "onscripter"
+rootProject.name = "nanovg.example"
 rootProject.buildFileName = "build.gradle.kts"
 
 include(":app")

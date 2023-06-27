@@ -22,6 +22,14 @@
 extern "C" {
 #endif
 
+#ifdef ANDROID
+#include <android/log.h>
+#define LOG_TAG "com.zeromake.nanovg.gl"
+#define NANOVG_LOG(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
+#else
+#define NANOVG_LOG(...) printf(__VA_ARGS__)
+#endif
+
 // Create flags
 
 enum NVGcreateFlags {
@@ -409,7 +417,7 @@ static void glnvg__dumpShaderError(GLuint shader, const char* name, const char* 
 	glGetShaderInfoLog(shader, 512, &len, str);
 	if (len > 512) len = 512;
 	str[len] = '\0';
-	printf("Shader %s/%s error:\n%s\n", name, type, str);
+	NANOVG_LOG("Shader %s/%s error:\n%s\n", name, type, str);
 }
 
 static void glnvg__dumpProgramError(GLuint prog, const char* name)
@@ -419,7 +427,7 @@ static void glnvg__dumpProgramError(GLuint prog, const char* name)
 	glGetProgramInfoLog(prog, 512, &len, str);
 	if (len > 512) len = 512;
 	str[len] = '\0';
-	printf("Program %s error:\n%s\n", name, str);
+	NANOVG_LOG("Program %s error:\n%s\n", name, str);
 }
 
 static void glnvg__checkError(GLNVGcontext* gl, const char* str)
@@ -428,7 +436,7 @@ static void glnvg__checkError(GLNVGcontext* gl, const char* str)
 	if ((gl->flags & NVG_DEBUG) == 0) return;
 	err = glGetError();
 	if (err != GL_NO_ERROR) {
-		printf("Error %08x after %s\n", err, str);
+		NANOVG_LOG("Error %08x after %s\n", err, str);
 		return;
 	}
 }
@@ -495,7 +503,7 @@ static void glnvg__deleteShader(GLNVGshader* shader)
 		glDeleteShader(shader->frag);
 }
 
-static void glnvg__getUniforms(GLNVGshader* shader)
+static int glnvg__getUniforms(GLNVGshader* shader)
 {
 	shader->loc[GLNVG_LOC_VIEWSIZE] = glGetUniformLocation(shader->prog, "viewSize");
 	shader->loc[GLNVG_LOC_TEX] = glGetUniformLocation(shader->prog, "tex");
@@ -505,21 +513,29 @@ static void glnvg__getUniforms(GLNVGshader* shader)
 #else
 	shader->loc[GLNVG_LOC_FRAG] = glGetUniformLocation(shader->prog, "frag");
 #endif
+    int n = sizeof(shader->loc) / sizeof(shader->loc[0]);
+    for (int i = 0; i < n; i++) {
+        if (shader->loc[i] == -1) {
+            NANOVG_LOG("uniform %d location error %d\n", i, shader->loc[i]);
+            return 0;
+        }
+    }
+    return 1;
 }
 
 #ifdef NVG_USE_SHD_SHADER
-#if defined NANOVG_GL3
-#include "nvg_shader/glsl330_vs.h"
-#include "nvg_shader/glsl330_fs.h"
-#include "nvg_shader/glsl330_fs_aa.h"
+#if defined NANOVG_GL3 || defined NANOVG_GL2
+#include "nvg_shader/glsl/glsl330_vs.h"
+#include "nvg_shader/glsl/glsl330_fs.h"
+#include "nvg_shader/glsl/glsl330_fs_aa.h"
 #elif defined NANOVG_GLES2
-#include "nvg_shader/glsl100_vs.h"
-#include "nvg_shader/glsl100_fs.h"
-#include "nvg_shader/glsl100_fs_aa.h"
+#include "nvg_shader/glsl/glsl100_vs.h"
+#include "nvg_shader/glsl/glsl100_fs.h"
+#include "nvg_shader/glsl/glsl100_fs_aa.h"
 #elif defined NANOVG_GLES3
-#include "nvg_shader/glsl300es_vs.h"
-#include "nvg_shader/glsl300es_fs.h"
-#include "nvg_shader/glsl300es_fs_aa.h"
+#include "nvg_shader/glsl/glsl300es_vs.h"
+#include "nvg_shader/glsl/glsl300es_fs.h"
+#include "nvg_shader/glsl/glsl300es_fs_aa.h"
 #endif
 #endif
 
@@ -534,9 +550,10 @@ static int glnvg__renderCreate(void* uptr)
 	// see the following discussion: https://github.com/memononen/nanovg/issues/46
 	static const char* shaderHeader =
 #if defined NANOVG_GL2
+		"#version 110\n"
 		"#define NANOVG_GL2 1\n"
 #elif defined NANOVG_GL3
-		"#version 330 core\n"
+		"#version 330\n"
 		"#define NANOVG_GL3 1\n"
 #elif defined NANOVG_GLES2
 		"#version 100\n"
@@ -721,7 +738,9 @@ static int glnvg__renderCreate(void* uptr)
 #endif
 
 	glnvg__checkError(gl, "uniform locations");
-	glnvg__getUniforms(&gl->shader);
+	if (!glnvg__getUniforms(&gl->shader)) {
+        return 0;
+    }
 
 	// Create dynamic vertex array
 #if defined NANOVG_GL3
@@ -760,12 +779,12 @@ static int glnvg__renderCreateTexture(void* uptr, int type, int w, int h, int im
 	if (glnvg__nearestPow2(w) != (unsigned int)w || glnvg__nearestPow2(h) != (unsigned int)h) {
 		// No repeat
 		if ((imageFlags & NVG_IMAGE_REPEATX) != 0 || (imageFlags & NVG_IMAGE_REPEATY) != 0) {
-			printf("Repeat X/Y is not supported for non power-of-two textures (%d x %d)\n", w, h);
+			NANOVG_LOG("Repeat X/Y is not supported for non power-of-two textures (%d x %d)\n", w, h);
 			imageFlags &= ~(NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY);
 		}
 		// No mips.
 		if (imageFlags & NVG_IMAGE_GENERATE_MIPMAPS) {
-			printf("Mip-maps is not support for non power-of-two textures (%d x %d)\n", w, h);
+			NANOVG_LOG("Mip-maps is not support for non power-of-two textures (%d x %d)\n", w, h);
 			imageFlags &= ~NVG_IMAGE_GENERATE_MIPMAPS;
 		}
 	}
@@ -997,7 +1016,7 @@ static int glnvg__convertPaint(GLNVGcontext* gl, GLNVGfragUniforms* frag, NVGpai
 		else
 			frag->texType = 2.0f;
 		#endif
-//		printf("frag->texType = %d\n", frag->texType);
+//		NANOVG_LOG("frag->texType = %d\n", frag->texType);
 	} else {
 		frag->type = NSVG_SHADER_FILLGRAD;
 		frag->radius = paint->radius;

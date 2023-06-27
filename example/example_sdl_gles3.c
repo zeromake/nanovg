@@ -58,6 +58,11 @@
 #define NANOVG_IMPLEMENTATION
 #include "nanovg_wrapper.h"
 
+#ifdef ANDROID
+#include <android/log.h>
+#define LOG_TAG "com.zeromake.example"
+#define printf(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
+#endif
 
 #ifndef ANDROID
 #undef main

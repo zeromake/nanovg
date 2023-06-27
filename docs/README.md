@@ -126,3 +126,18 @@ Fonts used in examples:
 ## Links
 Uses [stb_truetype](http://nothings.org) (or, optionally, [freetype](http://freetype.org)) for font rendering.
 Uses [stb_image](http://nothings.org) for image loading.
+
+## Use sokol_shdc share shader
+
+> ✅: complete; 🛠: in progress
+
+use [sokol-tools](https://github.com/floooh/sokol-tools) conver glsl to many shader lang.
+
+| shader-lang | status |
+| glsl330     | ✅     |
+| glsl300es   | ✅     |
+| glsl100     | 🛠     |
+| metal_macos | ✅     |
+| metal_ios   | 🛠     |
+| metal_sim   | 🛠     |
+| hlsl5       | 🛠     |

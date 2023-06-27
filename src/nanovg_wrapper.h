@@ -70,8 +70,12 @@ float nvgDevicePixelRatio(NVGcontext* ctx) {
 #ifdef _WIN32
     return (float)GetDpiForWindow(info.info.win.window) / 96.0f;
 #elif defined(__APPLE__)
+#ifdef NANOVG_USE_GL
+    return 2.0f;
+#else
     NSWindow* win = info.info.cocoa.window;
     return [win backingScaleFactor];
+#endif
 #else
     return 1.0f;
 #endif

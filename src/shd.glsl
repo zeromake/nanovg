@@ -26,6 +26,7 @@ void main(void) {
 
 @fs fs
 precision highp float;
+#ifdef USE_UNIFORMBUFFER
 layout(std140,binding=1) uniform frag {
     mat3 scissorMat;
     mat3 paintMat;
@@ -41,6 +42,25 @@ layout(std140,binding=1) uniform frag {
     int texType;
     int type;
 };
+#else
+layout(std140,binding=1) uniform frag {
+    vec4 dummy[11];
+};
+#define scissorMat mat3(dummy[0].xyz, dummy[1].xyz, dummy[2].xyz)
+#define paintMat mat3(dummy[3].xyz, dummy[4].xyz, dummy[5].xyz)
+#define innerCol dummy[6]
+#define outerCol dummy[7]
+#define scissorExt dummy[8].xy
+#define scissorScale dummy[8].zw
+#define extent dummy[9].xy
+#define radius dummy[9].z
+#define feather dummy[9].w
+#define strokeMult dummy[10].x
+#define strokeThr dummy[10].y
+#define texType int(dummy[10].z)
+#define type int(dummy[10].w)
+#endif
+
 layout(binding=2) uniform sampler2D tex;
 layout(location = 0) in vec2 ftcoord;
 layout(location = 1) in vec2 fpos;

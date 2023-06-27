@@ -62,6 +62,7 @@ if get_config("example") then
     add_defines("DEMO_USE_CJK", "NVG_USE_SHD_SHADER")
     add_defines(format('EXAMPLE_PATH="%s"', path.absolute(path.join(os.scriptdir(), "example")):gsub('\\', '/')..'/'))
     if is_plat("android") then
+        add_defines("ANDROID")
         add_requires("sdl2", {configs={shared=true}})
     else
         add_requires("glew", "glfw", "sdl2")
@@ -92,11 +93,9 @@ if get_config("example") then
             add_defines("ANDROID")
             set_kind("shared")
         elseif is_plat("macosx") then
-            set_kind("binary")
             add_deps("nanovg_metal")
             add_includedirs("src/metal")
         else
-            set_kind("binary")
             add_defines("NANOVG_GLEW")
             add_packages("glew")
         end

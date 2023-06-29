@@ -63,9 +63,15 @@ void nvd3dImageFlags(struct NVGcontext* ctx, int image, int flags);
 #include "nanovg.h"
 #include <d3d11.h>
 
+#ifdef NVG_USE_SHD_SHADER
+#include "nvg_shader/d3d11/D3D11VertexShader.h"
+#include "nvg_shader/d3d11/D3D11PixelShaderAA.h"
+#include "nvg_shader/d3d11/D3D11PixelShader.h"
+#else
 #include "nvg_shader/D3D11VertexShader.h"
 #include "nvg_shader/D3D11PixelShaderAA.h"
 #include "nvg_shader/D3D11PixelShader.h"
+#endif
 
 // The cpp calling is much simpler.
 // For 'c' calling of DX, we need to do pPtr->lpVtbl->Func(pPtr, ...)
@@ -462,8 +468,13 @@ static int D3Dnvg__renderCreate(void* uptr)
 
 	D3D11_INPUT_ELEMENT_DESC LayoutRenderTriangles[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+#ifdef NVG_USE_SHD_SHADER
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+#else
+        { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+#endif
 	};
 
 	if (D3D->flags & NVG_ANTIALIAS) {

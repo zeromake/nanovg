@@ -1,5 +1,6 @@
 import("net.http")
 import("core.base.option")
+import("detect.sdks.find_vstudio")
 
 local languages = {
     "glsl330",
@@ -39,7 +40,7 @@ function generate_glsl_headers(language, suffix, edgeAA)
     local file = "._nanovg_"..language.."_"..suffix..".glsl"
     local inputFile = io.open(file, "r")
     local out = path.join(include_path, language.."_"..suffix..(edgeAA and "_aa" or "")..".h")
-    local outFile = io.open(out, "w")
+    local outFile = io.open(out, "wb")
     outFile:writef("const char %s[] = ", "__shader_"..suffix..(edgeAA and "_aa" or ""));
     local fragGsub = nil
     for line in inputFile:lines() do
@@ -64,11 +65,6 @@ function generate_glsl_headers(language, suffix, edgeAA)
     outFile:write(";")
     outFile:close()
     inputFile:close()
-    -- if fragGsub ~= nil then
-    --     local text = io.readfile(out);
-    --     text = text:gsub(fragGsub, '')
-    --     io.writefile(out, text);
-    -- end
     print("generate %s", out)
 end
 
@@ -90,14 +86,12 @@ function main()
     local curr = path.join(os.scriptdir(), "../build/shader")
     os.cd(curr)
     for _, language in ipairs(languages) do
-        local defines = ''
+        local defines = '--defines=_'..string.upper(language).."_"
         if language == "glsl330" or not language:startswith("glsl") then
-            defines = '--defines=USE_UNIFORMBUFFER'
+            defines = defines..':USE_UNIFORMBUFFER'
         end
         local argv = {"-i", shdc_shader_path, "-l", language, "-f", "bare", "-o", "."}
-        if defines ~= '' then
-            table.insert(argv, defines)
-        end
+        table.insert(argv, defines)
         os.vexecv(shdc_path, argv)
         if language:startswith("glsl") then
             generate_glsl_headers(language, "fs", false)
@@ -108,7 +102,7 @@ function main()
     curr = path.join(os.scriptdir(), "../build/shader_aa")
     os.cd(curr)
     for i, language in ipairs(languages) do
-        local defines = '--defines=EDGE_AA'
+        local defines = '--defines=_'..string.upper(language).."_:EDGE_AA"
         if language == "glsl330" or not language:startswith("glsl") then
             defines = defines..':USE_UNIFORMBUFFER'
         end
@@ -119,6 +113,38 @@ function main()
         os.rm("._nanovg_"..language.."_vs."..suffixs[i])
     end
     os.cd("-")
+    if os.host() == "windows" then
+        os.mkdir("src/nvg_shader/d3d11")
+        local vs = find_vstudio()["2022"]["vcvarsall"]["x86"]
+        local windowsSdkBinPath = path.join(vs["WindowsSdkVerBinPath"], "x86")
+        local fxc = path.join(windowsSdkBinPath, "fxc.exe")
+        local files ={
+            {
+                "D3D11PixelShader",
+                "build/shader/._nanovg_hlsl5_fs.hlsl",
+                "ps_5_0",
+            },
+            {
+                "D3D11PixelShaderAA",
+                "build/shader_aa/._nanovg_hlsl5_fs.hlsl",
+                "ps_5_0",
+            },
+            {
+                "D3D11VertexShader",
+                "build/shader/._nanovg_hlsl5_vs.hlsl",
+                "vs_5_0",
+            },
+        }
+        for _, f in ipairs(files) do
+            local text = io.readfile(f[2]);
+            text = text:gsub(' main%(', " "..f[1]..'_Main(')
+            -- if f[3]:startswith("ps") then
+            --     text = text:gsub("fpos %: TEXCOORD1;", "fpos : TEXCOORD1;\n    float4 gl_Position : SV_Position;")
+            -- end
+            io.writefile(f[2], text);
+            os.vexecv(fxc, {"/Fh", "src/nvg_shader/d3d11/"..f[1]..".h", "/T", f[3], "/E", f[1].."_Main", f[2]})
+        end
+    end
     if os.host() == "macosx" then
         local ps = {
             {

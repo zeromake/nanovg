@@ -8,6 +8,7 @@
 NVGcontext* nvgCreate(int flags, void* params);
 void nvgDelete(NVGcontext* ctx);
 void nvgClearWithColor(NVGcontext* ctx, NVGcolor color);
+void nvgClearRectWithColor(NVGcontext* ctx, NVGcolor color, int* rect);
 void nvgResetFrameBuffer(NVGcontext* ctx, int width, int height);
 float nvgDevicePixelRatio(NVGcontext* ctx);
 
@@ -29,6 +30,19 @@ float nvgDevicePixelRatio(NVGcontext* ctx);
 #include <windows.h>
 WINUSERAPI UINT WINAPI GetDpiForWindow(HWND hwnd);
 #endif
+
+void nvgClearWithColor(NVGcontext* ctx, NVGcolor color) {
+	glClearColor(color.r, color.g, color.b, color.a);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+}
+
+void nvgClearRectWithColor(NVGcontext* ctx, NVGcolor color, int* rect) {
+    glEnable(GL_SCISSOR_TEST);
+    glScissor((GLint)rect[0], (GLint)rect[1], (GLsizei)rect[2], (GLsizei)rect[3]);
+	glClearColor(color.r, color.g, color.b, color.a);
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+    glDisable(GL_SCISSOR_TEST);
+}
 
 NVGcontext* nvgCreate(int flags, void* params) {
     NVGcontext *vg = NULL;

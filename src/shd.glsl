@@ -2,7 +2,9 @@
 
 @vs vs
 layout (binding = 0) uniform viewSize {
-    // mat4 dummy;
+#ifdef _HLSL5_
+    mat4 dummy;
+#endif
     vec4 _viewSize;
 };
 layout (location = 0) in vec2 vertex;
@@ -26,39 +28,65 @@ void main(void) {
 
 @fs fs
 precision highp float;
-#ifdef USE_UNIFORMBUFFER
-layout(std140,binding=1) uniform frag {
-    mat3 scissorMat;
-    mat3 paintMat;
-    vec4 innerCol;
-    vec4 outerCol;
-    vec2 scissorExt;
-    vec2 scissorScale;
-    vec2 extent;
-    float radius;
-    float feather;
-    float strokeMult;
-    float strokeThr;
-    int texType;
-    int type;
-};
+#ifdef _HLSL5_
+    uniform frag {
+        mat4 _scissorMat;
+        vec4 _scissorExt;
+        vec4 _scissorScale;
+        mat4 _paintMat;
+        vec4 _extent;
+        vec4 _radius;
+        vec4 _feather;
+        vec4 innerCol;
+        vec4 outerCol;
+        vec4 _strokeMult;
+        int texType;
+        int type;
+    };
+    #define scissorMat mat3(_scissorMat)
+    #define scissorExt _scissorExt.xy
+    #define scissorScale _scissorScale.xy
+    #define paintMat mat3(_paintMat)
+    #define extent _extent.xy
+    #define radius _radius.x
+    #define feather _feather.x
+    #define strokeMult _strokeMult.x
+    #define strokeThr _strokeMult.y
 #else
-layout(std140,binding=1) uniform frag {
-    vec4 dummy[11];
-};
-#define scissorMat mat3(dummy[0].xyz, dummy[1].xyz, dummy[2].xyz)
-#define paintMat mat3(dummy[3].xyz, dummy[4].xyz, dummy[5].xyz)
-#define innerCol dummy[6]
-#define outerCol dummy[7]
-#define scissorExt dummy[8].xy
-#define scissorScale dummy[8].zw
-#define extent dummy[9].xy
-#define radius dummy[9].z
-#define feather dummy[9].w
-#define strokeMult dummy[10].x
-#define strokeThr dummy[10].y
-#define texType int(dummy[10].z)
-#define type int(dummy[10].w)
+    #ifdef USE_UNIFORMBUFFER
+        layout(std140,binding=1) uniform frag {
+            mat3 scissorMat;
+            mat3 paintMat;
+            vec4 innerCol;
+            vec4 outerCol;
+            vec2 scissorExt;
+            vec2 scissorScale;
+            vec2 extent;
+            float radius;
+            float feather;
+            float strokeMult;
+            float strokeThr;
+            int texType;
+            int type;
+        };
+    #else
+        layout(std140,binding=1) uniform frag {
+            vec4 dummy[11];
+        };
+        #define scissorMat mat3(dummy[0].xyz, dummy[1].xyz, dummy[2].xyz)
+        #define paintMat mat3(dummy[3].xyz, dummy[4].xyz, dummy[5].xyz)
+        #define innerCol dummy[6]
+        #define outerCol dummy[7]
+        #define scissorExt dummy[8].xy
+        #define scissorScale dummy[8].zw
+        #define extent dummy[9].xy
+        #define radius dummy[9].z
+        #define feather dummy[9].w
+        #define strokeMult dummy[10].x
+        #define strokeThr dummy[10].y
+        #define texType int(dummy[10].z)
+        #define type int(dummy[10].w)
+    #endif
 #endif
 
 layout(binding=2) uniform sampler2D tex;
@@ -91,6 +119,8 @@ void main(void) {
 
 #ifdef EDGE_AA
     float strokeAlpha = strokeMask();
+#ifdef _HLSL5_
+#endif
     if (strokeAlpha < strokeThr) discard;
 #else
     float strokeAlpha = 1.0;

@@ -150,7 +150,10 @@ void Draw(HWND hWnd)
 
     nvgBeginFrame(vg, xWin, yWin, pxRatio);
 
-    renderDemo(vg, (float)xm, (float)ym, (float)xWin, (float)yWin, (float)t, blowup, &data);
+
+    float scale = (float)GetDpiForWindow(hWnd) / 96.0f;
+    nvgScale(vg, scale, scale);
+    renderDemo(vg, (float)xm / scale, (float)ym / scale, (float)xWin / scale, (float)yWin / scale, (float)t, blowup, &data);
 
     renderGraph(vg, 5,5, &fps);
 	renderGraph(vg, 5+200+5,5, &cpuGraph);
@@ -226,7 +229,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
-	
+
         // Mouse pos
         case WM_MOUSEMOVE:
         {
@@ -373,7 +376,7 @@ int main()
 	}
 
     ZeroMemory(&msg, sizeof(msg));
-	
+
     // Main message loop:
     while (msg.message != WM_QUIT)
     {
@@ -658,4 +661,4 @@ double getCPUTime(void)
     return (double)(getRawTime() - cpuTimerBase) *
         cpuTimerResolution;
 }
-	
+

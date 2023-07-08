@@ -32,6 +32,8 @@
 #include "perf.h"
 #ifdef _WIN32
 #include <windows.h>
+__declspec(dllimport) UINT __stdcall GetDpiForSystem();
+__declspec(dllimport) UINT __stdcall GetDpiForWindow(HWND hwnd);
 #endif
 
 

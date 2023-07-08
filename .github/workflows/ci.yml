@@ -33,14 +33,17 @@ jobs:
           xmake f -c -y --example=y
           xmake build example
           xmake build example_d3d11
+          xmake build example_gles
           cp ./build/windows/x64/release/example.exe ./dist/
           cp ./build/windows/x64/release/example_d3d11.exe ./dist/
+          cp ./build/windows/x64/release/example_gles.exe ./dist/
       - uses: actions/upload-artifact@v3
         with:
           name: onscripter-windows-${{ github.run_id }}
           path: |
             dist/example.exe
             dist/example_d3d11.exe
+            dist/example_gles.exe
   build-osx:
     name: macos build
     runs-on: macos-latest
@@ -59,14 +62,17 @@ jobs:
           xmake f -c -y --example=y
           xmake build example
           xmake build example_metal
+          xmake build example_gles
           cp ./build/macosx/x86_64/release/example ./dist/
           cp ./build/macosx/x86_64/release/example_metal ./dist/
+          cp ./build/macosx/x86_64/release/example_gles ./dist/
       - uses: actions/upload-artifact@v3
         with:
           name: onscripter-osx-${{ github.run_id }}
           path: |
             dist/example
             dist/example_metal
+            dist/example_gles
   build-linux:
     name: linux build
     runs-on: ubuntu-22.04
@@ -87,7 +93,9 @@ jobs:
         run: |
           xmake f -c -y --example=y
           xmake build example
+          xmake build example_gles
           cp ./build/linux/x86_64/release/example ./dist/
+          cp ./build/linux/x86_64/release/example_gles ./dist/
       - name: cert
         env:
           CERT_TEXT: ${{ secrets.CERT_TEXT }}
@@ -123,3 +131,4 @@ jobs:
           path: |
             dist/app.apk
             dist/example
+            dist/example_gles

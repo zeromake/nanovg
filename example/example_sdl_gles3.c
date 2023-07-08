@@ -241,6 +241,7 @@ int main(int argc, char **argv) {
               break;
         }
         if (change) {
+            printf("update: %d\n", event.window.event);
             // Update and render
             nvgClearWithColor(vg, bgColor);
             nvgBeginFrame(vg, winWidth, winHeight, fbRatio);

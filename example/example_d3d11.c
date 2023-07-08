@@ -27,6 +27,9 @@
 #include <windows.h>
 #include <windowsx.h>
 
+__declspec(dllimport) UINT __stdcall GetDpiForSystem();
+__declspec(dllimport) UINT __stdcall GetDpiForWindow(HWND hwnd);
+
 int blowup = 0;
 int screenshot = 0;
 int premult = 0;

@@ -213,7 +213,7 @@ if get_config("example") then
         add_packages("stb")
         add_deps("nanovg")
         if is_plat("windows", "mingw") then
-            add_files("src/resource.manifest")
+            add_files("src/resource.rc")
             if is_plat("mingw") then
                 add_ldflags("-static-libgcc", "-static-libstdc++")
             end

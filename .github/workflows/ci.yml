@@ -39,7 +39,7 @@ jobs:
           cp ./build/windows/x64/release/example_gles.exe ./dist/
       - uses: actions/upload-artifact@v3
         with:
-          name: onscripter-windows-${{ github.run_id }}
+          name: windows-${{ github.run_id }}
           path: |
             dist/example.exe
             dist/example_d3d11.exe
@@ -68,7 +68,7 @@ jobs:
           cp ./build/macosx/x86_64/release/example_gles ./dist/
       - uses: actions/upload-artifact@v3
         with:
-          name: onscripter-osx-${{ github.run_id }}
+          name: osx-${{ github.run_id }}
           path: |
             dist/example
             dist/example_metal
@@ -127,7 +127,7 @@ jobs:
           cd -
       - uses: actions/upload-artifact@v3
         with:
-          name: onscripter-linux-${{ github.run_id }}
+          name: linux-${{ github.run_id }}
           path: |
             dist/app.apk
             dist/example

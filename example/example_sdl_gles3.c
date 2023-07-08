@@ -44,11 +44,12 @@
 #define NANOVG_USE_GLES3 1
 #endif
 #elif defined(_WIN32)
-#define NANOVG_USE_GL 1
-#define NANOVG_USE_GL3 1
-#ifdef NANOVG_GLEW
-#include <GL/glew.h>
-#endif
+#define NANOVG_USE_D3D11 1
+// #define NANOVG_USE_GL 1
+// #define NANOVG_USE_GL3 1
+// #ifdef NANOVG_GLEW
+// #include <GL/glew.h>
+// #endif
 #elif defined(__APPLE__)
 #define NANOVG_USE_METAL 1
 #endif
@@ -84,17 +85,19 @@ int main(int argc, char **argv) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 #elif defined(NANOVG_USE_GLES3)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-#if __ANDROID_API__ >= 24
+
+#if defined(ANDROID) && __ANDROID_API__ >= 24
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-#elif __ANDROID_API__ >= 21
+#elif defined(ANDROID) && __ANDROID_API__ >= 21
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 #else
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #endif
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 #else
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    // opengl 自动选择版本
+	// SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	// SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_CORE);
 #endif
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -122,6 +125,9 @@ int main(int argc, char **argv) {
 #ifdef NANOVG_USE_GL
     SDL_GLContext context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, context);
+    const GLubyte * OpenGLVersion = glGetString(GL_VERSION);
+    const GLubyte * name = glGetString(GL_RENDERER);
+    printf("opengl: %s => %s\n", (char*)name, (char*)OpenGLVersion);
 #endif
 #ifdef NANOVG_GLEW
 	glewExperimental = GL_TRUE;
@@ -215,6 +221,7 @@ int main(int argc, char **argv) {
                     case SDL_APP_WILLENTERBACKGROUND:
                         // 应用后台
                         break;
+                    case SDL_WINDOWEVENT_LEAVE:
                     case SDL_WINDOWEVENT_FOCUS_LOST:
                         // 失去焦点
                         break;
@@ -222,6 +229,7 @@ int main(int argc, char **argv) {
                         // 尺寸变化
                         SDL_GetWindowSize(window, &winWidth, &winHeight);
                         break;
+                    case SDL_WINDOWEVENT_DISPLAY_CHANGED:
                     case SDL_WINDOWEVENT_SIZE_CHANGED:
                         // 窗口大小变化完成
                         SDL_GetWindowSizeInPixels(window, &fbWidth, &fbHeight);
@@ -265,7 +273,7 @@ int main(int argc, char **argv) {
             }
             loop:
             nvgEndFrame(vg);
-            SDL_GL_SwapWindow(window);
+            nvgPresent(vg);
             change = false;
         }
         SDL_Delay(16);

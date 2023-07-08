@@ -53,9 +53,10 @@ target_end()
 end
 
 target("nanovg_d3d11")
-    set_kind("headeronly")
+    set_kind("$(kind)")
     add_headerfiles("src/d3d11/*.h")
     add_headerfiles("src/d3d11/nvg_shader/*.h", {prefixdir="nvg_shader"})
+    add_files("src/d3d11/d3d11_helper.c")
 target_end()
 
 if get_config("example") then
@@ -95,6 +96,12 @@ if get_config("example") then
         elseif is_plat("macosx") then
             add_deps("nanovg_metal")
             add_includedirs("src/metal")
+        elseif is_plat("windows", "mingw") then
+            add_deps("nanovg_d3d11")
+            add_includedirs("src/d3d11")
+            add_syslinks("d3d11", "dxguid")
+            -- add_defines("NANOVG_GLEW")
+            -- add_packages("glew")
         else
             add_defines("NANOVG_GLEW")
             add_packages("glew")

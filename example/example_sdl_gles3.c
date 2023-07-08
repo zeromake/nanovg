@@ -27,6 +27,10 @@
 
 #define TAG "nanovg"
 
+#if defined(__ANDROID__) && !defined(ANDROID)
+#define ANDROID
+#endif
+
 #ifdef ANDROID
 #define NANOVG_USE_GL 1
 #include <android/log.h>
@@ -52,6 +56,12 @@
 // #endif
 #elif defined(__APPLE__)
 #define NANOVG_USE_METAL 1
+#elif defined(__linux__)
+#define NANOVG_USE_GL 1
+#define NANOVG_USE_GL3 1
+#ifdef NANOVG_GLEW
+#include <GL/glew.h>
+#endif
 #endif
 
 #include <SDL2/SDL.h>

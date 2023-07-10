@@ -157,6 +157,24 @@ void main(void) {
         if (texType == 1) color = vec4(color.xyz*color.w,color.w);
         if (texType == 2) color = vec4(color.x);
         result = color * scissor * innerCol;
+    } else if (type == 4) {// GLNVGshaderType::NSVG_SHADER_CLEARTYPE
+        // https://github.com/Const-me/nanovg
+        vec4 color = texture(tex, ftcoord);
+        float deriv = dFdx(ftcoord.x);
+        if (deriv < 0.0) {
+            // The text is horizontally mirrored, or rotated 180 degrees. Flip red and blue subpixels of the texture.
+            color.xz = color.zx;
+        } else if (deriv == 0.0) {
+            // The text is rotated 90 degrees. Average all 3 subpixels, disabling ClearType
+            color = vec4((color.x + color.y + color.z) * (1.0 / 3.0));
+        }
+        if (color.w * scissor * innerCol.w < (1.0 / 256.0)) {
+            discard;
+        }
+        // Do the clear type thing
+		result.xyz = color.xyz * innerCol.xyz + ( vec3( innerCol.w ) - color.xyz ) * outerCol.xyz;
+		result.w = innerCol.w;
+		result *= scissor;
     }
     outColor = result;
 }

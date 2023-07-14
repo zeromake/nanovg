@@ -171,6 +171,7 @@ typedef struct MNVGfragUniforms MNVGfragUniforms;
 @property (nonatomic, strong) id<MTLCommandQueue> commandQueue;
 @property (nonatomic, strong) CAMetalLayer* metalLayer;
 @property (nonatomic, strong) id <MTLRenderCommandEncoder> renderEncoder;
+@property (nonatomic, assign) MNVGframebuffer* framebuffer;
 
 @property (nonatomic, assign) int fragSize;
 @property (nonatomic, assign) int indexSize;
@@ -282,7 +283,7 @@ typedef struct MNVGfragUniforms MNVGfragUniforms;
 @end
 
 // Keeps the weak reference to the currently binded framebuffer.
-MNVGframebuffer* s_framebuffer = NULL;
+// MNVGframebuffer* s_framebuffer = NULL;
 
 const MTLResourceOptions kMetalBufferOptions = \
     (MTLResourceCPUCacheModeWriteCombined | MTLResourceStorageModeShared);
@@ -517,8 +518,9 @@ void nvgDeleteMTL(NVGcontext* ctx) {
   nvgDeleteInternal(ctx);
 }
 
-void mnvgBindFramebuffer(MNVGframebuffer* framebuffer) {
-  s_framebuffer = framebuffer;
+void mnvgBindFramebuffer(NVGcontext* ctx, MNVGframebuffer* framebuffer) {
+  MNVGcontext* mtl = (__bridge MNVGcontext*)nvgInternalParams(ctx)->userPtr;
+  mtl.framebuffer = framebuffer;
 }
 
 MNVGframebuffer* mnvgCreateFramebuffer(NVGcontext* ctx, int width,
@@ -1541,12 +1543,11 @@ error:
       dispatch_semaphore_signal(self.semaphore);
   }];
 
-  if (s_framebuffer == NULL ||
-      nvgInternalParams(s_framebuffer->ctx)->userPtr != (__bridge void*)self) {
+  if (_framebuffer == NULL) {
     textureSize = _viewPortSize;
   } else {  // renders in framebuffer
-    buffers.image = s_framebuffer->image;
-    MNVGtexture* tex = [self findTexture:s_framebuffer->image];
+    buffers.image = _framebuffer->image;
+    MNVGtexture* tex = [self findTexture:_framebuffer->image];
     colorTexture = tex->tex;
     textureSize = (vector_uint2){(uint)colorTexture.width,
                                  (uint)colorTexture.height};
@@ -1588,7 +1589,7 @@ error:
 
 #if TARGET_OS_OSX
   // Makes mnvgReadPixels() work as expected on Mac.
-  if (s_framebuffer != NULL) {
+  if (_framebuffer != NULL) {
     id<MTLBlitCommandEncoder> blitCommandEncoder = [_buffers.commandBuffer
         blitCommandEncoder];
     [blitCommandEncoder synchronizeResource:colorTexture];

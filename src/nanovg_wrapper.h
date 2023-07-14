@@ -11,6 +11,19 @@ void nvgClearRectWithColor(NVGcontext* ctx, NVGcolor color, int* rect);
 void nvgResetFrameBuffer(NVGcontext* ctx, int width, int height);
 float nvgDevicePixelRatio(NVGcontext* ctx);
 void nvgPresent(NVGcontext* ctx);
+void* nvgCreateFramebuffer(NVGcontext* ctx, int w, int h, int flags);
+void nvgBindFramebuffer(NVGcontext* ctx, void* fb);
+void nvgDeleteFramebuffer(NVGcontext* ctx, void* fb);
+NVGpaint nvgFramebufferPattern(
+    NVGcontext* ctx,
+    float cx,
+    float cy,
+    float w,
+    float h,
+    float angle,
+    void* fb,
+    float alpha
+);
 
 #ifdef NANOVG_IMPLEMENTATION
 #if defined(NANOVG_USE_GL)
@@ -100,6 +113,37 @@ void nvgPresent(NVGcontext* ctx) {
     SDL_GL_SwapWindow(window);
 }
 
+void* nvgCreateFramebuffer(NVGcontext* ctx, int w, int h, int flags) {
+    return nvgluCreateFramebuffer(ctx, w, h, flags);
+}
+void nvgBindFramebuffer(NVGcontext* ctx, void* fb) {
+    nvgluBindFramebuffer((NVGLUframebuffer*)fb);
+}
+void nvgDeleteFramebuffer(NVGcontext* ctx, void* fb) {
+    nvgluDeleteFramebuffer((NVGLUframebuffer*)fb);
+}
+NVGpaint nvgFramebufferPattern(
+    NVGcontext* ctx,
+    float cx,
+    float cy,
+    float w,
+    float h,
+    float angle,
+    void* fb,
+    float alpha
+) {
+    return nvgImagePattern(
+        ctx,
+        cx,
+        cy,
+        w,
+        h,
+        angle,
+        ((NVGLUframebuffer*)fb)->image,
+        alpha
+    );
+}
+
 #elif defined(NANOVG_USE_D3D11)
 #define NANOVG_D3D11_IMPLEMENTATION
 #include "nanovg_d3d11.h"
@@ -178,6 +222,37 @@ float nvgDevicePixelRatio(NVGcontext* ctx) {
     return GetMetalScaleFactor((MetalContext*)nvgGetUserPtr(ctx));
 }
 void nvgPresent(NVGcontext* ctx) {}
+
+void* nvgCreateFramebuffer(NVGcontext* ctx, int w, int h, int flags) {
+    return mnvgCreateFramebuffer(ctx, w, h, flags);
+}
+void nvgBindFramebuffer(NVGcontext* ctx, void* fb) {
+    mnvgBindFramebuffer(ctx, (MNVGframebuffer*)fb);
+}
+void nvgDeleteFramebuffer(NVGcontext* ctx, void* fb) {
+    mnvgDeleteFramebuffer((MNVGframebuffer*)fb);
+}
+NVGpaint nvgFramebufferPattern(
+    NVGcontext* ctx,
+    float cx,
+    float cy,
+    float w,
+    float h,
+    float angle,
+    void* fb,
+    float alpha
+) {
+    return nvgImagePattern(
+        ctx,
+        cx,
+        cy,
+        w,
+        h,
+        angle,
+        ((MNVGframebuffer*)fb)->image,
+        alpha
+    );
+}
 #else
 #error "you need define NANOVG_USE_GL|NANOVG_USE_D3D11|NANOVG_USE_METAL"
 #endif

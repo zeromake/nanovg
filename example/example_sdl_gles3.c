@@ -211,6 +211,9 @@ int main(int argc, char **argv) {
     int prevH = fbHeight;
     float fbRatio = nvgDevicePixelRatio(vg);
 
+    void* framebufferCurrnet = nvgCreateFramebuffer(vg, prevW * fbRatio, prevH * fbRatio, 0);
+    // void* framebufferNext = nvgCreateFramebuffer(vg, prevW, prevW, 0);
+
 #define DP(px) (int)((float)px * fbRatio)
     while (!quit) {
         SDL_PollEvent(&event);
@@ -253,6 +256,7 @@ int main(int argc, char **argv) {
         if (change) {
             printf("update: %d\n", event.window.event);
             // Update and render
+            nvgBindFramebuffer(vg, framebufferCurrnet);
             nvgClearWithColor(vg, bgColor);
             nvgBeginFrame(vg, winWidth, winHeight, fbRatio);
 
@@ -283,6 +287,21 @@ int main(int argc, char **argv) {
                 start = rows[nrows-1].next;
             }
             loop:
+            nvgEndFrame(vg);
+            nvgBindFramebuffer(vg, NULL);
+            nvgClearWithColor(vg, bgColor);
+
+            nvgBeginFrame(vg, winWidth, winHeight, fbRatio);
+
+            NVGpaint img = nvgFramebufferPattern(vg, 0, 0, prevW, prevH, 0, framebufferCurrnet, 1.0f);
+			nvgSave(vg);
+
+			nvgBeginPath(vg);
+			nvgRect(vg, 0, 0, prevW, prevH);
+            nvgFillPaint(vg, img);
+			nvgFill(vg);
+			nvgRestore(vg);
+
             nvgEndFrame(vg);
             nvgPresent(vg);
             change = false;

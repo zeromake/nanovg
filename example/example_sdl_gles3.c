@@ -76,10 +76,10 @@
 #endif
 #define DP(px) (int)((float)px * fbRatio)
 
-static const double defaultAnimationSpeed = 350;
+static const double defaultAnimationSpeed = 0.35;
 
-double GetElapsedTime(Uint64 start) {
-    return (double)(SDL_GetPerformanceCounter() - start) / 10000.0;
+double GetElapsedTime(Uint64 start, double frequency) {
+    return (double)(SDL_GetPerformanceCounter() - start) / frequency;
 }
 
 void renderTextPattern(
@@ -98,11 +98,16 @@ void renderTextPattern(
     const char* start;
     const char* end;
     int nrows;
-    int x = DP(24);
-    int y = DP(24);
+#ifdef ANDROID
+    float size = DP(48);
+#else
+    float size = DP(24);
+#endif
+    int x = size;
+    int y = size;
     float lineh = 0;
     nvgFillColor(vg, nvgRGBA(0x49,0x43,0x30,255));
-    nvgFontSize(vg, DP(24));
+    nvgFontSize(vg, size);
     nvgFontFace(vg, "sans");
     nvgTextAlign(vg, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
     nvgTextMetrics(vg, NULL, NULL, &lineh);
@@ -110,12 +115,12 @@ void renderTextPattern(
     NVGtextRow rows[3];
     start = text;
     end = text + strlen(text);
-    while ((nrows = nvgTextBreakLines(vg, start, end, winWidth - DP(40), rows, 3))) {
+    while ((nrows = nvgTextBreakLines(vg, start, end, winWidth - (size * 2), rows, 3))) {
         for (int i = 0; i < nrows; i++) {
             NVGtextRow* row = &rows[i];
             nvgText(vg, x, y, row->start, row->end);
             y += lineh;
-            if (y > (winHeight - DP(24))) {
+            if (y > (winHeight - size)) {
                 goto loop;
             }
         }
@@ -283,6 +288,7 @@ int main(int argc, char **argv) {
     bool reRenderText = true;
     bool isFullscreen = false;
     Uint64 start = SDL_GetPerformanceCounter();
+    double frequency = (double)SDL_GetPerformanceFrequency();
     double showT = 0;
 
 
@@ -292,7 +298,7 @@ int main(int argc, char **argv) {
             case SDL_MOUSEBUTTONUP:
                 show = !show;
                 if (show) {
-                    showT = GetElapsedTime(start);
+                    showT = GetElapsedTime(start, frequency);
                 }
                 change = true;
                 break;
@@ -360,7 +366,7 @@ int main(int argc, char **argv) {
             nvgBeginFrame(vg, winWidth, winHeight, fbRatio);
             bool nextChange = false;
             if (show) {
-                double t = GetElapsedTime(start);
+                double t = (GetElapsedTime(start, frequency));
                 NVGpaint img = nvgFramebufferPattern(vg, 0, 0, winWidth, winHeight, 0, framebufferNext, 1.0f);
                 nvgSave(vg);
 

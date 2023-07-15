@@ -5,7 +5,7 @@
 #ifdef NANOVG_GLEW
 #  include <GL/glew.h>
 #endif
-#ifndef NANOVG_DISABLE_GL
+#ifndef NANOVG_DISABLE_GLFW
 #include <GLFW/glfw3.h>
 #endif
 #include "nanovg.h"
@@ -1255,7 +1255,7 @@ static void flipHorizontal(unsigned char* image, int w, int h, int stride)
 	}
 }
 
-#ifndef NANOVG_DISABLE_GL
+#ifndef NANOVG_DISABLE_GLFW
 
 void saveScreenShot(int w, int h, int premult, const char* name)
 {

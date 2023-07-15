@@ -37,6 +37,7 @@ NVGpaint nvgFramebufferPattern(
 #define NANOVG_GLES3_IMPLEMENTATION
 #endif
 #include "nanovg_gl.h"
+#include "nanovg_gl_utils.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
 #ifdef _WIN32

@@ -48,12 +48,12 @@
 #define NANOVG_USE_GLES3 1
 #endif
 #elif defined(_WIN32)
-#define NANOVG_USE_D3D11 1
-// #define NANOVG_USE_GL 1
-// #define NANOVG_USE_GL3 1
-// #ifdef NANOVG_GLEW
-// #include <GL/glew.h>
-// #endif
+// #define NANOVG_USE_D3D11 1
+#define NANOVG_USE_GL 1
+#define NANOVG_USE_GL3 1
+#ifdef NANOVG_GLEW
+#include <GL/glew.h>
+#endif
 #elif defined(__APPLE__)
 #define NANOVG_USE_METAL 1
 #elif defined(__linux__)
@@ -74,6 +74,59 @@
 #define LOG_TAG "com.zeromake.example"
 #define printf(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #endif
+#define DP(px) (int)((float)px * fbRatio)
+
+
+double GetElapsedTime()
+{
+    Uint64 start = SDL_GetPerformanceCounter();
+    double frequency = (double)(SDL_GetPerformanceFrequency());
+    return (double)(SDL_GetPerformanceCounter() - start) / frequency;
+}
+
+void renderTextPattern(
+    NVGcontext* vg,
+    void* framebufferCurrnet,
+    char * text,
+    int winWidth,
+    int winHeight,
+    float fbRatio
+) {
+    NVGcolor bgColor = nvgRGBA(0xef, 0xe6, 0xc7, 255);
+    nvgBindFramebuffer(vg, framebufferCurrnet);
+    nvgClearWithColor(vg, bgColor);
+    nvgBeginFrame(vg, winWidth, winHeight, fbRatio);
+
+    const char* start;
+    const char* end;
+    int nrows;
+    int x = DP(24);
+    int y = DP(24);
+    float lineh = 0;
+    nvgFillColor(vg, nvgRGBA(0x49,0x43,0x30,255));
+    nvgFontSize(vg, DP(24));
+    nvgFontFace(vg, "sans");
+    nvgTextAlign(vg, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
+    nvgTextMetrics(vg, NULL, NULL, &lineh);
+
+    NVGtextRow rows[3];
+    start = text;
+    end = text + strlen(text);
+    while ((nrows = nvgTextBreakLines(vg, start, end, winWidth - DP(40), rows, 3))) {
+        for (int i = 0; i < nrows; i++) {
+            NVGtextRow* row = &rows[i];
+            nvgText(vg, x, y, row->start, row->end);
+            y += lineh;
+            if (y > (winHeight - DP(24))) {
+                goto loop;
+            }
+        }
+        start = rows[nrows-1].next;
+    }
+    loop:
+    nvgEndFrame(vg);
+    nvgBindFramebuffer(vg, NULL);
+}
 
 #ifndef ANDROID
 #undef main
@@ -205,26 +258,54 @@ int main(int argc, char **argv) {
     "这柄剑就是后世无人不知的“云耀”，它同时也是黎瑟西尔与雅加西爱情的见证。\n"
     "皇帝最终因炎龙的诅咒而死在大卢尔德著名的热砂战场上，但武器却被传承给了他的手下败将——雷霆剑圣阿尔萨斯。"
     "这柄剑于是跟随着它的新主人默默无闻地走过整个卡那多斯，一直到了严寒的诺德森大陆，之后再也没有人见过云耀，直到伊修托利与路维丝的战争拉开序幕之时。\n";
+    const char* text2 = "「精王斧——傲斩」\n"
+    "铸造者：瀚贝瑞·奎罗特\n"
+    "点化者：哈德克\n"
+    "现今持有者：利斯顿·奎罗特\n"
+    "这柄古朴的巨大战斧是由白石厅国王，瀚贝瑞·奎罗特亲自以魔法金属奥利哈康打造的。"
+    "曾受瀚贝瑞救命之恩的大法师哈德克自奋告勇地为这柄上好的利刃加持魔法，在十四名顶级法师连续运做法阵一周后，寒冰斧傲斩诞生了。\n"
+    "然而，由于瀚贝瑞·奎罗特的另一个身份是白石厅两大家族之一奎罗特家族的族长，因此，长期不合的索瑞森家族对这柄武器嗤之以鼻，"
+    "称它是“一把愚蠢的菜刀”，然而他们谁都没有料到，对头打造的武器居然会在危机到来时成为最亲密的战友。\n"
+    "当炎龙美露基狄克试图摧毁月之都时，邻近区域外围的白石厅一度遭遇灭顶之灾。在那段最艰难的时期里，"
+    "傲斩的主人瀚贝瑞·奎罗特一直与云耀的主人雅加西并肩作战，没有后退过哪怕一步。最终，矮人们和精灵族联合起来，"
+    "终于帮助皇帝战胜了火焰之王，可是瀚贝瑞却也因此长眠在了白石厅的废墟之下，再也无法睁开眼睛。\n"
+    "与美露基狄克的战斗标志着精灵国度与白石厅矮人从此走向没落，可是白石矮人们却并没有消亡，他们最后走出了山脉，"
+    "融入整个大陆之中。而继承了精王斧傲斩的奎罗特子孙们，依然象他们的祖先一样，以鲜血和生命捍卫着家族的尊严与荣耀。\n"
+    "现在，这柄拥有驾驭寒冰之力的战斧属于利斯顿·奎罗特。";
 
     bool change = true;
     int prevW = fbWidth;
     int prevH = fbHeight;
     float fbRatio = nvgDevicePixelRatio(vg);
+    printf("fbRatio: %f\n", fbRatio);
 
-    void* framebufferCurrnet = nvgCreateFramebuffer(vg, prevW * fbRatio, prevH * fbRatio, 0);
-    // void* framebufferNext = nvgCreateFramebuffer(vg, prevW, prevW, 0);
+    void* framebufferCurrnet = nvgCreateFramebuffer(vg, prevW, prevH, 0);
+    void* framebufferNext = nvgCreateFramebuffer(vg, prevW, prevH, 0);
+    bool show = false;
+    bool reRenderText = true;
+    bool isFullscreen = false;
 
-#define DP(px) (int)((float)px * fbRatio)
     while (!quit) {
         SDL_PollEvent(&event);
         switch(event.type) {
+            case SDL_MOUSEBUTTONUP:
+                show = !show;
+                change = true;
+                break;
             case SDL_QUIT:
                 quit=1;
+                break;
+            case SDL_KEYUP:
+                if(event.key.keysym.scancode == SDL_SCANCODE_F11) {
+                    SDL_SetWindowFullscreen(window, isFullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    isFullscreen = !isFullscreen;
+                }
                 break;
 			case SDL_WINDOWEVENT:
 			    switch (event.window.event) {
                     case SDL_WINDOWEVENT_EXPOSED:
                         // 最大化恢复
+                        break;
                     case SDL_WINDOWEVENT_FOCUS_GAINED:
                         // 窗口焦点获得
                     case SDL_APP_DIDENTERFOREGROUND:
@@ -240,15 +321,21 @@ int main(int argc, char **argv) {
                         break;
                     case SDL_WINDOWEVENT_RESIZED:
                         // 尺寸变化
-                        SDL_GetWindowSize(window, &winWidth, &winHeight);
                         break;
                     case SDL_WINDOWEVENT_DISPLAY_CHANGED:
                     case SDL_WINDOWEVENT_SIZE_CHANGED:
                         // 窗口大小变化完成
+                        SDL_GetWindowSize(window, &winWidth, &winHeight);
                         SDL_GetWindowSizeInPixels(window, &fbWidth, &fbHeight);
                         fbRatio = nvgDevicePixelRatio(vg);
                         nvgResetFrameBuffer(vg, fbWidth, fbHeight);
+                        nvgDeleteFramebuffer(vg, framebufferCurrnet);
+                        nvgDeleteFramebuffer(vg, framebufferNext);
+                        framebufferCurrnet = nvgCreateFramebuffer(vg, fbWidth, fbHeight, 0);
+                        framebufferNext = nvgCreateFramebuffer(vg, fbWidth, fbHeight, 0);
+                        printf("resize fb: %dx%d %dx%d %f\n", winWidth, winHeight, fbWidth, fbHeight, fbRatio);
                         change = true;
+                        reRenderText = true;
                         break;
                 }
               break;
@@ -256,52 +343,53 @@ int main(int argc, char **argv) {
         if (change) {
             printf("update: %d\n", event.window.event);
             // Update and render
-            nvgBindFramebuffer(vg, framebufferCurrnet);
-            nvgClearWithColor(vg, bgColor);
-            nvgBeginFrame(vg, winWidth, winHeight, fbRatio);
-
-            const char* start;
-            const char* end;
-            int nrows;
-            int x = DP(50);
-            int y = DP(50);
-            float lineh = 0;
-            nvgFillColor(vg, nvgRGBA(0x49,0x43,0x30,255));
-            nvgFontSize(vg, 48.0f);
-            nvgFontFace(vg, "sans");
-            nvgTextAlign(vg, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
-            nvgTextMetrics(vg, NULL, NULL, &lineh);
-
-            NVGtextRow rows[3];
-            start = text;
-            end = text + strlen(text);
-            while ((nrows = nvgTextBreakLines(vg, start, end, winWidth - DP(80), rows, 3))) {
-                for (int i = 0; i < nrows; i++) {
-                    NVGtextRow* row = &rows[i];
-                    nvgText(vg, x, y, row->start, row->end);
-                    y += lineh;
-                    if (y > (winHeight - DP(50))) {
-                        goto loop;
-                    }
-                }
-                start = rows[nrows-1].next;
+            if (reRenderText) {
+                renderTextPattern(vg, framebufferCurrnet, text, winWidth, winHeight, fbRatio);
+                // if (show) {
+                renderTextPattern(vg, framebufferNext, text2, winWidth, winHeight, fbRatio);
+                // }
+                reRenderText = false;
             }
-            loop:
-            nvgEndFrame(vg);
-            nvgBindFramebuffer(vg, NULL);
+
             nvgClearWithColor(vg, bgColor);
 
             nvgBeginFrame(vg, winWidth, winHeight, fbRatio);
+            if (show) {
+                NVGpaint img = nvgFramebufferPattern(vg, 0, 0, winWidth, winHeight, 0, framebufferNext, 1.0f);
+                nvgSave(vg);
 
-            NVGpaint img = nvgFramebufferPattern(vg, 0, 0, prevW, prevH, 0, framebufferCurrnet, 1.0f);
-			nvgSave(vg);
+                nvgBeginPath(vg);
+                nvgRect(vg, 0, 0, winWidth, winHeight);
+                nvgFillPaint(vg, img);
+                nvgFill(vg);
+                nvgRestore(vg);
 
-			nvgBeginPath(vg);
-			nvgRect(vg, 0, 0, prevW, prevH);
-            nvgFillPaint(vg, img);
-			nvgFill(vg);
-			nvgRestore(vg);
+                int offset = winWidth / 2;
+                img = nvgFramebufferPattern(vg, 0, 0, winWidth, winHeight, 0, framebufferCurrnet, 1.0f);
+                nvgSave(vg);
+                nvgTranslate(vg, -offset, 0);
+                NVGpaint headerPaint = nvgLinearGradient(vg, winWidth,0,winWidth+15,0, nvgRGBA(0, 0, 0, 100), nvgRGBA(0, 0, 0, 0));
+                nvgBeginPath(vg);
+                nvgRect(vg, winWidth, 0, 15, winHeight);
+                nvgFillPaint(vg, headerPaint);
+                nvgFill(vg);
 
+                nvgBeginPath(vg);
+                nvgRect(vg, 0, 0, winWidth, winHeight);
+                nvgFillPaint(vg, img);
+                nvgFill(vg);
+
+                nvgRestore(vg);
+            } else {
+                NVGpaint img = nvgFramebufferPattern(vg, 0, 0, winWidth, winHeight, 0, framebufferCurrnet, 1.0f);
+                nvgSave(vg);
+
+                nvgBeginPath(vg);
+                nvgRect(vg, 0, 0, winWidth, winHeight);
+                nvgFillPaint(vg, img);
+                nvgFill(vg);
+                nvgRestore(vg);
+            }
             nvgEndFrame(vg);
             nvgPresent(vg);
             change = false;

@@ -106,8 +106,10 @@ if get_config("example") then
             add_defines("NANOVG_GLEW")
             add_packages("glew")
         end
+        add_defines("NANOVG_DISABLE_GLFW")
         add_includedirs("src")
         add_files(
+            "example/perf.c",
             "example/example_sdl_gles3.c"
         )
         add_packages("sdl2", "stb")

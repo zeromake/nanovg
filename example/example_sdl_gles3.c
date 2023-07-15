@@ -75,8 +75,13 @@
 #define printf(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #endif
 #define DP(px) (int)((float)px * fbRatio)
+// #define USE_FPS
 
-static const double defaultAnimationSpeed = 0.35;
+#ifdef USE_FPS
+#include "perf.h"
+#endif
+
+static const double defaultAnimationSpeed = 0.3;
 
 double GetElapsedTime(Uint64 start, double frequency) {
     return (double)(SDL_GetPerformanceCounter() - start) / frequency;
@@ -131,6 +136,7 @@ void renderTextPattern(
     nvgBindFramebuffer(vg, NULL);
 }
 
+
 #ifndef ANDROID
 #undef main
 #endif
@@ -142,7 +148,7 @@ int main(int argc, char **argv) {
     }
 
 #ifdef NANOVG_USE_GL
-    SDL_GL_SetSwapInterval(1);
+    SDL_GL_SetSwapInterval(-1);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
 #ifdef NANOVG_USE_GLES2
@@ -176,8 +182,9 @@ int main(int argc, char **argv) {
 #ifdef NANOVG_USE_GL
     windowflags |= SDL_WINDOW_OPENGL;
 #endif
-#ifndef ANDROID
     windowflags |= SDL_WINDOW_RESIZABLE;
+#ifdef ANDROID
+    SDL_SetHint(SDL_HINT_ORIENTATIONS, "Portrait");
 #endif
 
     SDL_Window *window = SDL_CreateWindow(
@@ -292,8 +299,20 @@ int main(int argc, char **argv) {
     double showT = 0;
 
 
+    bool nextChange = false;
+    bool displayEvent = false;
+
+#ifdef USE_FPS
+    PerfGraph fps;
+	initGraph(&fps, GRAPH_RENDER_FPS, "Frame Time");
+#endif
+	double prevt = GetElapsedTime(start, frequency);
     while (!quit) {
+		double t = GetElapsedTime(start, frequency);
+		double dt = t - prevt;
+		prevt = t;
         SDL_PollEvent(&event);
+        nextChange = false;
         switch(event.type) {
             case SDL_MOUSEBUTTONUP:
                 show = !show;
@@ -311,8 +330,13 @@ int main(int argc, char **argv) {
                     isFullscreen = !isFullscreen;
                 }
                 break;
-			case SDL_WINDOWEVENT:
-			    switch (event.window.event) {
+#ifdef ANDROID
+            case SDL_DISPLAYEVENT:
+                displayEvent = true;
+                break;
+#endif
+            case SDL_WINDOWEVENT:
+                switch (event.window.event) {
                     case SDL_WINDOWEVENT_EXPOSED:
                         // 最大化恢复
                         break;
@@ -346,10 +370,25 @@ int main(int argc, char **argv) {
                         printf("resize fb: %dx%d %dx%d %f\n", winWidth, winHeight, fbWidth, fbHeight, fbRatio);
                         change = true;
                         reRenderText = true;
+#ifdef ANDROID
+                        if (displayEvent) {
+                            displayEvent = false;
+                            nextChange = true;
+                        }
+#endif
+                        break;
+                    default:
+                        printf("window event %d\n", event.window.event);
                         break;
                 }
-              break;
+                break;
+            case SDL_POLLSENTINEL:
+                break;
+            default:
+                printf("event %d\n", event.type);
+                break;
         }
+
         if (change) {
             // printf("update: %d\n", event.window.event);
             // Update and render
@@ -364,9 +403,7 @@ int main(int argc, char **argv) {
             nvgClearWithColor(vg, bgColor);
 
             nvgBeginFrame(vg, winWidth, winHeight, fbRatio);
-            bool nextChange = false;
             if (show) {
-                double t = (GetElapsedTime(start, frequency));
                 NVGpaint img = nvgFramebufferPattern(vg, 0, 0, winWidth, winHeight, 0, framebufferNext, 1.0f);
                 nvgSave(vg);
 
@@ -386,7 +423,7 @@ int main(int argc, char **argv) {
                     nvgRect(vg, 0, 0, winWidth, winHeight);
                     nvgFillPaint(vg, img);
                     nvgFill(vg);
-                    NVGpaint headerPaint = nvgLinearGradient(vg, winWidth,0,winWidth+15,0, nvgRGBA(0, 0, 0, 100), nvgRGBA(0, 0, 0, 0));
+                    NVGpaint headerPaint = nvgLinearGradient(vg, winWidth,0,winWidth+15,0, nvgRGBA(11, 11, 11, 66), nvgRGBA(0, 0, 0, 0));
                     nvgBeginPath(vg);
                     nvgRect(vg, winWidth, 0, 15, winHeight);
                     nvgFillPaint(vg, headerPaint);
@@ -406,12 +443,17 @@ int main(int argc, char **argv) {
                 nvgRestore(vg);
             }
             nvgEndFrame(vg);
+#ifdef USE_FPS
+            float avg = getGraphAverage(&fps);
+            printf("fps: %f\n", avg > 0 ? 1.0f / avg : 0);
+		    updateGraph(&fps, dt);
+#endif
             nvgPresent(vg);
             if (!nextChange) {
                 change = false;
             }
         }
-        SDL_Delay(16);
+        SDL_Delay(8);
     }
     nvgDelete(vg);
     SDL_DestroyWindow(window);

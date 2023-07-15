@@ -5,7 +5,7 @@
 #ifdef NANOVG_GLEW
 #  include <GL/glew.h>
 #endif
-#ifndef NANOVG_DISABLE_GL
+#ifndef NANOVG_DISABLE_GLFW
 #include <GLFW/glfw3.h>
 #endif
 #include "nanovg.h"
@@ -23,7 +23,7 @@
 //pfnGLGETQUERYOBJECTUI64V glGetQueryObjectui64v = 0;
 #endif
 
-#ifndef NANOVG_DISABLE_GL
+#ifndef NANOVG_DISABLE_GLFW
 
 void initGPUTimer(GPUtimer* timer)
 {

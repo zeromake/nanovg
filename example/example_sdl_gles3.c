@@ -76,12 +76,10 @@
 #endif
 #define DP(px) (int)((float)px * fbRatio)
 
+static const double defaultAnimationSpeed = 350;
 
-double GetElapsedTime()
-{
-    Uint64 start = SDL_GetPerformanceCounter();
-    double frequency = (double)(SDL_GetPerformanceFrequency());
-    return (double)(SDL_GetPerformanceCounter() - start) / frequency;
+double GetElapsedTime(Uint64 start) {
+    return (double)(SDL_GetPerformanceCounter() - start) / 10000.0;
 }
 
 void renderTextPattern(
@@ -284,12 +282,18 @@ int main(int argc, char **argv) {
     bool show = false;
     bool reRenderText = true;
     bool isFullscreen = false;
+    Uint64 start = SDL_GetPerformanceCounter();
+    double showT = 0;
+
 
     while (!quit) {
         SDL_PollEvent(&event);
         switch(event.type) {
             case SDL_MOUSEBUTTONUP:
                 show = !show;
+                if (show) {
+                    showT = GetElapsedTime(start);
+                }
                 change = true;
                 break;
             case SDL_QUIT:
@@ -341,7 +345,7 @@ int main(int argc, char **argv) {
               break;
         }
         if (change) {
-            printf("update: %d\n", event.window.event);
+            // printf("update: %d\n", event.window.event);
             // Update and render
             if (reRenderText) {
                 renderTextPattern(vg, framebufferCurrnet, text, winWidth, winHeight, fbRatio);
@@ -354,7 +358,9 @@ int main(int argc, char **argv) {
             nvgClearWithColor(vg, bgColor);
 
             nvgBeginFrame(vg, winWidth, winHeight, fbRatio);
+            bool nextChange = false;
             if (show) {
+                double t = GetElapsedTime(start);
                 NVGpaint img = nvgFramebufferPattern(vg, 0, 0, winWidth, winHeight, 0, framebufferNext, 1.0f);
                 nvgSave(vg);
 
@@ -364,22 +370,25 @@ int main(int argc, char **argv) {
                 nvgFill(vg);
                 nvgRestore(vg);
 
-                int offset = winWidth / 2;
-                img = nvgFramebufferPattern(vg, 0, 0, winWidth, winHeight, 0, framebufferCurrnet, 1.0f);
-                nvgSave(vg);
-                nvgTranslate(vg, -offset, 0);
-                NVGpaint headerPaint = nvgLinearGradient(vg, winWidth,0,winWidth+15,0, nvgRGBA(0, 0, 0, 100), nvgRGBA(0, 0, 0, 0));
-                nvgBeginPath(vg);
-                nvgRect(vg, winWidth, 0, 15, winHeight);
-                nvgFillPaint(vg, headerPaint);
-                nvgFill(vg);
+                if (t <= (showT + defaultAnimationSpeed)) {
+                    int offset = (int)((float)winWidth * ((t - showT) / defaultAnimationSpeed));
+                    img = nvgFramebufferPattern(vg, 0, 0, winWidth, winHeight, 0, framebufferCurrnet, 1.0f);
+                    nvgSave(vg);
+                    nvgTranslate(vg, -offset, 0);
 
-                nvgBeginPath(vg);
-                nvgRect(vg, 0, 0, winWidth, winHeight);
-                nvgFillPaint(vg, img);
-                nvgFill(vg);
+                    nvgBeginPath(vg);
+                    nvgRect(vg, 0, 0, winWidth, winHeight);
+                    nvgFillPaint(vg, img);
+                    nvgFill(vg);
+                    NVGpaint headerPaint = nvgLinearGradient(vg, winWidth,0,winWidth+15,0, nvgRGBA(0, 0, 0, 100), nvgRGBA(0, 0, 0, 0));
+                    nvgBeginPath(vg);
+                    nvgRect(vg, winWidth, 0, 15, winHeight);
+                    nvgFillPaint(vg, headerPaint);
+                    nvgFill(vg);
 
-                nvgRestore(vg);
+                    nvgRestore(vg);
+                    nextChange = true;
+                }
             } else {
                 NVGpaint img = nvgFramebufferPattern(vg, 0, 0, winWidth, winHeight, 0, framebufferCurrnet, 1.0f);
                 nvgSave(vg);
@@ -392,7 +401,9 @@ int main(int argc, char **argv) {
             }
             nvgEndFrame(vg);
             nvgPresent(vg);
-            change = false;
+            if (!nextChange) {
+                change = false;
+            }
         }
         SDL_Delay(16);
     }

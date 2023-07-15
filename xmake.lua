@@ -109,7 +109,6 @@ if get_config("example") then
         add_defines("NANOVG_DISABLE_GLFW")
         add_includedirs("src")
         add_files(
-            "example/perf.c",
             "example/example_sdl_gles3.c"
         )
         add_packages("sdl2", "stb")
@@ -148,7 +147,7 @@ if get_config("example") then
     target("example_vulkan")
         add_deps("nanovg")
         add_includedirs("src", "src/vulkan")
-        add_defines("NANOVG_DISABLE_GL")
+        add_defines("NANOVG_DISABLE_GLFW")
         if is_plat("windows", "mingw") then
             add_includedirs(path.join(get_config("vulkan"), "include"))
             add_linkdirs(path.join(get_config("vulkan"), "Lib"))
@@ -179,7 +178,7 @@ if get_config("example") then
             add_deps("nanovg_metal")
             add_frameworks("Metal", "MetalKit", "QuartzCore")
             add_packages("glfw", "stb")
-            add_defines("NANOVG_DISABLE_GL")
+            add_defines("NANOVG_DISABLE_GLFW")
         target_end()
     end
 
@@ -220,7 +219,7 @@ if get_config("example") then
                 add_ldflags("-static-libgcc", "-static-libstdc++")
             end
         end
-        add_defines("NANOVG_DISABLE_GL")
+        add_defines("NANOVG_DISABLE_GLFW")
         add_syslinks("user32", "d3d11")
     target_end()
 

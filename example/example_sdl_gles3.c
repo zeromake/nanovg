@@ -79,6 +79,7 @@
 
 #ifdef USE_FPS
 #include "perf.h"
+#include "perf.c"
 #endif
 
 static const double defaultAnimationSpeed = 0.3;
@@ -337,6 +338,7 @@ int main(int argc, char **argv) {
 #endif
             case SDL_WINDOWEVENT:
                 switch (event.window.event) {
+                    case SDL_WINDOWEVENT_MOVED:
                     case SDL_WINDOWEVENT_EXPOSED:
                         // 最大化恢复
                         break;
@@ -382,6 +384,7 @@ int main(int argc, char **argv) {
                         break;
                 }
                 break;
+            case SDL_MOUSEMOTION:
             case SDL_POLLSENTINEL:
                 break;
             default:
@@ -452,8 +455,9 @@ int main(int argc, char **argv) {
             if (!nextChange) {
                 change = false;
             }
+        } else {
+            SDL_Delay(16);
         }
-        SDL_Delay(8);
     }
     nvgDelete(vg);
     SDL_DestroyWindow(window);

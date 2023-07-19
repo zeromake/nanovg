@@ -150,11 +150,10 @@ void Draw(HWND hWnd)
 
     // Ration 1/1 for now.  Not sure how to support retina on Windows.
     pxRatio = 1.0f;
+    float scale = (float)GetDpiForWindow(hWnd) / 96.0f;
 
     nvgBeginFrame(vg, xWin, yWin, pxRatio);
 
-
-    float scale = (float)GetDpiForWindow(hWnd) / 96.0f;
     nvgScale(vg, scale, scale);
     renderDemo(vg, (float)xm / scale, (float)ym / scale, (float)xWin / scale, (float)yWin / scale, (float)t, blowup, &data);
 
@@ -307,11 +306,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, HWND* hWnd)
     RECT rcWin;
 
     hInst = hInstance; // Store instance handle in our global variable
-    UINT dpi = GetDpiForSystem() / 96.0f;
+    
+    float dpi = (float)GetDpiForSystem() / 96.0f;
     rcWin.left = 0;
-    rcWin.right = 1000 * dpi;
+    rcWin.right = 1000.0f * dpi;
     rcWin.top = 0;
-    rcWin.bottom = 600 * dpi;
+    rcWin.bottom = 600.0f * dpi;
 
     AdjustWindowRectEx(&rcWin, WS_OVERLAPPEDWINDOW, FALSE, 0);
 

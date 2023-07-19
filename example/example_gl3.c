@@ -96,7 +96,7 @@ int main()
 #ifdef DEMO_MSAA
 	glfwWindowHint(GLFW_SAMPLES, 4);
 #endif
-	window = glfwCreateWindow(1000, 600, "NanoVG", NULL, NULL);
+	window = glfwCreateWindow(1000*sizeScale, 600*sizeScale, "NanoVG", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
 		return -1;
@@ -165,11 +165,12 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
 		nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
+    	nvgScale(vg, sizeScale, sizeScale);
 		// if (sizeScale != 1.0f) {
 		// 	nvgScale(vg, sizeScale, sizeScale);
 		// }
 
-		renderDemo(vg, mx,my, winWidth,winHeight, t, blowup, &data);
+		renderDemo(vg, mx,my, winWidth / sizeScale, winHeight/sizeScale, t, blowup, &data);
 
 		renderGraph(vg, 5,5, &fps);
 		renderGraph(vg, 5+200+5,5, &cpuGraph);

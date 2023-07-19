@@ -279,4 +279,12 @@ if get_config("example") then
     --     add_deps("nanovg")
     --     add_syslinks("d3d11")
     -- target_end()
+    add_requires("rxcpp")
+    target("rx_demo")
+        add_packages("rxcpp")
+        set_languages("c++20")
+        add_files("example/rx_demo.cpp")
+        if is_plat("mingw") then
+            add_ldflags("-static-libgcc", "-static-libstdc++")
+        end
 end

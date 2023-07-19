@@ -501,7 +501,11 @@ static void glnvg__deleteShader(GLNVGshader* shader)
 static int glnvg__getUniforms(GLNVGshader* shader)
 {
 	shader->loc[GLNVG_LOC_VIEWSIZE] = glGetUniformLocation(shader->prog, "viewSize");
+#ifdef NVG_USE_SHD_SHADER
+	shader->loc[GLNVG_LOC_TEX] = glGetUniformLocation(shader->prog, "tex_smp");
+#else
 	shader->loc[GLNVG_LOC_TEX] = glGetUniformLocation(shader->prog, "tex");
+#endif
 
 #if NANOVG_GL_USE_UNIFORMBUFFER
 	shader->loc[GLNVG_LOC_FRAG] = glGetUniformBlockIndex(shader->prog, "frag");

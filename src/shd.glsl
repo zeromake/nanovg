@@ -89,7 +89,8 @@ precision highp float;
     #endif
 #endif
 
-layout(binding=2) uniform sampler2D tex;
+layout(binding=2) uniform texture2D tex;
+layout(binding=3) uniform sampler smp;
 layout(location = 0) in vec2 ftcoord;
 layout(location = 1) in vec2 fpos;
 layout(location = 0) out vec4 outColor;
@@ -142,7 +143,7 @@ void main(void) {
     } else if (type == 1) {// Image
         // Calculate color fron texture
         vec2 pt = (paintMat * vec3(fpos,1.0)).xy / extent;
-        vec4 color = texture(tex, pt);
+        vec4 color = texture(sampler2D(tex, smp), pt);
         if (texType == 1) color = vec4(color.xyz*color.w,color.w);
         if (texType == 2) color = vec4(color.x);
         // Apply color tint and alpha.
@@ -153,13 +154,13 @@ void main(void) {
     } else if (type == 2) {// Stencil fill
         result = vec4(1,1,1,1);
     } else if (type == 3) {// Textured tris
-        vec4 color = texture(tex, ftcoord);
+        vec4 color = texture(sampler2D(tex, smp), ftcoord);
         if (texType == 1) color = vec4(color.xyz*color.w,color.w);
         if (texType == 2) color = vec4(color.x);
         result = color * scissor * innerCol;
     } else if (type == 4) {// GLNVGshaderType::NSVG_SHADER_CLEARTYPE
         // https://github.com/Const-me/nanovg
-        vec4 color = texture(tex, ftcoord);
+        vec4 color = texture(sampler2D(tex, smp), ftcoord);
         float deriv = dFdx(ftcoord.x);
         if (deriv < 0.0) {
             // The text is horizontally mirrored, or rotated 180 degrees. Flip red and blue subpixels of the texture.

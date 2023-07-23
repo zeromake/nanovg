@@ -1,5 +1,4 @@
 #include <windows.h>
-#include <d3d11.h>
 #include <d3d11_1.h>
 #include <dxgi.h>
 #include <dxgi1_2.h>
@@ -146,7 +145,7 @@ bool InitializeDXInternal(D3D11Context *ctx, int width, int height)
         swapDesc.SampleDesc.Quality = ctx->sampleDesc.Quality;
         swapDesc.Width = width;
         swapDesc.Height = height;
-        swapDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        swapDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         swapDesc.Stereo = FALSE;
         swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         swapDesc.BufferCount = 2;
@@ -255,7 +254,7 @@ bool _ResizeD3D11Drawable(D3D11Context *ctx, int width, int height, bool init)
         // if (ctx->tearingSupport) {
         //     resizeBufferFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
         // }
-        hr = D3D_API(ctx->swapChain, ResizeBuffers, 2, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, resizeBufferFlags);
+        hr = D3D_API(ctx->swapChain, ResizeBuffers, 2, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, resizeBufferFlags);
         if (FAILED(hr))
         {
             return false;
@@ -267,7 +266,7 @@ bool _ResizeD3D11Drawable(D3D11Context *ctx, int width, int height, bool init)
     {
         return false;
     }
-    renderDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    renderDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     renderDesc.ViewDimension = (ctx->sampleDesc.Count > 1) ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D;
     renderDesc.Texture2D.MipSlice = 0;
     hr = D3D_API(ctx->device, CreateRenderTargetView,
@@ -346,9 +345,19 @@ void ClearD3D11WithColor(D3D11Context *ctx, float clearColor[4])
             (UINT8)0);
 }
 
-void D3D11Present(D3D11Context *ctx)
+void D3D11Present(D3D11Context *ctx, int syncInterval)
 {
     DXGI_PRESENT_PARAMETERS presentParameters;
     memset(&presentParameters, 0, sizeof(DXGI_PRESENT_PARAMETERS));
-    D3D_API(ctx->swapChain, Present1, 1, 0, &presentParameters);
+    D3D_API(ctx->swapChain, Present1, syncInterval, 0, &presentParameters);
+}
+
+ID3D11Texture2D* D3D11GetSwapChainTexture(D3D11Context *ctx) {
+    ID3D11Texture2D *tex;
+	HRESULT hr;
+    hr = D3D_API(ctx->swapChain, GetBuffer, 0, &IID_ID3D11Texture2D, (void**)&tex);
+    if (!SUCCEEDED(hr)) {
+        return NULL;
+    }
+    return tex;
 }

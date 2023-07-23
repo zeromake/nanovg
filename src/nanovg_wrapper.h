@@ -3,6 +3,14 @@
 #define NANOVG_WRAPPER_H
 
 #include "nanovg.h"
+#include <stdbool.h>
+
+typedef struct NVGScreenshotTexture {
+    int image;
+    int height;
+    int width;
+    unsigned char *pixel;
+} NVGScreenshotTexture;
 
 NVGcontext* nvgCreate(int flags, void* params);
 void nvgDelete(NVGcontext* ctx);
@@ -14,6 +22,9 @@ void nvgPresent(NVGcontext* ctx);
 void* nvgCreateFramebuffer(NVGcontext* ctx, int w, int h, int flags);
 void nvgBindFramebuffer(NVGcontext* ctx, void* fb);
 void nvgDeleteFramebuffer(NVGcontext* ctx, void* fb);
+NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int x, int y, int w, int h);
+bool nvgScreenshotSave(NVGcontext* ctx, NVGScreenshotTexture* tex, char *out);
+
 NVGpaint nvgFramebufferPattern(
     NVGcontext* ctx,
     float cx,
@@ -145,6 +156,46 @@ NVGpaint nvgFramebufferPattern(
     );
 }
 
+
+static void flipHorizontal(unsigned char* image, int w, int h, int stride)
+{
+	int i = 0, j = h-1, k;
+	while (i < j) {
+		unsigned char* ri = &image[i * stride];
+		unsigned char* rj = &image[j * stride];
+		for (k = 0; k < w*4; k++) {
+			unsigned char t = ri[k];
+			ri[k] = rj[k];
+			rj[k] = t;
+		}
+		i++;
+		j--;
+	}
+}
+
+NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int x, int y, int w, int h) {
+    unsigned char* pixel = (unsigned char*)malloc(w*h*4);
+    glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+    int stride = w * 4;
+    flipHorizontal(pixel, w, h, stride);
+    int image = nvgCreateImageRGBA(ctx, w, h, 0, pixel);
+    NVGScreenshotTexture* tex = (NVGScreenshotTexture*)malloc(sizeof(NVGScreenshotTexture));
+    tex->image = image;
+    tex->pixel = pixel;
+    tex->width = w;
+    tex->height = h;
+    return tex;
+}
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image_write.h>
+
+bool nvgScreenshotSave(NVGcontext* ctx, NVGScreenshotTexture* tex, char *out) {
+    int stride = tex->width * 4;
+    int size = tex->width*tex->height*4;
+ 	stbi_write_png(out, tex->width, tex->height, 4, tex->pixel, stride);
+}
+
 #elif defined(NANOVG_USE_D3D11)
 #define NANOVG_D3D11_IMPLEMENTATION
 #include "nanovg_d3d11.h"
@@ -187,7 +238,21 @@ void nvgClearWithColor(NVGcontext* ctx, NVGcolor color) {
 }
 
 void nvgPresent(NVGcontext* ctx) {
-    D3D11Present((D3D11Context*)nvgGetUserPtr(ctx));
+    D3D11Present((D3D11Context*)nvgGetUserPtr(ctx), 1);
+}
+
+
+NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int x, int y, int w, int h) {
+    D3D11Context* c = (D3D11Context*)nvgGetUserPtr(ctx);
+    // D3D11Present((D3D11Context*)nvgGetUserPtr(ctx), 0);
+    ID3D11Texture2D* t = D3D11GetSwapChainTexture(c);
+    int image = D3DnvgTextureToImage(ctx, t);
+    NVGScreenshotTexture* tex = (NVGScreenshotTexture*)malloc(sizeof(NVGScreenshotTexture));
+    tex->image = image;
+    tex->width = w;
+    tex->height = h;
+    tex->pixel = NULL;
+    return tex;
 }
 
 #elif defined(NANOVG_USE_METAL)

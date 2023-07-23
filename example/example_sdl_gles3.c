@@ -48,12 +48,12 @@
 #define NANOVG_USE_GLES3 1
 #endif
 #elif defined(_WIN32)
-// #define NANOVG_USE_D3D11 1
-#define NANOVG_USE_GL 1
-#define NANOVG_USE_GL3 1
-#ifdef NANOVG_GLEW
-#include <GL/glew.h>
-#endif
+#define NANOVG_USE_D3D11 1
+// #define NANOVG_USE_GL 1
+// #define NANOVG_USE_GL3 1
+// #ifdef NANOVG_GLEW
+// #include <GL/glew.h>
+// #endif
 #elif defined(__APPLE__)
 #define NANOVG_USE_METAL 1
 #elif defined(__linux__)
@@ -88,16 +88,16 @@ double GetElapsedTime(Uint64 start, double frequency) {
     return (double)(SDL_GetPerformanceCounter() - start) / frequency;
 }
 
-void renderTextPattern(
+NVGScreenshotTexture* renderTextPattern(
     NVGcontext* vg,
-    void* framebufferCurrnet,
     char * text,
     int winWidth,
     int winHeight,
+    int fbWidth,
+    int fbHeight,
     float fbRatio
 ) {
     NVGcolor bgColor = nvgRGBA(0xef, 0xe6, 0xc7, 255);
-    nvgBindFramebuffer(vg, framebufferCurrnet);
     nvgClearWithColor(vg, bgColor);
     nvgBeginFrame(vg, winWidth, winHeight, fbRatio);
 
@@ -134,7 +134,7 @@ void renderTextPattern(
     }
     loop:
     nvgEndFrame(vg);
-    nvgBindFramebuffer(vg, NULL);
+    return nvgScreenshotTexture(vg, 0, 0, fbWidth, fbHeight);
 }
 
 
@@ -290,8 +290,10 @@ int main(int argc, char **argv) {
     float fbRatio = nvgDevicePixelRatio(vg);
     printf("fbRatio: %f\n", fbRatio);
 
-    void* framebufferCurrnet = nvgCreateFramebuffer(vg, prevW, prevH, 0);
-    void* framebufferNext = nvgCreateFramebuffer(vg, prevW, prevH, 0);
+    // void* framebufferCurrnet = nvgCreateFramebuffer(vg, prevW, prevH, 0);
+    // void* framebufferNext = nvgCreateFramebuffer(vg, prevW, prevH, 0);
+    NVGScreenshotTexture* screenshotCurrnet = NULL;
+    NVGScreenshotTexture* screenshotNext = NULL;
     bool show = false;
     bool reRenderText = true;
     bool isFullscreen = false;
@@ -330,6 +332,10 @@ int main(int argc, char **argv) {
                     SDL_SetWindowFullscreen(window, isFullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
                     isFullscreen = !isFullscreen;
                 }
+                // else if (event.key.keysym.scancode == SDL_SCANCODE_S && event.key.keysym.mod & KMOD_CTRL) {
+                //     NVGScreenshotTexture* tex = nvgScreenshotTexture(vg, 0, 0, fbWidth, fbHeight);
+                //     nvgScreenshotSave(vg, tex, "save.png");
+                // }
                 break;
 #ifdef ANDROID
             case SDL_DISPLAYEVENT:
@@ -365,13 +371,21 @@ int main(int argc, char **argv) {
                         SDL_GetWindowSizeInPixels(window, &fbWidth, &fbHeight);
                         fbRatio = nvgDevicePixelRatio(vg);
                         nvgResetFrameBuffer(vg, fbWidth, fbHeight);
-                        nvgDeleteFramebuffer(vg, framebufferCurrnet);
-                        nvgDeleteFramebuffer(vg, framebufferNext);
-                        framebufferCurrnet = nvgCreateFramebuffer(vg, fbWidth, fbHeight, 0);
-                        framebufferNext = nvgCreateFramebuffer(vg, fbWidth, fbHeight, 0);
+                        if (screenshotCurrnet != NULL) {
+                            nvgDeleteImage(vg, screenshotCurrnet->image);
+                            if (screenshotCurrnet->pixel) free(screenshotCurrnet->pixel);
+                            free(screenshotCurrnet);
+                            screenshotCurrnet = NULL;
+                        }
+                        if (screenshotNext != NULL) {
+                            nvgDeleteImage(vg, screenshotNext->image);
+                            if (screenshotNext->pixel) free(screenshotNext->pixel);
+                            free(screenshotNext);
+                            screenshotNext = NULL;
+                        }
+                        reRenderText = true;
                         printf("resize fb: %dx%d %dx%d %f\n", winWidth, winHeight, fbWidth, fbHeight, fbRatio);
                         change = true;
-                        reRenderText = true;
 #ifdef ANDROID
                         if (displayEvent) {
                             displayEvent = false;
@@ -393,21 +407,21 @@ int main(int argc, char **argv) {
         }
 
         if (change) {
-            // printf("update: %d\n", event.window.event);
             // Update and render
             if (reRenderText) {
-                renderTextPattern(vg, framebufferCurrnet, text, winWidth, winHeight, fbRatio);
+                printf("update: %d\n", event.window.event);
+                screenshotCurrnet = renderTextPattern(vg, text, winWidth, winHeight, fbWidth, fbHeight, fbRatio);
                 // if (show) {
-                renderTextPattern(vg, framebufferNext, text2, winWidth, winHeight, fbRatio);
+                screenshotNext = renderTextPattern(vg, text2, winWidth, winHeight, fbWidth, fbHeight, fbRatio);
                 // }
+                printf("update screenshot: %d %d\n", screenshotCurrnet->image, screenshotNext->image);
                 reRenderText = false;
             }
 
             nvgClearWithColor(vg, bgColor);
-
             nvgBeginFrame(vg, winWidth, winHeight, fbRatio);
             if (show) {
-                NVGpaint img = nvgFramebufferPattern(vg, 0, 0, winWidth, winHeight, 0, framebufferNext, 1.0f);
+                NVGpaint img = nvgImagePattern(vg, 0, 0, winWidth, winHeight, 0, screenshotNext->image, 1.0f);
                 nvgSave(vg);
 
                 nvgBeginPath(vg);
@@ -418,7 +432,7 @@ int main(int argc, char **argv) {
 
                 if (t <= (showT + defaultAnimationSpeed)) {
                     int offset = (int)((float)winWidth * ((t - showT) / defaultAnimationSpeed));
-                    img = nvgFramebufferPattern(vg, 0, 0, winWidth, winHeight, 0, framebufferCurrnet, 1.0f);
+                    img = nvgImagePattern(vg, 0, 0, winWidth, winHeight, 0, screenshotCurrnet->image, 1.0f);
                     nvgSave(vg);
                     nvgTranslate(vg, -offset, 0);
 
@@ -436,7 +450,7 @@ int main(int argc, char **argv) {
                     nextChange = true;
                 }
             } else {
-                NVGpaint img = nvgFramebufferPattern(vg, 0, 0, winWidth, winHeight, 0, framebufferCurrnet, 1.0f);
+                NVGpaint img = nvgImagePattern(vg, 0, 0, winWidth, winHeight, 0, screenshotCurrnet->image, 1.0f);
                 nvgSave(vg);
 
                 nvgBeginPath(vg);

@@ -97,11 +97,11 @@ if get_config("example") then
             add_deps("nanovg_metal")
             add_includedirs("src/metal")
         elseif is_plat("windows", "mingw") then
-            -- add_deps("nanovg_d3d11")
-            -- add_includedirs("src/d3d11")
-            -- add_syslinks("d3d11", "dxguid")
-            add_defines("NANOVG_GLEW")
-            add_packages("glew")
+            add_deps("nanovg_d3d11")
+            add_includedirs("src/d3d11")
+            add_syslinks("d3d11", "dxguid")
+            -- add_defines("NANOVG_GLEW")
+            -- add_packages("glew")
         else
             add_defines("NANOVG_GLEW")
             add_packages("glew")

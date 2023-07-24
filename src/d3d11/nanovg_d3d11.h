@@ -37,7 +37,7 @@ extern "C" {
 
 struct NVGcontext* nvgCreateD3D11(ID3D11Device* pDevice, int edgeaa);
 void nvgDeleteD3D11(struct NVGcontext* ctx);
-int D3DnvgTextureToImage(struct NVGcontext* ctx, ID3D11Texture2D *t);
+int nvgTexture2ImageD3D11(struct NVGcontext* ctx, ID3D11Texture2D *tex, int *rect);
 
 // These are additional flags on top of NVGimageFlags.
 enum NVGimageFlagsD3D11 {
@@ -697,18 +697,6 @@ static int D3Dnvg__renderCreateTexture(void* uptr, int type, int w, int h, int i
 		return 0;
 
 	return tex->id;
-}
-
-int D3DnvgTextureToImage(struct NVGcontext* ctx, ID3D11Texture2D *t) {
-    void* uptr = nvgInternalParams(ctx)->userPtr;
-    struct D3DNVGcontext* D3D = (struct D3DNVGcontext*)uptr;
-	D3D11_TEXTURE2D_DESC texDesc;
-    D3D_API(t, GetDesc, &texDesc);
-    int image = D3Dnvg__renderCreateTexture(uptr, NVG_TEXTURE_RGBA, texDesc.Width, texDesc.Height, NVG_IMAGE_STREAMING, NULL);
-	struct D3DNVGtexture* tex = D3Dnvg__findTexture(D3D, image);
-	HRESULT hr;
-    D3D_API(D3D->pDeviceContext, CopyResource, (ID3D11Resource*)(void*)tex->tex, (ID3D11Resource*)(void*)t);
-    return image;
 }
 
 static int D3Dnvg__renderDeleteTexture(void* uptr, int image)
@@ -1539,6 +1527,32 @@ error:
 void nvgDeleteD3D11(struct NVGcontext* ctx)
 {
 	nvgDeleteInternal(ctx);
+}
+
+
+int nvgTexture2ImageD3D11(struct NVGcontext* ctx, ID3D11Texture2D *tex, int *rect) {
+    void* uptr = nvgInternalParams(ctx)->userPtr;
+    struct D3DNVGcontext* D3D = (struct D3DNVGcontext*)uptr;
+    int image = 0;
+    if (rect != NULL) {
+        image = D3Dnvg__renderCreateTexture(uptr, NVG_TEXTURE_RGBA, rect[2], rect[3], 0, NULL);
+        struct D3DNVGtexture* texture = D3Dnvg__findTexture(D3D, image);
+        D3D11_BOX sourceRegion;
+        sourceRegion.left = rect[0];
+        sourceRegion.top = rect[1];
+        sourceRegion.right = rect[0] + rect[2];
+        sourceRegion.bottom = rect[1] + rect[3];
+        sourceRegion.front = 0;
+        sourceRegion.back = 1;
+        D3D_API(D3D->pDeviceContext, CopySubresourceRegion, (ID3D11Resource *)texture->tex, 0, 0, 0, 0, (ID3D11Resource *)tex, 0, &sourceRegion);
+    } else {
+        D3D11_TEXTURE2D_DESC texDesc;
+        D3D_API(tex, GetDesc, &texDesc);
+        image = D3Dnvg__renderCreateTexture(uptr, NVG_TEXTURE_RGBA, texDesc.Width, texDesc.Height, 0, NULL);
+        struct D3DNVGtexture* texture = D3Dnvg__findTexture(D3D, image);
+        D3D_API(D3D->pDeviceContext, CopyResource, (ID3D11Resource*)(void*)texture->tex, (ID3D11Resource*)(void*)tex);
+    }
+    return image;
 }
 
 #ifdef IMPLEMENTED_IMAGE_FUNCS

@@ -134,7 +134,8 @@ NVGScreenshotTexture* renderTextPattern(
     }
     loop:
     nvgEndFrame(vg);
-    return nvgScreenshotTexture(vg, 0, 0, fbWidth, fbHeight);
+    int rect[4] = {0, 0, fbWidth, fbHeight};
+    return nvgScreenshotTexture(vg, rect);
 }
 
 

@@ -22,7 +22,7 @@ void nvgPresent(NVGcontext* ctx);
 void* nvgCreateFramebuffer(NVGcontext* ctx, int w, int h, int flags);
 void nvgBindFramebuffer(NVGcontext* ctx, void* fb);
 void nvgDeleteFramebuffer(NVGcontext* ctx, void* fb);
-NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int x, int y, int w, int h);
+NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int *rect);
 bool nvgScreenshotSave(NVGcontext* ctx, NVGScreenshotTexture* tex, char *out);
 
 NVGpaint nvgFramebufferPattern(
@@ -157,27 +157,29 @@ NVGpaint nvgFramebufferPattern(
 }
 
 
-static void flipHorizontal(unsigned char* image, int w, int h, int stride)
+static void flipHorizontal(unsigned char* image, int w, int h)
 {
-	int i = 0, j = h-1, k;
-	while (i < j) {
+	int size = h / 2;
+    int stride = w * 4;
+    unsigned char *swap = (unsigned char *)malloc(stride);
+	for (int i = 0; i < size; i++) {
 		unsigned char* ri = &image[i * stride];
-		unsigned char* rj = &image[j * stride];
-		for (k = 0; k < w*4; k++) {
-			unsigned char t = ri[k];
-			ri[k] = rj[k];
-			rj[k] = t;
-		}
-		i++;
-		j--;
+		unsigned char* rj = &image[(h - i - 1) * stride];
+        memcpy(swap, ri, stride);
+        memcpy(ri, rj, stride);
+        memcpy(rj, swap, stride);
 	}
+    free(swap);
 }
 
-NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int x, int y, int w, int h) {
+NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int* rect) {
+    int x = rect[0];
+    int y = rect[1];
+    int w = rect[2];
+    int h = rect[3];
     unsigned char* pixel = (unsigned char*)malloc(w*h*4);
     glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
-    int stride = w * 4;
-    flipHorizontal(pixel, w, h, stride);
+    flipHorizontal(pixel, w, h);
     int image = nvgCreateImageRGBA(ctx, w, h, 0, pixel);
     NVGScreenshotTexture* tex = (NVGScreenshotTexture*)malloc(sizeof(NVGScreenshotTexture));
     tex->image = image;
@@ -241,16 +243,15 @@ void nvgPresent(NVGcontext* ctx) {
     D3D11Present((D3D11Context*)nvgGetUserPtr(ctx), 1);
 }
 
-
-NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int x, int y, int w, int h) {
+NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int *rect) {
     D3D11Context* c = (D3D11Context*)nvgGetUserPtr(ctx);
     ID3D11Texture2D* t = D3D11GetSwapChainTexture(c);
-    int image = D3DnvgTextureToImage(ctx, t);
+    int image = nvgTexture2ImageD3D11(ctx, t, rect);
     D3D_API_RELEASE(t);
     NVGScreenshotTexture* tex = (NVGScreenshotTexture*)malloc(sizeof(NVGScreenshotTexture));
     tex->image = image;
-    tex->width = w;
-    tex->height = h;
+    tex->width = rect[2];
+    tex->height = rect[3];
     tex->pixel = NULL;
     return tex;
 }

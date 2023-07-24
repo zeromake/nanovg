@@ -347,9 +347,9 @@ void ClearD3D11WithColor(D3D11Context *ctx, float clearColor[4])
 
 void D3D11Present(D3D11Context *ctx, int syncInterval)
 {
-    // DXGI_PRESENT_PARAMETERS presentParameters;
-    // memset(&presentParameters, 0, sizeof(DXGI_PRESENT_PARAMETERS));
-    D3D_API(ctx->swapChain, Present1, syncInterval, 0, NULL);
+    DXGI_PRESENT_PARAMETERS presentParameters;
+    memset(&presentParameters, 0, sizeof(DXGI_PRESENT_PARAMETERS));
+    D3D_API(ctx->swapChain, Present1, syncInterval, 0, &presentParameters);
 }
 
 ID3D11Texture2D* D3D11GetSwapChainTexture(D3D11Context *ctx) {

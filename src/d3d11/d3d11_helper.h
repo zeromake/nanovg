@@ -30,7 +30,7 @@ float GetD3D11ScaleFactor(D3D11Context *ctx);
 void ClearD3D11WithColor(D3D11Context *ctx, float clearColor[4]);
 
 // 将 SwapChain 里的绘制到窗口
-void D3D11Present(D3D11Context *ctx);
+void D3D11Present(D3D11Context *ctx, int syncInterval);
 
 ID3D11Texture2D* D3D11GetSwapChainTexture(D3D11Context *ctx);
 

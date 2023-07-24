@@ -619,18 +619,6 @@ static int D3Dnvg__renderCreate(void* uptr)
 	return 1;
 }
 
-int D3DnvgTextureToImage(struct NVGcontext* ctx, ID3D11Texture2D *t) {
-    void* uptr = nvgInternalParams(ctx)->userPtr;
-    struct D3DNVGcontext* D3D = (struct D3DNVGcontext*)uptr;
-	D3D11_TEXTURE2D_DESC texDesc;
-    D3D_API(t, GetDesc, &texDesc);
-    int image = D3Dnvg__renderCreateTexture(uptr, NVG_TEXTURE_RGBA, texDesc.Width, texDesc.Height, NVG_IMAGE_STREAMING, NULL);
-	struct D3DNVGtexture* tex = D3Dnvg__findTexture(D3D, image);
-	HRESULT hr;
-    D3D_API(D3D->pDeviceContext, CopyResource, (ID3D11Resource*)(void*)tex->tex, (ID3D11Resource*)(void*)t);
-    return image;
-}
-
 static int D3Dnvg__renderCreateTexture(void* uptr, int type, int w, int h, int imageFlags, const unsigned char* data)
 {
 	struct D3DNVGcontext* D3D = (struct D3DNVGcontext*)uptr;
@@ -709,6 +697,18 @@ static int D3Dnvg__renderCreateTexture(void* uptr, int type, int w, int h, int i
 		return 0;
 
 	return tex->id;
+}
+
+int D3DnvgTextureToImage(struct NVGcontext* ctx, ID3D11Texture2D *t) {
+    void* uptr = nvgInternalParams(ctx)->userPtr;
+    struct D3DNVGcontext* D3D = (struct D3DNVGcontext*)uptr;
+	D3D11_TEXTURE2D_DESC texDesc;
+    D3D_API(t, GetDesc, &texDesc);
+    int image = D3Dnvg__renderCreateTexture(uptr, NVG_TEXTURE_RGBA, texDesc.Width, texDesc.Height, NVG_IMAGE_STREAMING, NULL);
+	struct D3DNVGtexture* tex = D3Dnvg__findTexture(D3D, image);
+	HRESULT hr;
+    D3D_API(D3D->pDeviceContext, CopyResource, (ID3D11Resource*)(void*)tex->tex, (ID3D11Resource*)(void*)t);
+    return image;
 }
 
 static int D3Dnvg__renderDeleteTexture(void* uptr, int image)

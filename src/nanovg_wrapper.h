@@ -244,9 +244,9 @@ void nvgPresent(NVGcontext* ctx) {
 
 NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int x, int y, int w, int h) {
     D3D11Context* c = (D3D11Context*)nvgGetUserPtr(ctx);
-    // D3D11Present((D3D11Context*)nvgGetUserPtr(ctx), 0);
     ID3D11Texture2D* t = D3D11GetSwapChainTexture(c);
     int image = D3DnvgTextureToImage(ctx, t);
+    D3D_API_RELEASE(t);
     NVGScreenshotTexture* tex = (NVGScreenshotTexture*)malloc(sizeof(NVGScreenshotTexture));
     tex->image = image;
     tex->width = w;

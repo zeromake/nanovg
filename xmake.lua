@@ -125,6 +125,9 @@ if get_config("example") then
         elseif is_plat("macosx") then
             add_frameworks("OpenGL", "QuartzCore")
         end
+        if is_plat("mingw") then
+            add_ldflags("-static")
+        end
         after_build(function (target)
             if target:is_plat("android") then
                 local outDir = "project/android/app/libs/"..target:arch().."/"

@@ -12,6 +12,15 @@ typedef struct NVGScreenshotTexture {
     unsigned char *pixel;
 } NVGScreenshotTexture;
 
+typedef struct NVGrendererInfo
+{
+    const char* rendererName;
+    const char* deviceName;
+    const char* vendorName;
+    const char* shadingLanguageName;
+    const char* extensionNames[];
+} NVGrendererInfo;
+
 NVGcontext* nvgCreate(int flags, void* params);
 void nvgDelete(NVGcontext* ctx);
 void nvgClearWithColor(NVGcontext* ctx, NVGcolor color);
@@ -35,6 +44,8 @@ NVGpaint nvgFramebufferPattern(
     void* fb,
     float alpha
 );
+
+NVGrendererInfo nvgGetRendererInfo(NVGcontext* ctx);
 
 #ifdef NANOVG_IMPLEMENTATION
 #if defined(NANOVG_USE_GL)

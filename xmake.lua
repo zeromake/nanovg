@@ -123,7 +123,8 @@ if get_config("example") then
         if is_plat("windows", "mingw") then
             add_files("src/resource.rc")
         elseif is_plat("macosx") then
-            add_frameworks("OpenGL", "QuartzCore")
+            add_frameworks("QuartzCore", "Metal")
+            -- add_frameworks("OpenGL", "QuartzCore")
         end
         if is_plat("mingw") then
             add_ldflags("-static")

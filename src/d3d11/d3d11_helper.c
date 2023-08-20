@@ -2,6 +2,7 @@
 #include <d3d11_1.h>
 #include <dxgi.h>
 #include <dxgi1_2.h>
+#include <stdio.h>
 
 #include "d3d11_helper.h"
 
@@ -56,11 +57,43 @@ struct D3D11Context
     ID3D11DepthStencilView *depthStencilView;
     D3D_FEATURE_LEVEL featureLevel;
     DXGI_SAMPLE_DESC sampleDesc;
+    NVGrendererInfo renderInfo;
 };
 
 
 void *GetD3D11Device(D3D11Context *ctx) {
     return (void*)ctx->device;
+}
+
+const char* GetVendorName(unsigned short vendor)
+{
+    switch (vendor)
+    {
+        case 0x106B:      return "Apple Inc.";
+        case 0x1022:      return "Advanced Micro Devices, Inc.";
+        case 0x8086:      return "Intel Corporation";
+        case 0x102B:      return "Matrox Electronic Systems Ltd.";
+        case 0x1414:      return "Microsoft Corporation";
+        case 0x10DE:      return "NVIDIA Corporation";
+        case 0x108E:      return "Oracle Corporation";
+        case 0x15AD:      return "VMware Inc.";
+        default:          return "";
+    }
+}
+
+const char* DXFeatureLevelToVersion(D3D_FEATURE_LEVEL featureLevel)
+{
+    switch (featureLevel)
+    {
+        case D3D_FEATURE_LEVEL_11_1:    return "11.1";
+        case D3D_FEATURE_LEVEL_11_0:    return "11.0";
+        case D3D_FEATURE_LEVEL_10_1:    return "10.1";
+        case D3D_FEATURE_LEVEL_10_0:    return "10.0";
+        case D3D_FEATURE_LEVEL_9_3:     return "9.3";
+        case D3D_FEATURE_LEVEL_9_2:     return "9.2";
+        case D3D_FEATURE_LEVEL_9_1:     return "9.1";
+    }
+    return "";
 }
 
 bool InitializeDXInternal(D3D11Context *ctx, int width, int height)
@@ -78,8 +111,8 @@ bool InitializeDXInternal(D3D11Context *ctx, int width, int height)
         };
     static const D3D_FEATURE_LEVEL levelAttempts[] =
         {
-            D3D_FEATURE_LEVEL_12_1,
-            D3D_FEATURE_LEVEL_12_0,
+            // D3D_FEATURE_LEVEL_12_1,
+            // D3D_FEATURE_LEVEL_12_0,
             D3D_FEATURE_LEVEL_11_1, // Direct3D 11.1 SM 6
             D3D_FEATURE_LEVEL_11_0, // Direct3D 11.0 SM 5
             D3D_FEATURE_LEVEL_10_1, // Direct3D 10.1 SM 4
@@ -187,6 +220,8 @@ bool InitializeDXInternal(D3D11Context *ctx, int width, int height)
                      &ctx->swapChain);
 #endif
     }
+    DXGI_ADAPTER_DESC desc;
+    D3D_API(pAdapter, GetDesc, &desc);
     D3D_API_RELEASE(pDXGIDevice);
     D3D_API_RELEASE(pAdapter);
     D3D_API_RELEASE(pDXGIFactory);
@@ -196,6 +231,14 @@ bool InitializeDXInternal(D3D11Context *ctx, int width, int height)
         DestroyD3D11Context(ctx);
         return false;
     }
+
+    char nameBuffer[256] = {0};
+    wcstombs(nameBuffer, desc.Description, 256);
+    strcat(ctx->renderInfo.deviceName, nameBuffer);
+    sprintf(nameBuffer, "Direct3D %s", DXFeatureLevelToVersion(ctx->featureLevel));
+    strcat(ctx->renderInfo.rendererName, nameBuffer);
+    strcat(ctx->renderInfo.shadingLanguageName, "HLSL 5.0");
+    strcat(ctx->renderInfo.vendorName, GetVendorName(desc.VendorId));
     return true;
 }
 
@@ -350,6 +393,11 @@ void D3D11Present(D3D11Context *ctx, int syncInterval)
     DXGI_PRESENT_PARAMETERS presentParameters;
     memset(&presentParameters, 0, sizeof(DXGI_PRESENT_PARAMETERS));
     D3D_API(ctx->swapChain, Present1, syncInterval, 0, &presentParameters);
+}
+
+NVGrendererInfo D3D11GetRenderInfo(D3D11Context *ctx)
+{
+    return ctx->renderInfo;
 }
 
 ID3D11Texture2D* D3D11GetSwapChainTexture(D3D11Context *ctx) {

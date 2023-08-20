@@ -516,7 +516,7 @@ BOOL InitializeDX(unsigned int x, unsigned int y)
 
         swapDesc.BufferDesc.Width = x;
         swapDesc.BufferDesc.Height = y;
-        swapDesc.BufferDesc.Format = DXGI_FORMAT_R8B8G8A8_UNORM;
+        swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         swapDesc.BufferDesc.RefreshRate.Numerator = 60;
         swapDesc.BufferDesc.RefreshRate.Denominator = 1;
         swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -580,7 +580,7 @@ HRESULT ResizeWindow(unsigned int x, unsigned int y)
     D3D_API_RELEASE(pDepthStencilView);
 
     // Resize render target buffers
-    hr = IDXGISwapChain_ResizeBuffers(pSwapChain, 1, x, y, DXGI_FORMAT_R8B8G8A8_UNORM, 0);
+    hr = IDXGISwapChain_ResizeBuffers(pSwapChain, 1, x, y, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
     if (FAILED(hr))
     {
         return hr;
@@ -597,7 +597,7 @@ HRESULT ResizeWindow(unsigned int x, unsigned int y)
         return hr;
     }
 
-    renderDesc.Format = DXGI_FORMAT_R8B8G8A8_UNORM;
+    renderDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     renderDesc.ViewDimension = (swapDesc.SampleDesc.Count>1) ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D;
     renderDesc.Texture2D.MipSlice = 0;
 

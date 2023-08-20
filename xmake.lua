@@ -54,6 +54,7 @@ end
 
 target("nanovg_d3d11")
     set_kind("$(kind)")
+    add_includedirs("src")
     add_headerfiles("src/d3d11/*.h")
     add_headerfiles("src/d3d11/nvg_shader/*.h", {prefixdir="nvg_shader"})
     add_files("src/d3d11/d3d11_helper.c")

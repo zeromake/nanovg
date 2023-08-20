@@ -7,6 +7,7 @@ extern "C" {
 
 #include <stdbool.h>
 #include <d3d11.h>
+#include <nanovg.h>
 
 typedef struct D3D11Context D3D11Context;
 
@@ -31,6 +32,7 @@ void ClearD3D11WithColor(D3D11Context *ctx, float clearColor[4]);
 
 // 将 SwapChain 里的绘制到窗口
 void D3D11Present(D3D11Context *ctx, int syncInterval);
+NVGrendererInfo D3D11GetRenderInfo(D3D11Context *ctx);
 
 ID3D11Texture2D* D3D11GetSwapChainTexture(D3D11Context *ctx);
 

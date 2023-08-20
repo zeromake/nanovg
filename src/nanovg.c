@@ -137,6 +137,7 @@ struct NVGcontext {
 	int textTriCount;
     int textTextureDirty;
     void* userPtr;
+    NVGrendererInfo renderInfo;
 };
 
 static float nvg__sqrtf(float a) { return sqrtf(a); }
@@ -2972,5 +2973,12 @@ void nvgSetUserPtr(NVGcontext* ctx, void* userPtr) {
 }
 void* nvgGetUserPtr(NVGcontext* ctx) {
     return ctx->userPtr;
+}
+
+void nvgSetRendererInfo(NVGcontext* ctx, NVGrendererInfo info) {
+    memcpy(&ctx->renderInfo, &info, sizeof(NVGrendererInfo));
+}
+NVGrendererInfo nvgGetRendererInfo(NVGcontext* ctx) {
+    return ctx->renderInfo;
 }
 // vim: ft=c nu noet ts=4

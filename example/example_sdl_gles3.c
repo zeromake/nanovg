@@ -200,9 +200,6 @@ int main(int argc, char **argv) {
 #ifdef NANOVG_USE_GL
     SDL_GLContext context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, context);
-    const GLubyte * OpenGLVersion = glGetString(GL_VERSION);
-    const GLubyte * name = glGetString(GL_RENDERER);
-    printf("opengl: %s => %s\n", (char*)name, (char*)OpenGLVersion);
 #endif
 #ifdef NANOVG_GLEW
 	glewExperimental = GL_TRUE;
@@ -217,6 +214,13 @@ int main(int argc, char **argv) {
         printf("ERROR: NanoVG init failed");
         return EXIT_FAILURE;
     }
+    NVGrendererInfo info = nvgGetRendererInfo(vg);
+    printf("render system:\n");
+    printf("  renderer:           %s\n", info.rendererName);
+    printf("  device:             %s\n", info.deviceName);
+    printf("  vendor:             %s\n", info.vendorName);
+    printf("  shading language:   %s\n", info.shadingLanguageName);
+    printf("\n");
 
     int winWidth = 0, winHeight = 0;
     SDL_GetWindowSize(window, &winWidth, &winHeight);

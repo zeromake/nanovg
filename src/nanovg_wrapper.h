@@ -4,6 +4,7 @@
 
 #include "nanovg.h"
 #include <stdbool.h>
+#include <stdio.h>
 
 typedef struct NVGScreenshotTexture {
     int image;
@@ -11,15 +12,6 @@ typedef struct NVGScreenshotTexture {
     int width;
     unsigned char *pixel;
 } NVGScreenshotTexture;
-
-typedef struct NVGrendererInfo
-{
-    const char* rendererName;
-    const char* deviceName;
-    const char* vendorName;
-    const char* shadingLanguageName;
-    const char* extensionNames[];
-} NVGrendererInfo;
 
 NVGcontext* nvgCreate(int flags, void* params);
 void nvgDelete(NVGcontext* ctx);
@@ -44,8 +36,6 @@ NVGpaint nvgFramebufferPattern(
     void* fb,
     float alpha
 );
-
-NVGrendererInfo nvgGetRendererInfo(NVGcontext* ctx);
 
 #ifdef NANOVG_IMPLEMENTATION
 #if defined(NANOVG_USE_GL)
@@ -82,16 +72,31 @@ void nvgClearRectWithColor(NVGcontext* ctx, NVGcolor color, int* rect) {
 
 NVGcontext* nvgCreate(int flags, void* params) {
     NVGcontext *vg = NULL;
+    char *apiName = "OpenGL";
+    const char *shadingLanguageName = "GLSL";
 #if defined(NANOVG_USE_GL2)
     vg = nvgCreateGL2(flags);
 #elif defined(NANOVG_USE_GL3)
     vg = nvgCreateGL3(flags);
 #elif defined(NANOVG_USE_GLES2)
+    apiName = "OpenGL ES"
+    shadingLanguageName = "ESSL";
     vg = nvgCreateGLES2(flags);
 #elif defined(NANOVG_USE_GLES3)
+    apiName = "OpenGL ES"
+    shadingLanguageName = "ESSL";
     vg = nvgCreateGLES3(flags);
 #endif
     nvgSetUserPtr(vg, params);
+    char nameBuffer[256] = {0};
+    sprintf(&nameBuffer, "%s %s", apiName, (char *)glGetString(GL_VERSION));
+    NVGrendererInfo renderInfo = {0};
+    strcat(renderInfo.rendererName, nameBuffer);
+    sprintf(&nameBuffer, "%s %s", shadingLanguageName, (char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+    strcat(renderInfo.shadingLanguageName, nameBuffer);
+    strcat(renderInfo.deviceName, glGetString(GL_RENDERER));
+    strcat(renderInfo.vendorName, glGetString(GL_VENDOR));
+    nvgSetRendererInfo(vg, renderInfo);
     return vg;
 }
 
@@ -224,8 +229,10 @@ NVGcontext* nvgCreate(int flags, void* params) {
     int w = 0, h = 0;
     SDL_GetWindowSizeInPixels(window, &w, &h);
     D3D11Context* ctx = CreateD3D11Context((void*)info.info.win.window, w, h);
+    NVGrendererInfo renderInfo = D3D11GetRenderInfo(ctx);
     ID3D11Device *device = (ID3D11Device*)GetD3D11Device(ctx);
     NVGcontext* vg = nvgCreateD3D11(device, flags);
+    nvgSetRendererInfo(vg, renderInfo);
     nvgSetUserPtr(vg, (void*)ctx);
     return vg;
 }

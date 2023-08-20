@@ -677,6 +677,16 @@ struct NVGparams {
 };
 typedef struct NVGparams NVGparams;
 
+struct NVGrendererInfo
+{
+    const char rendererName[128];
+    const char shadingLanguageName[128];
+    const char vendorName[128];
+    const char deviceName[256];
+};
+
+typedef struct NVGrendererInfo NVGrendererInfo;
+
 // Constructor and destructor, called by the render back-end.
 NVGcontext* nvgCreateInternal(NVGparams* params);
 void nvgDeleteInternal(NVGcontext* ctx);
@@ -688,6 +698,9 @@ void nvgDebugDumpPathCache(NVGcontext* ctx);
 
 void nvgSetUserPtr(NVGcontext* ctx, void* userPtr);
 void* nvgGetUserPtr(NVGcontext* ctx);
+
+void nvgSetRendererInfo(NVGcontext* ctx, NVGrendererInfo info);
+NVGrendererInfo nvgGetRendererInfo(NVGcontext* ctx);
 
 #ifdef _MSC_VER
 #pragma warning(pop)

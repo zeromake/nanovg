@@ -79,11 +79,11 @@ NVGcontext* nvgCreate(int flags, void* params) {
 #elif defined(NANOVG_USE_GL3)
     vg = nvgCreateGL3(flags);
 #elif defined(NANOVG_USE_GLES2)
-    apiName = "OpenGL ES"
+    apiName = "OpenGL ES";
     shadingLanguageName = "ESSL";
     vg = nvgCreateGLES2(flags);
 #elif defined(NANOVG_USE_GLES3)
-    apiName = "OpenGL ES"
+    apiName = "OpenGL ES";
     shadingLanguageName = "ESSL";
     vg = nvgCreateGLES3(flags);
 #endif

@@ -265,8 +265,11 @@ if get_config("example") then
         add_includedirs("src")
         add_includedirs("src/sokol")
         add_includedirs("$(buildir)/sokol_shader")
+        add_defines("NANOVG_DISABLE_GLFW")
         add_files(
-            "example/example_sokol.c"
+            "example/example_sokol.c",
+            "example/demo.c",
+            "example/frequency.c"
         )
         add_packages("stb", "sokol")
         add_deps("nanovg", "sokol_shader")
@@ -278,7 +281,8 @@ if get_config("example") then
         end
         if is_plat("windows", "mingw") then
             add_files("src/resource.rc")
-            add_defines("SOKOL_D3D11")
+            -- add_defines("SOKOL_D3D11")
+            add_defines("SOKOL_GLCORE33")
         elseif is_plat("macosx") then
             add_files("example/sokol.m")
             add_defines("SOKOL_METAL")

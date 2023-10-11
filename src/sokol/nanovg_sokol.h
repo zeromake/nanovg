@@ -39,8 +39,6 @@ enum NVGimageFlagsGL {
 
 #endif /* NANOVG_SOKOL_H */
 
-#define NANOVG_SOKOL_IMPLEMENTATION
-
 #ifdef NANOVG_SOKOL_IMPLEMENTATION
 
 #include <stdlib.h>

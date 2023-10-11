@@ -9,13 +9,18 @@
 #define NANOVG_SOKOL_IMPLEMENTATION 1
 #include <nanovg_sokol.h>
 
+#include "frequency.h"
+#include "demo.h"
+
 typedef struct State {
     sg_pass_action pass_action;
     NVGcontext *vg;
+    DemoData data;
 } State;
 
 static void init(void* ptr) {
     State* state = (State*)ptr;
+    nvgFrequencyInitTimer();
     sg_setup(&(sg_desc){
         .context = sapp_sgcontext(),
         .logger.func = slog_func,
@@ -23,13 +28,30 @@ static void init(void* ptr) {
     });
     state->vg = nvgCreateSokol(NVG_ANTIALIAS|NVG_STENCIL_STROKES);
     assert(state->vg != NULL);
-    NVGcolor bgColor = nvgRGBA(0xef, 0xe6, 0xc7, 255);
+    // NVGcolor bgColor = nvgRGBA(0xef, 0xe6, 0xc7, 255);
+    NVGcolor bgColor = nvgRGBAf(0.3f, 0.3f, 0.32f, 1.0f);
     state->pass_action = (sg_pass_action) {
         .colors[0] = {
             .load_action=SG_LOADACTION_CLEAR,
             .clear_value={bgColor.r, bgColor.g, bgColor.b, bgColor.a},
         }
     };
+	loadDemoData(state->vg, &state->data);
+}
+
+static void demo1(State* state) {
+    NVGcontext *vg = state->vg;
+    nvgBeginPath(vg);
+    nvgRect(vg, 100, 100, 300, 150);
+    nvgFillColor(vg, nvgRGBAf(1, 0, 0, 0.5));
+    nvgFill(vg);
+    nvgClosePath(vg);
+}
+
+static void demo2(State* state) {
+    double t = nvgFrequencyGetTime();
+    nvgScale(state->vg, 2.0f, 2.0f);
+    renderDemo(state->vg, 0, 0, sapp_width() / 2.0f, sapp_height() / 2.0f, t, 0, &state->data);
 }
 
 static void frame(void* ptr) {
@@ -37,13 +59,7 @@ static void frame(void* ptr) {
     sg_begin_default_pass(&state->pass_action, sapp_width(), sapp_height());
 
     nvgBeginFrame(state->vg, sapp_width(), sapp_height(), 2.0f);
-
-    nvgBeginPath(state->vg);
-    nvgRect(state->vg, 100, 100, 300, 150);
-    nvgFillColor(state->vg, nvgRGBAf(1, 0, 0, 0.5));
-    nvgFill(state->vg);
-    nvgClosePath(state->vg);
-
+    demo2(state);
     nvgEndFrame(state->vg);
 
     sg_end_pass();
@@ -87,5 +103,6 @@ sapp_desc sokol_main(int argc, char* argv[]) {
         .logger.func = slog_func,
         .high_dpi = true,
         .swap_interval = 1,
+        .win32_console_utf8 = true,
     };
 }

@@ -18,6 +18,30 @@ option_end()
 add_repositories("zeromake https://github.com/zeromake/xrepo.git")
 
 add_requires("stb")
+
+rule("sokol_shader")
+    set_extensions(".glsl")
+    on_buildcmd_file(function (target, batchcmds, sourcefile, opt)
+        local _targetfile = path.relative(sourcefile, "src")
+        batchcmds:mkdir("$(buildir)/sokol_shader")
+        local targetfile = vformat(path.join("$(buildir)/sokol_shader", _targetfile..".h"))
+        -- USE_UNIFORMBUFFER
+        batchcmds:vrunv("sokol-shdc", {
+            "--ifdef",
+            "-l",
+            "hlsl5:glsl330:glsl300es:metal_macos:metal_ios",
+            "--defines=USE_SOKOL",
+            "--module=nanovg",
+            "--input",
+            sourcefile,
+            "--output",
+            targetfile,
+        })
+        batchcmds:show_progress(opt.progress, "${color.build.object}glsl %s", sourcefile)
+        batchcmds:add_depfiles(sourcefile)
+    end)
+rule_end()
+
 if get_config("freetype") then
     add_requires("freetype", {system=false,configs={
         zlib=true,
@@ -64,6 +88,7 @@ target_end()
 
 if get_config("example") then
     add_defines("DEMO_USE_CJK", "NVG_USE_SHD_SHADER")
+    add_requires("sokol")
     add_defines(format('EXAMPLE_PATH="%s"', path.absolute(path.join(os.scriptdir(), "example")):gsub('\\', '/')..'/'))
     if is_plat("android") then
         add_defines("ANDROID")
@@ -228,6 +253,45 @@ if get_config("example") then
         end
         add_defines("NANOVG_DISABLE_GLFW")
         add_syslinks("user32", "d3d11")
+    target_end()
+
+    add_rules("sokol_shader")
+    target("sokol_shader")
+        set_kind("object")
+        add_files("src/shd.glsl")
+        add_files("src/shd.aa.glsl")
+    target_end()
+    target("example_sokol")
+        add_includedirs("src")
+        add_includedirs("src/sokol")
+        add_includedirs("$(buildir)/sokol_shader")
+        add_files(
+            "example/example_sokol.c"
+        )
+        add_packages("stb", "sokol")
+        add_deps("nanovg", "sokol_shader")
+        if is_plat("mingw") then
+            add_ldflags("-static-libgcc", "-static-libstdc++")
+        end
+        if not is_plat("macosx") then
+            add_files("example/sokol.c")
+        end
+        if is_plat("windows", "mingw") then
+            add_files("src/resource.rc")
+            add_defines("SOKOL_D3D11")
+        elseif is_plat("macosx") then
+            add_files("example/sokol.m")
+            add_defines("SOKOL_METAL")
+            add_frameworks(
+                "Metal",
+                "MetalKit",
+                "Appkit",
+                "CoreGraphics",
+                "QuartzCore"
+            )
+        else
+            add_defines("SOKOL_GLCORE33")
+        end
     target_end()
 
     package("mpv")

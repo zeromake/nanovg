@@ -146,6 +146,7 @@ function main()
         end
     end
     if os.host() == "macosx" then
+        -- sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
         local ps = {
             {
                 "iphoneos",

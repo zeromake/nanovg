@@ -1,3 +1,5 @@
+@module nanovg
+
 @vs vs
 @include internal_shd.vs.glsl
 @end

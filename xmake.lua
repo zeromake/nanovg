@@ -26,12 +26,15 @@ rule("sokol_shader")
         batchcmds:mkdir("$(buildir)/sokol_shader")
         local targetfile = vformat(path.join("$(buildir)/sokol_shader", _targetfile..".h"))
         -- USE_UNIFORMBUFFER
+        local defines = "--defines=USE_SOKOL"
+        if string.find(sourcefile, ".aa.glsl") then
+            defines = defines..":EDGE_AA"
+        end
         batchcmds:vrunv("sokol-shdc", {
             "--ifdef",
             "-l",
             "hlsl5:glsl330:glsl300es:metal_macos:metal_ios",
-            "--defines=USE_SOKOL",
-            "--module=nanovg",
+            defines,
             "--input",
             sourcefile,
             "--output",

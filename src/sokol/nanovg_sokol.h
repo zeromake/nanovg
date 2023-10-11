@@ -506,8 +506,8 @@ static int sgnvg__renderCreate(void* uptr)
     SGNVGcontext* sg = (SGNVGcontext*)uptr;
     int align = 4;
 
-    if(sg->flags & NVG_ANTIALIAS)  // insert NANOVG_SG_EDGE_AA_HEADER between header & body
-        sg->shader = sg_make_shader(nanovg_sg_aa_shader_desc(sg_query_backend()));
+    if(sg->flags & NVG_ANTIALIAS)
+        sg->shader = sg_make_shader(nanovg_aa_sg_shader_desc(sg_query_backend()));
     else
         sg->shader = sg_make_shader(nanovg_sg_shader_desc(sg_query_backend()));
     for(int i = 0; i < NANOVG_SG_PIPELINE_CACHE_SIZE; i++)

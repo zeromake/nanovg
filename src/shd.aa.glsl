@@ -1,4 +1,4 @@
-#define EDGE_AA 1
+@module nanovg_aa
 
 @vs vs_aa
 @include internal_shd.vs.glsl
@@ -8,4 +8,4 @@
 @include internal_shd.fs.glsl
 @end
 
-@program sg_aa vs_aa fs_aa
+@program sg vs_aa fs_aa

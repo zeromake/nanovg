@@ -15,6 +15,8 @@ option("vulkan")
     set_showmenu(true)
 option_end()
 
+add_repositories("zeromake https://github.com/zeromake/xrepo.git")
+
 add_requires("stb")
 if get_config("freetype") then
     add_requires("freetype", {system=false,configs={

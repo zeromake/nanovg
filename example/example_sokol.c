@@ -19,6 +19,7 @@ static void init(void* ptr) {
     sg_setup(&(sg_desc){
         .context = sapp_sgcontext(),
         .logger.func = slog_func,
+        .pipeline_pool_size = 1024,
     });
     state->vg = nvgCreateSokol(NVG_ANTIALIAS|NVG_STENCIL_STROKES);
     assert(state->vg != NULL);

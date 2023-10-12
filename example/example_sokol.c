@@ -16,10 +16,13 @@ typedef struct State {
     sg_pass_action pass_action;
     NVGcontext *vg;
     DemoData data;
+    float scaleFactor;
+    float mouse[2];
 } State;
 
 static void init(void* ptr) {
     State* state = (State*)ptr;
+    state->scaleFactor = sapp_dpi_scale();
     nvgFrequencyInitTimer();
     sg_setup(&(sg_desc){
         .context = sapp_sgcontext(),
@@ -50,15 +53,15 @@ static void demo1(State* state) {
 
 static void demo2(State* state) {
     double t = nvgFrequencyGetTime();
-    nvgScale(state->vg, 2.0f, 2.0f);
-    renderDemo(state->vg, 0, 0, sapp_width() / 2.0f, sapp_height() / 2.0f, t, 0, &state->data);
+    nvgScale(state->vg, state->scaleFactor, state->scaleFactor);
+    renderDemo(state->vg, state->mouse[0], state->mouse[1], sapp_width()/2, sapp_height()/2, t, 0, &state->data);
 }
 
 static void frame(void* ptr) {
     State* state = (State*)ptr;
     sg_begin_default_pass(&state->pass_action, sapp_width(), sapp_height());
 
-    nvgBeginFrame(state->vg, sapp_width(), sapp_height(), 2.0f);
+    nvgBeginFrame(state->vg, sapp_width(), sapp_height(), state->scaleFactor);
     demo1(state);
     nvgEndFrame(state->vg);
 
@@ -76,14 +79,18 @@ static void cleanup(void* ptr) {
 
 
 static void event(const sapp_event* e, void* ptr) {
-    int index = 0;
+    State* state = (State*)ptr;
     int x = 0;
     int y = 0;
     switch (e->type) {
         case SAPP_EVENTTYPE_KEY_DOWN:
-            if (e->key_code == SAPP_KEYCODE_ESCAPE) {
+            if (e->key_code == SAPP_KEYCODE_Q) {
                 sapp_request_quit();
             }
+            break;
+        case SAPP_EVENTTYPE_MOUSE_MOVE:
+            state->mouse[0] = e->mouse_x / state->scaleFactor;
+            state->mouse[1] = e->mouse_y / state->scaleFactor;
             break;
     }
 }

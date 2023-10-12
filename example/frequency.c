@@ -6,7 +6,6 @@
 #include <windows.h>
 #include <profileapi.h>
 
-
 typedef struct NVGtimer {
     uint64_t frequency;
     uint64_t offset;
@@ -27,10 +26,27 @@ static uint64_t _nvgGetTimerValue(void)
     QueryPerformanceCounter((LARGE_INTEGER*) &value);
     return value;
 }
+#elif defined(__APPLE__)
 
-static uint64_t _nvgGetTimerFrequency(void)
+#include <mach/mach_time.h>
+
+typedef struct NVGtimer {
+    uint64_t frequency;
+    uint64_t offset;
+} NVGtimer;
+
+static NVGtimer _nvgTimer;
+
+static void _nvgInitTimer(void)
 {
-    return _nvgTimer.frequency;
+    mach_timebase_info_data_t info;
+    mach_timebase_info(&info);
+    _nvgTimer.frequency = (info.denom * 1e9) / info.numer;
+}
+
+static uint64_t _nvgGetTimerValue(void)
+{
+    return mach_absolute_time();
 }
 
 #else
@@ -44,7 +60,7 @@ typedef struct NVGtimer {
 } NVGtimer;
 
 
-static const NVGtimer _nvgTimer;
+static NVGtimer _nvgTimer;
 
 static void _nvgInitTimer()
 {
@@ -64,13 +80,7 @@ static uint64_t _nvgGetTimerValue()
     return (uint64_t) ts.tv_sec * _nvgTimer.frequency + (uint64_t) ts.tv_nsec;
 }
 
-static uint64_t _nvgGetTimerFrequency()
-{
-    return _nvgTimer.frequency;
-}
-
 #endif
-
 
 void nvgFrequencyInitTimer() {
     _nvgInitTimer();
@@ -79,5 +89,5 @@ void nvgFrequencyInitTimer() {
 
 double nvgFrequencyGetTime()
 {
-    return (double) (_nvgGetTimerValue() - _nvgTimer.offset) / _nvgGetTimerFrequency();
+    return (double) (_nvgGetTimerValue() - _nvgTimer.offset) / _nvgTimer.frequency;
 }

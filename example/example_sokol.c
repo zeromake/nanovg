@@ -59,7 +59,7 @@ static void frame(void* ptr) {
     sg_begin_default_pass(&state->pass_action, sapp_width(), sapp_height());
 
     nvgBeginFrame(state->vg, sapp_width(), sapp_height(), 2.0f);
-    demo2(state);
+    demo1(state);
     nvgEndFrame(state->vg);
 
     sg_end_pass();

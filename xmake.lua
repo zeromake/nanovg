@@ -30,7 +30,9 @@ rule("sokol_shader")
         if string.find(sourcefile, ".aa.glsl") then
             defines = defines..":EDGE_AA"
         end
-        batchcmds:vrunv("sokol-shdc", {
+        -- local shdc = "/Users/zero/Downloads/fips-deploy/sokol-tools/osx-ninja-release/sokol-shdc"
+        local shdc = "sokol-shdc"
+        batchcmds:vrunv(shdc, {
             "--ifdef",
             "-l",
             "hlsl5:glsl330:glsl300es:metal_macos:metal_ios",
@@ -258,12 +260,12 @@ if get_config("example") then
         add_syslinks("user32", "d3d11")
     target_end()
 
-    add_rules("sokol_shader")
-    target("sokol_shader")
-        set_kind("object")
-        add_files("src/shd.glsl")
-        add_files("src/shd.aa.glsl")
-    target_end()
+    -- add_rules("sokol_shader")
+    -- target("sokol_shader")
+    --     set_kind("object")
+    --     add_files("src/shd.glsl")
+    --     add_files("src/shd.aa.glsl")
+    -- target_end()
     target("example_sokol")
         add_includedirs("src")
         add_includedirs("src/sokol")
@@ -275,7 +277,7 @@ if get_config("example") then
             "example/frequency.c"
         )
         add_packages("stb", "sokol")
-        add_deps("nanovg", "sokol_shader")
+        add_deps("nanovg")
         if is_plat("mingw") then
             add_ldflags("-static-libgcc", "-static-libstdc++")
         end
@@ -288,13 +290,17 @@ if get_config("example") then
             add_defines("SOKOL_GLCORE33")
         elseif is_plat("macosx") then
             add_files("example/sokol.m")
-            add_defines("SOKOL_METAL")
             add_frameworks(
-                "Metal",
-                "MetalKit",
                 "Appkit",
                 "CoreGraphics",
                 "QuartzCore"
+            )
+            -- add_defines("SOKOL_GLCORE33")
+            -- add_frameworks("OpenGL")
+            add_defines("SOKOL_METAL")
+            add_frameworks(
+                "Metal",
+                "MetalKit"
             )
         else
             add_defines("SOKOL_GLCORE33")

@@ -90,7 +90,7 @@ double GetElapsedTime(Uint64 start, double frequency) {
 
 NVGScreenshotTexture* renderTextPattern(
     NVGcontext* vg,
-    char * text,
+    const char * text,
     int winWidth,
     int winHeight,
     int fbWidth,
@@ -216,10 +216,10 @@ int main(int argc, char **argv) {
     }
     NVGrendererInfo info = nvgGetRendererInfo(vg);
     printf("render system:\n");
-    printf("  renderer:           %s\n", info.rendererName);
-    printf("  device:             %s\n", info.deviceName);
-    printf("  vendor:             %s\n", info.vendorName);
-    printf("  shading language:   %s\n", info.shadingLanguageName);
+    printf("  renderer:     %s\n", info.rendererName);
+    printf("  device:       %s\n", info.deviceName);
+    printf("  vendor:       %s\n", info.vendorName);
+    printf("  shader:       %s\n", info.shaderName);
     printf("\n");
 
     int winWidth = 0, winHeight = 0;

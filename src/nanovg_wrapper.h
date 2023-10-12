@@ -73,27 +73,28 @@ void nvgClearRectWithColor(NVGcontext* ctx, NVGcolor color, int* rect) {
 NVGcontext* nvgCreate(int flags, void* params) {
     NVGcontext *vg = NULL;
     char *apiName = "OpenGL";
-    const char *shadingLanguageName = "GLSL";
 #if defined(NANOVG_USE_GL2)
     vg = nvgCreateGL2(flags);
+    const char *shadingLanguageName = "GLSL2";
 #elif defined(NANOVG_USE_GL3)
     vg = nvgCreateGL3(flags);
+    const char *shadingLanguageName = "GLSL3";
 #elif defined(NANOVG_USE_GLES2)
     apiName = "OpenGL ES";
-    shadingLanguageName = "ESSL";
+    const char shadingLanguageName = "ESSL2";
     vg = nvgCreateGLES2(flags);
 #elif defined(NANOVG_USE_GLES3)
     apiName = "OpenGL ES";
-    shadingLanguageName = "ESSL";
+    const char shadingLanguageName = "ESSL3";
     vg = nvgCreateGLES3(flags);
 #endif
     nvgSetUserPtr(vg, params);
     char nameBuffer[256] = {0};
-    sprintf(&nameBuffer, "%s %s", apiName, (char *)glGetString(GL_VERSION));
+    sprintf(nameBuffer, "%s %s", apiName, (char *)glGetString(GL_VERSION));
     NVGrendererInfo renderInfo = {0};
     strcat(renderInfo.rendererName, nameBuffer);
-    sprintf(&nameBuffer, "%s %s", shadingLanguageName, (char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
-    strcat(renderInfo.shadingLanguageName, nameBuffer);
+    sprintf(nameBuffer, "%s %s", shadingLanguageName, (char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+    strcat(renderInfo.shaderName, nameBuffer);
     strcat(renderInfo.deviceName, glGetString(GL_RENDERER));
     strcat(renderInfo.vendorName, glGetString(GL_VENDOR));
     nvgSetRendererInfo(vg, renderInfo);
@@ -212,6 +213,7 @@ bool nvgScreenshotSave(NVGcontext* ctx, NVGScreenshotTexture* tex, char *out) {
     int stride = tex->width * 4;
     int size = tex->width*tex->height*4;
  	stbi_write_png(out, tex->width, tex->height, 4, tex->pixel, stride);
+    return true;
 }
 
 #elif defined(NANOVG_USE_D3D11)
@@ -287,6 +289,8 @@ NVGcontext* nvgCreate(int flags, void* params) {
     MetalContext* ctx = CreateMetalContext((void*)info.info.cocoa.window);
     void* metalLayer = GetMetalLayer(ctx);
     NVGcontext* vg = nvgCreateMTL(metalLayer, flags);
+    NVGrendererInfo renderInfo = MetalGetRenderInfo(ctx);
+    nvgSetRendererInfo(vg, renderInfo);
     nvgSetUserPtr(vg, (void*)ctx);
     return vg;
 }

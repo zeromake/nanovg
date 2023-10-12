@@ -677,12 +677,16 @@ struct NVGparams {
 };
 typedef struct NVGparams NVGparams;
 
+
+#ifndef NVG_RENDER_NAME_SIZE
+#define NVG_RENDER_NAME_SIZE 128
+#endif
 struct NVGrendererInfo
 {
-    const char rendererName[128];
-    const char shadingLanguageName[128];
-    const char vendorName[128];
-    const char deviceName[256];
+    char rendererName[NVG_RENDER_NAME_SIZE];
+    char shaderName[NVG_RENDER_NAME_SIZE];
+    char vendorName[NVG_RENDER_NAME_SIZE];
+    char deviceName[NVG_RENDER_NAME_SIZE];
 };
 
 typedef struct NVGrendererInfo NVGrendererInfo;

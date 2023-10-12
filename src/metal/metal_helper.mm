@@ -1,4 +1,5 @@
 #include "metal_helper.h"
+#include "nanovg.h"
 #import <Metal/Metal.h>
 #import <QuartzCore/QuartzCore.h>
 #import <AppKit/AppKit.h>
@@ -7,17 +8,18 @@ struct MetalContext {
     id<MTLDevice> device;
     CAMetalLayer* layer;
     NSWindow* win;
+    NVGrendererInfo renderInfo;
 };
 
-extern "C" void *GetMetalLayer(struct MetalContext *ctx) {
+void *GetMetalLayer(struct MetalContext *ctx) {
     return (__bridge void *)ctx->layer;
 }
 
-extern "C" void DestroyMetalContext(struct MetalContext *ctx) {
+void DestroyMetalContext(struct MetalContext *ctx) {
     free(ctx);
 }
 
-extern "C" struct MetalContext *CreateMetalContext(void* window) {
+struct MetalContext *CreateMetalContext(void* window) {
     struct MetalContext* mtl = (struct MetalContext*)calloc(1, sizeof(struct MetalContext));
     NSWindow* nswin = (__bridge NSWindow*)window;
     mtl->win = nswin;
@@ -27,10 +29,14 @@ extern "C" struct MetalContext *CreateMetalContext(void* window) {
     mtl->layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
     nswin.contentView.layer = mtl->layer;
     nswin.contentView.wantsLayer = YES;
+    strcat(mtl->renderInfo.rendererName, std::string("Metal " + std::string(QueryMetalVersion())).data());
+    strcat(mtl->renderInfo.deviceName, std::string([[mtl->device name] cStringUsingEncoding:NSUTF8StringEncoding]).data());
+    strcat(mtl->renderInfo.vendorName, "Apple");
+    strcat(mtl->renderInfo.shadingLanguageName, "Metal Shading Language");
     return mtl;
 }
 
-extern "C" void ResizeMetalDrawable(struct MetalContext *ctx, int width, int height) {
+void ResizeMetalDrawable(struct MetalContext *ctx, int width, int height) {
     CGSize sz;
     sz.width = width;
     sz.height = height;
@@ -40,4 +46,8 @@ extern "C" void ResizeMetalDrawable(struct MetalContext *ctx, int width, int hei
 float GetMetalScaleFactor(struct MetalContext *ctx) {
     float scaleFactor = [ctx->win backingScaleFactor];
     return scaleFactor;
+}
+
+NVGrendererInfo MetalGetRenderInfo(MetalContext *ctx) {
+    return ctx->renderInfo;
 }

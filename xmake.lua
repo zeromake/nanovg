@@ -166,12 +166,10 @@ if get_config("example") then
             if target:is_plat("android") then
                 local outDir = "project/android/app/libs/"..target:arch().."/"
                 for _, pkg in pairs(target:pkgs()) do
-                    if pkg:has_shared() then
-                        for _, f in ipairs(pkg:libraryfiles()) do
-                            if f ~= nil and f:endswith(".so") then
-                                os.cp(f, outDir)
-                                print("cp "..f.." "..outDir)
-                            end
+                    for _, f in ipairs(pkg:libraryfiles()) do
+                        if f ~= nil and f:endswith(".so") then
+                            os.cp(f, outDir)
+                            print("cp "..f.." "..outDir)
                         end
                     end
                 end

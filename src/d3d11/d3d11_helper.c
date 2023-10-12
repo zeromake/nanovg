@@ -77,7 +77,7 @@ const char* GetVendorName(unsigned short vendor)
         case 0x10DE:      return "NVIDIA Corporation";
         case 0x108E:      return "Oracle Corporation";
         case 0x15AD:      return "VMware Inc.";
-        default:          return "";
+        default:          return "unknown";
     }
 }
 
@@ -85,15 +85,18 @@ const char* DXFeatureLevelToVersion(D3D_FEATURE_LEVEL featureLevel)
 {
     switch (featureLevel)
     {
-        case D3D_FEATURE_LEVEL_11_1:    return "11.1";
-        case D3D_FEATURE_LEVEL_11_0:    return "11.0";
-        case D3D_FEATURE_LEVEL_10_1:    return "10.1";
-        case D3D_FEATURE_LEVEL_10_0:    return "10.0";
-        case D3D_FEATURE_LEVEL_9_3:     return "9.3";
-        case D3D_FEATURE_LEVEL_9_2:     return "9.2";
-        case D3D_FEATURE_LEVEL_9_1:     return "9.1";
+        case 0xc200:    return "12.2";
+        case 0xc100:    return "12.1";
+        case 0xc000:    return "12.0";
+        case 0xb100:    return "11.1";
+        case 0xb000:    return "11.0";
+        case 0xa100:    return "10.1";
+        case 0xa000:    return "10.0";
+        case 0x9300:    return "9.3";
+        case 0x9200:    return "9.2";
+        case 0x9100:    return "9.1";
     }
-    return "";
+    return "unknown";
 }
 
 bool InitializeDXInternal(D3D11Context *ctx, int width, int height)
@@ -138,7 +141,6 @@ bool InitializeDXInternal(D3D11Context *ctx, int width, int height)
 
         if (SUCCEEDED(hr))
         {
-            // printf("feature level: 0x%X\n", this->featureLevel);
             break;
         }
     }
@@ -232,12 +234,12 @@ bool InitializeDXInternal(D3D11Context *ctx, int width, int height)
         return false;
     }
 
-    char nameBuffer[256] = {0};
-    wcstombs(nameBuffer, desc.Description, 256);
+    char nameBuffer[512] = {0};
+    wcstombs(nameBuffer, desc.Description, 512);
     strcat(ctx->renderInfo.deviceName, nameBuffer);
     sprintf(nameBuffer, "Direct3D %s", DXFeatureLevelToVersion(ctx->featureLevel));
     strcat(ctx->renderInfo.rendererName, nameBuffer);
-    strcat(ctx->renderInfo.shadingLanguageName, "HLSL 5.0");
+    strcat(ctx->renderInfo.shaderName, "HLSL 5.0");
     strcat(ctx->renderInfo.vendorName, GetVendorName(desc.VendorId));
     return true;
 }

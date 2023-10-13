@@ -115,6 +115,8 @@ void mnvgReadPixels(NVGcontext* ctx, int image, int x, int y, int width,
 // Returns the current OS target.
 enum MNVGTarget mnvgTarget();
 
+void mnvgCopyCurrentTexture(NVGcontext* ctx, int image);
+
 #ifdef __cplusplus
 }
 #endif

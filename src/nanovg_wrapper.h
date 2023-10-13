@@ -342,6 +342,16 @@ NVGpaint nvgFramebufferPattern(
         alpha
     );
 }
+
+NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int* rect) {
+    int image = GetMetalScreenshotTexture(ctx, rect[2], rect[3]);
+    NVGScreenshotTexture* tex = (NVGScreenshotTexture*)malloc(sizeof(NVGScreenshotTexture));
+    tex->image = image;
+    tex->width = rect[2];
+    tex->height = rect[3];
+    tex->pixel = NULL;
+    return tex;
+}
 #else
 #error "you need define NANOVG_USE_GL|NANOVG_USE_D3D11|NANOVG_USE_METAL"
 #endif

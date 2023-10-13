@@ -219,6 +219,9 @@ typedef struct MNVGfragUniforms MNVGfragUniforms;
 
 - (MNVGtexture*)findTexture:(int)id;
 
+- (vector_uint2)currentTextureSize;
+- (void)copyCurrentTexture:(int)image;
+
 - (void)renderCancel;
 
 - (int)renderCreate;
@@ -602,7 +605,7 @@ void mnvgReadPixels(NVGcontext* ctx, int image, int x, int y, int width,
   if (tex == nil) return;
 
   NSUInteger bytesPerRow;
-  if (tex->type == NVG_TEXTURE_RGBA) {
+  if (tex->type == NVG_TEXTURE_RGBA || tex->type == NVG_TEXTURE_BGRA) {
     bytesPerRow = tex->tex.width * 4;
   } else {
     bytesPerRow = tex->tex.width;
@@ -666,7 +669,49 @@ enum MNVGTarget mnvgTarget() {
 @implementation MNVGbuffers
 @end
 
+
+vector_uint2 mnvgCurrentTextureSize(NVGcontext* ctx) {
+    MNVGcontext* mtl = (__bridge MNVGcontext*)nvgInternalParams(ctx)->userPtr;
+    return [mtl currentTextureSize];
+}
+void mnvgCopyCurrentTexture(NVGcontext* ctx, int image) {
+    MNVGcontext* mtl = (__bridge MNVGcontext*)nvgInternalParams(ctx)->userPtr;
+    return [mtl copyCurrentTexture:image];
+}
+
 @implementation MNVGcontext
+
+- (vector_uint2)currentTextureSize {
+    if (_framebuffer == NULL) {
+        return _viewPortSize;
+    }
+    MNVGtexture* tex = [self findTexture:_framebuffer->image];
+    id<MTLTexture> colorTexture = tex->tex;
+    return (vector_uint2){(uint)colorTexture.width,(uint)colorTexture.height};
+}
+
+- (void)copyCurrentTexture:(int)image {
+    id<MTLCommandBuffer> commandBuffer = [_commandQueue commandBuffer];
+    id<MTLBlitCommandEncoder> blitEncoder = [commandBuffer blitCommandEncoder];
+    id<MTLTexture> colorTexture = nil;
+    id<CAMetalDrawable> drawable = nil;
+    if (_framebuffer != NULL) {
+        MNVGtexture* tex = [self findTexture:_framebuffer->image];
+        colorTexture = tex->tex;
+    } else {
+        drawable = _metalLayer.nextDrawable;
+        colorTexture = drawable.texture;
+    }
+    MNVGtexture* targetTex = [self findTexture:image];
+    id<MTLTexture> targetTexture = targetTex->tex;
+    [blitEncoder copyFromTexture: colorTexture toTexture:targetTexture];
+    [blitEncoder endEncoding];
+    if (drawable != nil) {
+        [commandBuffer presentDrawable: drawable];
+    }
+    [commandBuffer commit];
+    [commandBuffer waitUntilCompleted];
+}
 
 - (MNVGcall*)allocCall {
   MNVGcall* ret = NULL;
@@ -837,7 +882,7 @@ enum MNVGTarget mnvgTarget() {
     }
     frag->type = MNVG_SHADER_FILLIMG;
 
-    if (tex->type == NVG_TEXTURE_RGBA)
+    if (tex->type == NVG_TEXTURE_RGBA || tex->type == NVG_TEXTURE_BGRA)
       frag->texType = (tex->flags & NVG_IMAGE_PREMULTIPLIED) ? 0 : 1;
     else
       frag->texType = 2;
@@ -1272,9 +1317,15 @@ enum MNVGTarget mnvgTarget() {
 
   if (tex == nil) return 0;
 
-  MTLPixelFormat pixelFormat = MTLPixelFormatRGBA8Unorm;
-  if (type == NVG_TEXTURE_ALPHA) {
+  MTLPixelFormat pixelFormat;
+  if (type == NVG_TEXTURE_RGBA) {
+    pixelFormat = MTLPixelFormatRGBA8Unorm;
+  } else if (type == NVG_TEXTURE_BGRA) {
+    pixelFormat = MTLPixelFormatBGRA8Unorm;
+  } else if (type == NVG_TEXTURE_ALPHA) {
     pixelFormat = MTLPixelFormatR8Unorm;
+  } else {
+    return 0;
   }
 
   tex->type = type;
@@ -1295,7 +1346,7 @@ enum MNVGTarget mnvgTarget() {
 
   if (data != NULL) {
     NSUInteger bytesPerRow;
-    if (tex->type == NVG_TEXTURE_RGBA) {
+    if (tex->type == NVG_TEXTURE_RGBA || tex->type == NVG_TEXTURE_BGRA) {
       bytesPerRow = width * 4;
     } else {
       bytesPerRow = width;
@@ -1745,7 +1796,7 @@ error:
 
   unsigned char* bytes;
   NSUInteger bytesPerRow;
-  if (tex->type == NVG_TEXTURE_RGBA) {
+  if (tex->type == NVG_TEXTURE_RGBA || tex->type == NVG_TEXTURE_BGRA) {
     bytesPerRow = tex->tex.width * 4;
     bytes = (unsigned char*)data + y * bytesPerRow + x * 4;
   } else {

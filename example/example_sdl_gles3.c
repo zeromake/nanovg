@@ -332,6 +332,11 @@ int main(int argc, char **argv) {
             case SDL_QUIT:
                 quit=1;
                 break;
+            case SDL_AUDIODEVICEADDED:
+            case SDL_TEXTEDITING:
+            case SDL_CLIPBOARDUPDATE:
+            case SDL_KEYDOWN:
+                break;
             case SDL_KEYUP:
                 if(event.key.keysym.scancode == SDL_SCANCODE_F11) {
                     SDL_SetWindowFullscreen(window, isFullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
@@ -352,6 +357,9 @@ int main(int argc, char **argv) {
                     case SDL_WINDOWEVENT_MOVED:
                     case SDL_WINDOWEVENT_EXPOSED:
                         // 最大化恢复
+                        break;
+                    case SDL_WINDOWEVENT_ENTER:
+                        // 鼠标进入窗口
                         break;
                     case SDL_WINDOWEVENT_FOCUS_GAINED:
                         // 窗口焦点获得
@@ -404,6 +412,7 @@ int main(int argc, char **argv) {
                 }
                 break;
             case SDL_MOUSEMOTION:
+            case SDL_MOUSEBUTTONDOWN:
             case SDL_POLLSENTINEL:
                 break;
             default:

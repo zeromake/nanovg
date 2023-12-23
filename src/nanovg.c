@@ -87,6 +87,7 @@ struct NVGstate {
 	float letterSpacing;
 	float lineHeight;
 	float fontBlur;
+	float fontDilate;
 	int textAlign;
 	int fontId;
 };
@@ -675,6 +676,7 @@ void nvgReset(NVGcontext* ctx)
 	state->letterSpacing = 0.0f;
 	state->lineHeight = 1.0f;
 	state->fontBlur = 0.0f;
+	state->fontDilate = 0.0f;
 	state->textAlign = NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE;
 	state->fontId = 0;
 }
@@ -2364,6 +2366,12 @@ void nvgFontBlur(NVGcontext* ctx, float blur)
 	state->fontBlur = blur;
 }
 
+void nvgFontDilate(NVGcontext* ctx, float dilate)
+{
+    NVGstate* state = nvg__getState(ctx);
+    state->fontDilate = dilate;
+}
+
 void nvgTextLetterSpacing(NVGcontext* ctx, float spacing)
 {
 	NVGstate* state = nvg__getState(ctx);
@@ -2491,6 +2499,7 @@ float nvgText(NVGcontext* ctx, float x, float y, const char* string, const char*
 	fonsSetSize(ctx->fs, state->fontSize*scale);
 	fonsSetSpacing(ctx->fs, state->letterSpacing*scale);
 	fonsSetBlur(ctx->fs, state->fontBlur*scale);
+	fonsSetDilate(ctx->fs, state->fontDilate);
 	fonsSetAlign(ctx->fs, state->textAlign);
 	fonsSetFont(ctx->fs, state->fontId);
 
@@ -2615,6 +2624,7 @@ int nvgTextGlyphPositions(NVGcontext* ctx, float x, float y, const char* string,
 	fonsSetSize(ctx->fs, state->fontSize*scale);
 	fonsSetSpacing(ctx->fs, state->letterSpacing*scale);
 	fonsSetBlur(ctx->fs, state->fontBlur*scale);
+	fonsSetDilate(ctx->fs, state->fontDilate);
 	fonsSetAlign(ctx->fs, state->textAlign);
 	fonsSetFont(ctx->fs, state->fontId);
 
@@ -2679,6 +2689,7 @@ int nvgTextBreakLines(NVGcontext* ctx, const char* string, const char* end, floa
 	fonsSetSize(ctx->fs, state->fontSize*scale);
 	fonsSetSpacing(ctx->fs, state->letterSpacing*scale);
 	fonsSetBlur(ctx->fs, state->fontBlur*scale);
+	fonsSetDilate(ctx->fs, state->fontDilate);
 	fonsSetAlign(ctx->fs, state->textAlign);
 	fonsSetFont(ctx->fs, state->fontId);
 
@@ -2869,6 +2880,7 @@ float nvgTextBounds(NVGcontext* ctx, float x, float y, const char* string, const
 	fonsSetSize(ctx->fs, state->fontSize*scale);
 	fonsSetSpacing(ctx->fs, state->letterSpacing*scale);
 	fonsSetBlur(ctx->fs, state->fontBlur*scale);
+	fonsSetDilate(ctx->fs, state->fontDilate);
 	fonsSetAlign(ctx->fs, state->textAlign);
 	fonsSetFont(ctx->fs, state->fontId);
 
@@ -2913,6 +2925,7 @@ void nvgTextBoxBounds(NVGcontext* ctx, float x, float y, float breakRowWidth, co
 	fonsSetSize(ctx->fs, state->fontSize*scale);
 	fonsSetSpacing(ctx->fs, state->letterSpacing*scale);
 	fonsSetBlur(ctx->fs, state->fontBlur*scale);
+	fonsSetDilate(ctx->fs, state->fontDilate);
 	fonsSetAlign(ctx->fs, state->textAlign);
 	fonsSetFont(ctx->fs, state->fontId);
 	fonsLineBounds(ctx->fs, 0, &rminy, &rmaxy);
@@ -2964,6 +2977,7 @@ void nvgTextMetrics(NVGcontext* ctx, float* ascender, float* descender, float* l
 	fonsSetSize(ctx->fs, state->fontSize*scale);
 	fonsSetSpacing(ctx->fs, state->letterSpacing*scale);
 	fonsSetBlur(ctx->fs, state->fontBlur*scale);
+	fonsSetDilate(ctx->fs, state->fontDilate);
 	fonsSetAlign(ctx->fs, state->textAlign);
 	fonsSetFont(ctx->fs, state->fontId);
 

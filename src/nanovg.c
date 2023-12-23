@@ -88,6 +88,7 @@ struct NVGstate {
 	float lineHeight;
 	float fontBlur;
 	float fontDilate;
+	float fontQuality;
 	int textAlign;
 	int fontId;
 };
@@ -677,6 +678,7 @@ void nvgReset(NVGcontext* ctx)
 	state->lineHeight = 1.0f;
 	state->fontBlur = 0.0f;
 	state->fontDilate = 0.0f;
+	state->fontQuality = 1.0f;
 	state->textAlign = NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE;
 	state->fontId = 0;
 }
@@ -2485,7 +2487,7 @@ float nvgText(NVGcontext* ctx, float x, float y, const char* string, const char*
 	FONStextIter iter, prevIter;
 	FONSquad q;
 	NVGvertex* verts;
-	float scale = nvg__getFontScale(state) * ctx->devicePxRatio;
+	float scale = nvg__getFontScale(state) * state->fontQuality;
 	float invscale = 1.0f / scale;
 	int cverts = 0;
 	int nverts = 0;
@@ -2988,5 +2990,11 @@ void nvgTextMetrics(NVGcontext* ctx, float* ascender, float* descender, float* l
 		*descender *= invscale;
 	if (lineh != NULL)
 		*lineh *= invscale;
+}
+
+void nvgFontQuality(NVGcontext* ctx, float quality)
+{
+    NVGstate* state = nvg__getState(ctx);
+    state->fontQuality = quality;
 }
 // vim: ft=c nu noet ts=4

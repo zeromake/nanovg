@@ -142,6 +142,11 @@ enum NVGimageFlags {
 	NVG_IMAGE_FLIPY				= 1<<3,		// Flips (inverses) image in Y direction when rendered.
 	NVG_IMAGE_PREMULTIPLIED		= 1<<4,		// Image data has premultiplied alpha.
 	NVG_IMAGE_NEAREST			= 1<<5,		// Image interpolation is Nearest instead Linear
+
+enum NVGstencilFlags {
+	NVG_STENCIL_DEFAULT	= 0,
+	NVG_STENCIL_ENABLE	= 1<<0,
+	NVG_STENCIL_CLEAR	= 1<<1,
 };
 
 // Begin drawing a new frame
@@ -624,6 +629,14 @@ void nvgTextMetrics(NVGcontext* ctx, float* ascender, float* descender, float* l
 // Words longer than the max width are slit at nearest character (i.e. no hyphenation).
 int nvgTextBreakLines(NVGcontext* ctx, const char* string, const char* end, float breakRowWidth, NVGtextRow* rows, int maxRows);
 
+// Work like nvgFill, but only supports drawing image with alpha channels.
+// The image is used to create a stencil buffer, which will be used for subsequent drawing operations,
+// and only the content corresponding to the non-transparent part of the stencil buffer will be displayed.
+void nvgStencil(NVGcontext* ctx);
+
+// Clear stencil buffer and disable stencil test.
+void nvgStencilClear(NVGcontext* ctx);
+
 //
 // Internal Render API
 //
@@ -635,6 +648,7 @@ enum NVGtexture {
 struct NVGscissor {
 	float xform[6];
 	float extent[2];
+	int stencilFlag;
 };
 typedef struct NVGscissor NVGscissor;
 

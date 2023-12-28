@@ -146,6 +146,12 @@ enum NVGimageFlags {
 	NVG_IMAGE_COPY_SWAP 		= 1<<7,		// Image d3d11 flags UpdateTexture use swap texture.
 };
 
+enum NVGstencilFlags {
+	NVG_STENCIL_DEFAULT	= 0,
+	NVG_STENCIL_ENABLE	= 1<<0,
+	NVG_STENCIL_CLEAR	= 1<<1,
+};
+
 // Begin drawing a new frame
 // Calls to nanovg drawing API should be wrapped in nvgBeginFrame() & nvgEndFrame()
 // nvgBeginFrame() defines the size of the window to render to in relation currently
@@ -581,6 +587,9 @@ void nvgFontSize(NVGcontext* ctx, float size);
 // Sets the blur of current text style.
 void nvgFontBlur(NVGcontext* ctx, float blur);
 
+// Sets the dilation of current text style.
+void nvgFontDilate(NVGcontext* ctx, float dilate);
+
 // Sets the letter spacing of current text style.
 void nvgTextLetterSpacing(NVGcontext* ctx, float spacing);
 
@@ -600,7 +609,7 @@ void nvgFontFace(NVGcontext* ctx, const char* font);
 float nvgText(NVGcontext* ctx, float x, float y, const char* string, const char* end);
 
 // Draws multi-line text string at specified location wrapped at the specified width. If end is specified only the sub-string up to the end is drawn.
-// White space is stripped at the beginning of the rows, the text is split at word boundaries or when new-line characters are encountered.
+// The text is split at word boundaries or when new-line characters are encountered.
 // Words longer than the max width are slit at nearest character (i.e. no hyphenation).
 void nvgTextBox(NVGcontext* ctx, float x, float y, float breakRowWidth, const char* string, const char* end);
 
@@ -624,9 +633,20 @@ int nvgTextGlyphPositions(NVGcontext* ctx, float x, float y, const char* string,
 void nvgTextMetrics(NVGcontext* ctx, float* ascender, float* descender, float* lineh);
 
 // Breaks the specified text into lines. If end is specified only the sub-string will be used.
-// White space is stripped at the beginning of the rows, the text is split at word boundaries or when new-line characters are encountered.
+// The text is split at word boundaries or when new-line characters are encountered.
 // Words longer than the max width are slit at nearest character (i.e. no hyphenation).
 int nvgTextBreakLines(NVGcontext* ctx, const char* string, const char* end, float breakRowWidth, NVGtextRow* rows, int maxRows);
+
+// The resolution of text rendering
+void nvgFontQuality(NVGcontext* ctx, float quality);
+
+// Work like nvgFill, but only supports drawing image with alpha channels.
+// The image is used to create a stencil buffer, which will be used for subsequent drawing operations,
+// and only the content corresponding to the non-transparent part of the stencil buffer will be displayed.
+void nvgStencil(NVGcontext* ctx);
+
+// Clear stencil buffer and disable stencil test.
+void nvgStencilClear(NVGcontext* ctx);
 
 //
 // Internal Render API
@@ -640,6 +660,7 @@ enum NVGtexture {
 struct NVGscissor {
 	float xform[6];
 	float extent[2];
+	int stencilFlag;
 };
 typedef struct NVGscissor NVGscissor;
 

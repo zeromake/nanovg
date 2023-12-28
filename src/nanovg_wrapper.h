@@ -25,6 +25,7 @@ void nvgBindFramebuffer(NVGcontext* ctx, void* fb);
 void nvgDeleteFramebuffer(NVGcontext* ctx, void* fb);
 NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int *rect);
 bool nvgScreenshotSave(NVGcontext* ctx, NVGScreenshotTexture* tex, char *out);
+int nvgInitSDLDirver();
 
 NVGpaint nvgFramebufferPattern(
     NVGcontext* ctx,
@@ -38,6 +39,10 @@ NVGpaint nvgFramebufferPattern(
 );
 
 #ifdef NANOVG_IMPLEMENTATION
+#if !defined(NANOVG_USE_GL) && !defined(NANOVG_USE_D3D11) && !defined(NANOVG_USE_METAL)
+#include "nanovg_auto_dirver.h"
+#endif
+
 #if defined(NANOVG_USE_GL)
 #if defined(NANOVG_USE_GL2)
 #define NANOVG_GL2_IMPLEMENTATION
@@ -71,6 +76,16 @@ void nvgClearRectWithColor(NVGcontext* ctx, NVGcolor color, int* rect) {
 }
 
 NVGcontext* nvgCreate(int flags, void* params) {
+    SDL_Window* window = (SDL_Window*)params;
+    SDL_GLContext context = SDL_GL_CreateContext(window);
+    SDL_GL_MakeCurrent(window, context);
+#ifdef NANOVG_GLEW
+    glewExperimental = GL_TRUE;
+	if(glewInit() != GLEW_OK) {
+		printf("Could not init glew.\n");
+		return NULL;
+	}
+#endif
     NVGcontext *vg = NULL;
     char *apiName = "OpenGL";
 #if defined(NANOVG_USE_GL2)
@@ -216,6 +231,32 @@ bool nvgScreenshotSave(NVGcontext* ctx, NVGScreenshotTexture* tex, char *out) {
     return true;
 }
 
+int nvgInitSDLDirver() {
+    SDL_GL_SetSwapInterval(-1);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+#ifdef NANOVG_USE_GLES2
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#elif defined(NANOVG_USE_GLES3)
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+#if defined(ANDROID) && __ANDROID_API__ >= 24
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+#elif defined(ANDROID) && __ANDROID_API__ >= 21
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+#else
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#endif
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else
+    // opengl 自动选择版本
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,  SDL_GL_CONTEXT_PROFILE_CORE);
+#endif
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_SetHint(SDL_HINT_ORIENTATIONS, "Portrait");
+    return SDL_WINDOW_OPENGL;
+}
+
 #elif defined(NANOVG_USE_D3D11)
 #define NANOVG_D3D11_IMPLEMENTATION
 #include "nanovg_d3d11.h"
@@ -274,6 +315,10 @@ NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int *rect) {
     tex->height = rect[3];
     tex->pixel = NULL;
     return tex;
+}
+
+int nvgInitSDLDirver() {
+    return 0;
 }
 
 #elif defined(NANOVG_USE_METAL)
@@ -351,6 +396,9 @@ NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int* rect) {
     tex->height = rect[3];
     tex->pixel = NULL;
     return tex;
+}
+int nvgInitSDLDirver() {
+    return 0;
 }
 #else
 #error "you need define NANOVG_USE_GL|NANOVG_USE_D3D11|NANOVG_USE_METAL"

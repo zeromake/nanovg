@@ -102,6 +102,37 @@ if get_config("example") then
         add_requires("glew", "glfw", "sdl2")
     end
 
+    target("example_sdl")
+        add_includedirs("src")
+        add_files("example/example_sdl_auto.c")
+        if is_plat("android") then
+            add_defines("ANDROID")
+            set_kind("shared")
+        elseif is_plat("macosx") then
+            add_deps("nanovg_metal")
+            add_includedirs("src/metal")
+        elseif is_plat("windows", "mingw") then
+            add_deps("nanovg_d3d11")
+            add_includedirs("src/d3d11")
+            add_syslinks("d3d11", "dxguid")
+        else
+            add_defines("NANOVG_GLEW")
+            add_packages("glew")
+        end
+        add_packages("sdl2", "stb")
+        add_deps("nanovg")
+        if is_plat("android") then
+            if is_arch("arm64-v8a") then
+                add_syslinks("GLESv3")
+            else
+                add_syslinks("GLESv2")
+            end
+        elseif is_plat("windows", "mingw") then
+            add_files("src/resource.rc")
+        elseif is_plat("macosx") then
+            add_frameworks("QuartzCore", "Metal")
+        end
+
     target("example")
         add_includedirs("src")
         add_files(

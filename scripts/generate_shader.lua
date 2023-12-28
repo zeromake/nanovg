@@ -37,7 +37,7 @@ local downloads = {
 function generate_glsl_headers(language, suffix, edgeAA)
     local include_path = path.join("../../src/nvg_shader/glsl")
     os.mkdir(include_path)
-    local file = "._nanovg_"..language.."_"..suffix..".glsl"
+    local file = "._nanovg_sg_"..language.."_"..suffix..".glsl"
     local inputFile = io.open(file, "r")
     local out = path.join(include_path, language.."_"..suffix..(edgeAA and "_aa" or "")..".h")
     local outFile = io.open(out, "wb")
@@ -121,17 +121,17 @@ function main()
         local files ={
             {
                 "D3D11PixelShader",
-                "build/shader/._nanovg_hlsl5_fs.hlsl",
+                "build/shader/._nanovg_sg_hlsl5_fs.hlsl",
                 "ps_5_0",
             },
             {
                 "D3D11PixelShaderAA",
-                "build/shader_aa/._nanovg_hlsl5_fs.hlsl",
+                "build/shader_aa/._nanovg_sg_hlsl5_fs.hlsl",
                 "ps_5_0",
             },
             {
                 "D3D11VertexShader",
-                "build/shader/._nanovg_hlsl5_vs.hlsl",
+                "build/shader/._nanovg_sg_hlsl5_vs.hlsl",
                 "vs_5_0",
             },
         }
@@ -173,9 +173,9 @@ function main()
         }
         for _, f in ipairs(ps) do
             for _, n in ipairs({"fs", "fs_aa", "vs"}) do
-                local file = "build/shader/._nanovg_metal_"..f[3].."_"..n..".metal"
+                local file = "build/shader/._nanovg_sg_metal_"..f[3].."_"..n..".metal"
                 if n == "fs_aa" then
-                    file = "build/shader_aa/._nanovg_metal_"..f[3].."_fs.metal"
+                    file = "build/shader_aa/._nanovg_sg_metal_"..f[3].."_fs.metal"
                 end
                 if n == "vs" then
                     local text = io.readfile(file);

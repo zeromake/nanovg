@@ -118,6 +118,7 @@ void main(void) {
         vec4 color = texture(sampler2D(tex, smp), pt);
         if (texType == 1) color = vec4(color.xyz*color.w,color.w);
         if (texType == 2) color = vec4(color.x);
+        if (texType == 3 && color.a == 0.0) discard;
         // Apply color tint and alpha.
         color *= innerCol;
         // Combine alpha

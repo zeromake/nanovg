@@ -104,7 +104,11 @@ if get_config("example") then
 
     target("example_sdl")
         add_includedirs("src")
-        add_files("example/example_sdl_auto.c")
+        add_defines("NANOVG_DISABLE_GLFW")
+        add_files(
+            "example/example_sdl_auto.c",
+            "example/demo.c"
+        )
         if is_plat("android") then
             add_defines("ANDROID")
             set_kind("shared")

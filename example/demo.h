@@ -10,6 +10,7 @@ extern "C" {
 struct DemoData {
 	int fontNormal, fontBold, fontIcons, fontEmoji, fontCJK;
 	int images[12];
+    int maskImage;
 };
 typedef struct DemoData DemoData;
 

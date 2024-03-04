@@ -1,12 +1,14 @@
+#include <string>
+#include <stdio.h>
+
+#import <Metal/Metal.h>
+#import <AppKit/AppKit.h>
+#import <QuartzCore/QuartzCore.h>
+#import <simd/simd.h>
+
 #include "metal_helper.h"
 #include "nanovg.h"
 #include "nanovg_mtl.h"
-#import <simd/simd.h>
-#include <string>
-#include <stdio.h>
-#import <Metal/Metal.h>
-#import <QuartzCore/QuartzCore.h>
-#import <AppKit/AppKit.h>
 
 struct MetalContext {
     id<MTLDevice> device;
@@ -101,7 +103,7 @@ static MTLFeatureSet QueryHighestFeatureSet(id<MTLDevice> device_)
 
 const char* QueryMetalVersion(id<MTLDevice> device_)
 {
-    const auto featureSet = QueryHighestFeatureSet(device_);
+    const MTLFeatureSet featureSet = QueryHighestFeatureSet(device_);
 
     #if TARGET_OS_IOS
     switch (featureSet)

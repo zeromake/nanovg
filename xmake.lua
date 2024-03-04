@@ -18,6 +18,7 @@ option_end()
 add_repositories("zeromake https://github.com/zeromake/xrepo.git")
 
 add_requires("stb")
+add_defines("NVG_USE_SHD_SHADER")
 
 rule("sokol_shader")
     set_extensions(".glsl")
@@ -92,7 +93,7 @@ target("nanovg_d3d11")
 target_end()
 
 if get_config("example") then
-    add_defines("DEMO_USE_CJK", "NVG_USE_SHD_SHADER")
+    add_defines("DEMO_USE_CJK")
     add_requires("sokol")
     add_defines(format('EXAMPLE_PATH="%s"', path.absolute(path.join(os.scriptdir(), "example")):gsub('\\', '/')..'/'))
     if is_plat("android") then

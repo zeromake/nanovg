@@ -1,5 +1,6 @@
 import("net.http")
 import("core.base.option")
+import("lib.detect.find_tool")
 import("detect.sdks.find_vstudio")
 
 local languages = {
@@ -71,6 +72,7 @@ end
 function main()
     option.save("main")
     option.set("verbose", true)
+    local apple_single = false
     local shdc_path = path.absolute(path.join(os.scriptdir(), "../build/bin", shdc))
     local shdc_shader_path = path.absolute(path.join(os.scriptdir(), "../src/shd.glsl"))
     if not os.exists(shdc_path) then
@@ -110,14 +112,24 @@ function main()
         if language:startswith("glsl") then
             generate_glsl_headers(language, "fs", true)
         end
-        os.rm("._nanovg_"..language.."_vs."..suffixs[i])
+        os.rm("._nanovg_sg_"..language.."_vs."..suffixs[i])
     end
     os.cd("-")
-    if os.host() == "windows" then
-        os.mkdir("src/nvg_shader/d3d11")
+    os.mkdir("src/nvg_shader/d3d11")
+    local isWindows = os.host() == "windows"
+    local fxc_exe = nil
+    local fxc = nil
+    if isWindows then
         local vs = find_vstudio()["2022"]["vcvarsall"]["x86"]
         local windowsSdkBinPath = path.join(vs["WindowsSdkVerBinPath"], "x86")
-        local fxc = path.join(windowsSdkBinPath, "fxc.exe")
+        fxc = path.join(windowsSdkBinPath, "fxc.exe")
+    else
+        fxc_exe = "build/bin/fxc.exe"
+        if find_tool("wine64") and os.exists(fxc_exe) then
+            fxc = "wine64"
+        end
+    end
+    if fxc then
         local files ={
             {
                 "D3D11PixelShader",
@@ -142,7 +154,12 @@ function main()
             --     text = text:gsub("fpos %: TEXCOORD1;", "fpos : TEXCOORD1;\n    float4 gl_Position : SV_Position;")
             -- end
             io.writefile(f[2], text);
-            os.vexecv(fxc, {"/Fh", "src/nvg_shader/d3d11/"..f[1]..".h", "/T", f[3], "/E", f[1].."_Main", f[2]})
+            local args = {}
+            if not isWindows then
+                table.insert(args, fxc_exe)
+            end
+            table.join2(args, {"/Fh", "src/nvg_shader/d3d11/"..f[1]..".h", "/T", f[3], "/E", f[1].."_Main", f[2]})
+            os.vexecv(fxc, args)
         end
     end
     if os.host() == "macosx" then
@@ -172,10 +189,11 @@ function main()
             }
         }
         for _, f in ipairs(ps) do
+            local filename = apple_single and "macos" or f[3]
             for _, n in ipairs({"fs", "fs_aa", "vs"}) do
-                local file = "build/shader/._nanovg_sg_metal_"..f[3].."_"..n..".metal"
+                local file = "build/shader/._nanovg_sg_metal_"..filename.."_"..n..".metal"
                 if n == "fs_aa" then
-                    file = "build/shader_aa/._nanovg_sg_metal_"..f[3].."_fs.metal"
+                    file = "build/shader_aa/._nanovg_sg_metal_"..filename.."_fs.metal"
                 end
                 if n == "vs" then
                     local text = io.readfile(file);

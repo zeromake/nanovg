@@ -37,18 +37,18 @@
 #include "nanovg.h"
 
 #ifdef NVG_USE_SHD_SHADER
-#if TARGET_OS_SIMULATOR
-#  include "nvg_shader/metal/simulator_fs.h"
-#  include "nvg_shader/metal/simulator_fs_aa.h"
-#  include "nvg_shader/metal/simulator_vs.h"
+#if TARGET_OS_OSX
+#  include "nvg_shader/metal/macos_fs.h"
+#  include "nvg_shader/metal/macos_fs_aa.h"
+#  include "nvg_shader/metal/macos_vs.h"
 #elif TARGET_OS_IOS
 #  include "nvg_shader/metal/ios_fs.h"
 #  include "nvg_shader/metal/ios_fs_aa.h"
 #  include "nvg_shader/metal/ios_vs.h"
-#elif TARGET_OS_OSX
-#  include "nvg_shader/metal/macos_fs.h"
-#  include "nvg_shader/metal/macos_fs_aa.h"
-#  include "nvg_shader/metal/macos_vs.h"
+#elif TARGET_OS_SIMULATOR
+#  include "nvg_shader/metal/simulator_fs.h"
+#  include "nvg_shader/metal/simulator_fs_aa.h"
+#  include "nvg_shader/metal/simulator_vs.h"
 #elif TARGET_OS_TV
 #  include "nvg_shader/metal/tvos_fs.h"
 #  include "nvg_shader/metal/tvos_fs_aa.h"

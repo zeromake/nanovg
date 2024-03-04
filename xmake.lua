@@ -98,7 +98,7 @@ if get_config("example") then
     add_defines(format('EXAMPLE_PATH="%s"', path.absolute(path.join(os.scriptdir(), "example")):gsub('\\', '/')..'/'))
     if is_plat("android") then
         add_defines("ANDROID")
-        add_requires("sdl2", {configs={shared=true}})
+        add_requires("sdl2 =2.30.0", {configs={shared=true}})
     else
         add_requires("glew", "glfw", "sdl2")
     end

@@ -87,31 +87,31 @@ NVGcontext* nvgCreate(int flags, void* params) {
 	}
 #endif
     NVGcontext *vg = NULL;
-    char *apiName = "OpenGL";
+    char apiName[] = "OpenGL";
 #if defined(NANOVG_USE_GL2)
     vg = nvgCreateGL2(flags);
-    const char *shadingLanguageName = "GLSL2";
+    const char shadingLanguageName[] = "GLSL2";
 #elif defined(NANOVG_USE_GL3)
     vg = nvgCreateGL3(flags);
-    const char *shadingLanguageName = "GLSL3";
+    const char shadingLanguageName[] = "GLSL3";
 #elif defined(NANOVG_USE_GLES2)
     apiName = "OpenGL ES";
-    const char shadingLanguageName = "ESSL2";
+    const char shadingLanguageName[] = "ESSL2";
     vg = nvgCreateGLES2(flags);
 #elif defined(NANOVG_USE_GLES3)
     apiName = "OpenGL ES";
-    const char shadingLanguageName = "ESSL3";
+    const char shadingLanguageName[] = "ESSL3";
     vg = nvgCreateGLES3(flags);
 #endif
     nvgSetUserPtr(vg, params);
     char nameBuffer[256] = {0};
-    sprintf(nameBuffer, "%s %s", apiName, (char *)glGetString(GL_VERSION));
+    sprintf(nameBuffer, "%s %s", apiName, (const char *)glGetString(GL_VERSION));
     NVGrendererInfo renderInfo = {0};
     strcat(renderInfo.rendererName, nameBuffer);
-    sprintf(nameBuffer, "%s %s", shadingLanguageName, (char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+    sprintf(nameBuffer, "%s %s", shadingLanguageName, (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
     strcat(renderInfo.shaderName, nameBuffer);
-    strcat(renderInfo.deviceName, glGetString(GL_RENDERER));
-    strcat(renderInfo.vendorName, glGetString(GL_VENDOR));
+    strcat(renderInfo.deviceName, (const char *)glGetString(GL_RENDERER));
+    strcat(renderInfo.vendorName, (const char *)glGetString(GL_VENDOR));
     nvgSetRendererInfo(vg, renderInfo);
     return vg;
 }

@@ -103,7 +103,7 @@ jobs:
           cd ../../
       - name: build-arm-so
         run: |
-          xmake f -p android -a armeabi-v7a --ndk_sdkver=16 --ndk=${ANDROID_HOME}/ndk/23.2.8568313 -y -c --example=y
+          xmake f -p android -a armeabi-v7a --ndk_sdkver=21 --ndk=${ANDROID_NDK} -y -c --example=y
           xmake build example_gles
       - name: build-arm64-so
         env:

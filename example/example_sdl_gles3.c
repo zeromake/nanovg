@@ -347,6 +347,13 @@ int main(int argc, char **argv) {
                 //     nvgScreenshotSave(vg, tex, "save.png");
                 // }
                 break;
+            case SDL_APP_DIDENTERFOREGROUND:
+                // 应用回到前台
+                change = true;
+                break;
+            case SDL_APP_WILLENTERBACKGROUND:
+                // 应用后台
+                break;
 #ifdef ANDROID
             case SDL_DISPLAYEVENT:
                 displayEvent = true;
@@ -363,13 +370,6 @@ int main(int argc, char **argv) {
                         break;
                     case SDL_WINDOWEVENT_FOCUS_GAINED:
                         // 窗口焦点获得
-                    case SDL_APP_DIDENTERFOREGROUND:
-                        // 应用回到前台
-                        change = true;
-                        break;
-                    case SDL_APP_WILLENTERBACKGROUND:
-                        // 应用后台
-                        break;
                     case SDL_WINDOWEVENT_LEAVE:
                     case SDL_WINDOWEVENT_FOCUS_LOST:
                         // 失去焦点

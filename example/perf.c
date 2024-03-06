@@ -184,26 +184,26 @@ void renderGraph(NVGcontext* vg, float x, float y, PerfGraph* fps)
 		nvgFontSize(vg, 15.0f);
 		nvgTextAlign(vg,NVG_ALIGN_RIGHT|NVG_ALIGN_TOP);
 		nvgFillColor(vg, nvgRGBA(240,240,240,255));
-		sprintf(str, "%.2f FPS", 1.0f / avg);
+		snprintf(str, 63, "%.2f FPS", 1.0f / avg);
 		nvgText(vg, x+w-3,y+3, str, NULL);
 
 		nvgFontSize(vg, 13.0f);
 		nvgTextAlign(vg,NVG_ALIGN_RIGHT|NVG_ALIGN_BASELINE);
 		nvgFillColor(vg, nvgRGBA(240,240,240,160));
-		sprintf(str, "%.2f ms", avg * 1000.0f);
+		snprintf(str, 63, "%.2f ms", avg * 1000.0f);
 		nvgText(vg, x+w-3,y+h-3, str, NULL);
 	}
 	else if (fps->style == GRAPH_RENDER_PERCENT) {
 		nvgFontSize(vg, 15.0f);
 		nvgTextAlign(vg,NVG_ALIGN_RIGHT|NVG_ALIGN_TOP);
 		nvgFillColor(vg, nvgRGBA(240,240,240,255));
-		sprintf(str, "%.1f %%", avg * 1.0f);
+		snprintf(str, 63, "%.1f %%", avg * 1.0f);
 		nvgText(vg, x+w-3,y+3, str, NULL);
 	} else {
 		nvgFontSize(vg, 15.0f);
 		nvgTextAlign(vg,NVG_ALIGN_RIGHT|NVG_ALIGN_TOP);
 		nvgFillColor(vg, nvgRGBA(240,240,240,255));
-		sprintf(str, "%.2f ms", avg * 1000.0f);
+		snprintf(str, 63, "%.2f ms", avg * 1000.0f);
 		nvgText(vg, x+w-3,y+3, str, NULL);
 	}
 }

@@ -93,7 +93,7 @@ static MTLFeatureSet QueryHighestFeatureSet(id<MTLDevice> device_)
     /* Find highest supported feature set */
     for (std::size_t i = 0; i < count; ++i)
     {
-        if ([device_ supportsFeatureSet:fsets[i]])
+        if ([device_ supportsFamily:fsets[i]])
             return fsets[i];
     }
 
@@ -159,7 +159,7 @@ struct MetalContext *CreateMetalContext(void* window) {
     nswin.contentView.layer = mtl->layer;
     nswin.contentView.wantsLayer = YES;
     char name[256] = {0};
-    sprintf(name, "Metal %s", QueryMetalVersion(mtl->device));
+    snprintf(name, 255, "Metal %s", QueryMetalVersion(mtl->device));
     strcat(mtl->renderInfo.rendererName, name);
     strcat(mtl->renderInfo.deviceName, [[mtl->device name] cStringUsingEncoding:NSUTF8StringEncoding]);
     strcat(mtl->renderInfo.vendorName, "Apple");

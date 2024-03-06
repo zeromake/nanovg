@@ -106,10 +106,10 @@ NVGcontext* nvgCreate(int flags, void* params) {
 #endif
     nvgSetUserPtr(vg, params);
     char nameBuffer[256] = {0};
-    sprintf(nameBuffer, "%s %s", apiName, (const char *)glGetString(GL_VERSION));
+    snprintf(nameBuffer, 255, "%s %s", apiName, (const char *)glGetString(GL_VERSION));
     NVGrendererInfo renderInfo = {0};
     strcat(renderInfo.rendererName, nameBuffer);
-    sprintf(nameBuffer, "%s %s", shadingLanguageName, (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
+    snprintf(nameBuffer, 255, "%s %s", shadingLanguageName, (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION));
     strcat(renderInfo.shaderName, nameBuffer);
     strcat(renderInfo.deviceName, (const char *)glGetString(GL_RENDERER));
     strcat(renderInfo.vendorName, (const char *)glGetString(GL_VENDOR));

@@ -237,7 +237,7 @@ bool InitializeDXInternal(D3D11Context *ctx, int width, int height)
     char nameBuffer[512] = {0};
     wcstombs(nameBuffer, desc.Description, 512);
     strcat(ctx->renderInfo.deviceName, nameBuffer);
-    sprintf(nameBuffer, "Direct3D %s", DXFeatureLevelToVersion(ctx->featureLevel));
+    snprintf(nameBuffer, 511, "Direct3D %s", DXFeatureLevelToVersion(ctx->featureLevel));
     strcat(ctx->renderInfo.rendererName, nameBuffer);
     strcat(ctx->renderInfo.shaderName, "HLSL 5.0");
     strcat(ctx->renderInfo.vendorName, GetVendorName(desc.VendorId));

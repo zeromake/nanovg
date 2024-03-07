@@ -24,19 +24,28 @@ double GetElapsedTime(Uint64 start, double frequency)
     return (double)(SDL_GetPerformanceCounter() - start) / frequency;
 }
 
+#ifdef main
+#undef main
+#endif
+
 int main(int argc, char **argv)
 {
+    int flags = SDL_INIT_EVERYTHING & ~(SDL_INIT_TIMER | SDL_INIT_HAPTIC);
+    if (SDL_Init(flags) < 0) {
+        printf("ERROR: SDL_Init failed: %s", SDL_GetError());
+        return EXIT_FAILURE;
+    }
     Uint64 start = SDL_GetPerformanceCounter();
     double frequency = (double)SDL_GetPerformanceFrequency();
     int initWindowflags = nvgInitSDLDirver();
-    int windowflags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | initWindowflags;
+    int windowflags = SDL_WINDOW_HIDDEN | SDL_WINDOW_ALLOW_HIGHDPI | initWindowflags;
     windowflags |= SDL_WINDOW_RESIZABLE;
     SDL_Window *window = SDL_CreateWindow(
         "NanoVG Example",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
-        1280,
-        800,
+        1000,
+        600,
         windowflags);
     int createFlags = NVG_ANTIALIAS | NVG_STENCIL_STROKES;
     NVGcontext *vg = nvgCreate(createFlags, window);
@@ -60,7 +69,13 @@ int main(int argc, char **argv)
     SDL_GetWindowSizeInPixels(window, &fbWidth, &fbHeight);
     float fbRatio = nvgDevicePixelRatio(vg);
     nvgResetFrameBuffer(vg, fbWidth, fbHeight);
-
+    if (fbRatio > 1) {
+        winWidth *= fbRatio;
+        winHeight *= fbRatio;
+        SDL_SetWindowSize(window, winWidth, winHeight);
+        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    }
+    SDL_ShowWindow(window);
     int quit = 0;
     SDL_Event event;
     NVGcolor bgColor = nvgRGBA(0x76, 0x76, 0x82, 255);
@@ -69,6 +84,10 @@ int main(int argc, char **argv)
     int blowup = 0;
     double t = 0;
     double dt = 0;
+    float frameDevicePixelRatio = 1.0;
+#ifndef NANOVG_USE_D3D11
+    frameDevicePixelRatio = fbRatio;
+#endif
 	DemoData data;
 	GPUtimer gpuTimer;
 	PerfGraph fps, cpuGraph, gpuGraph;
@@ -102,19 +121,23 @@ int main(int argc, char **argv)
                     SDL_GetWindowSize(window, &winWidth, &winHeight);
                     SDL_GetWindowSizeInPixels(window, &fbWidth, &fbHeight);
                     fbRatio = nvgDevicePixelRatio(vg);
+                    #ifndef NANOVG_USE_D3D11
+                        frameDevicePixelRatio = fbRatio;
+                    #endif
                     nvgResetFrameBuffer(vg, fbWidth, fbHeight);
                     break;
             }
             break;
         case SDL_MOUSEMOTION:
-            mx = event.motion.x;
-            my = event.motion.y;
+            mx = event.motion.x / fbRatio;
+            my = event.motion.y / fbRatio;
         }
 
         nvgClearWithColor(vg, bgColor);
-        nvgBeginFrame(vg, fbWidth, fbHeight, fbRatio);
+        nvgBeginFrame(vg, fbWidth, fbHeight, frameDevicePixelRatio);
+    	nvgScale(vg, fbRatio, fbRatio);
 
-        renderDemo(vg, mx, my, winWidth, winHeight, t, blowup, &data);
+        renderDemo(vg, mx, my, winWidth / fbRatio, winHeight / fbRatio, t, blowup, &data);
         renderGraph(vg, 5,5, &fps);
 		renderGraph(vg, 5+200+5,5, &cpuGraph);
 		if (gpuTimer.supported)
@@ -130,7 +153,7 @@ int main(int argc, char **argv)
 		int n = stopGPUTimer(&gpuTimer, gpuTimes, 3);
 		for (int i = 0; i < n; i++)
 			updateGraph(&gpuGraph, gpuTimes[i]);
-        nvgPresent(vg);
+        nvgPresent(vg, 1);
     }
 	freeDemoData(vg, &data);
     nvgDelete(vg);

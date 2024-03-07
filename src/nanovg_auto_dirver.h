@@ -25,9 +25,6 @@
 #elif defined(__linux__)
 #define NANOVG_USE_GL 1
 #define NANOVG_USE_GL3 1
-#ifdef NANOVG_GLEW
-#include <GL/glew.h>
-#endif
 #endif
 
 #endif

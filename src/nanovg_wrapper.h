@@ -19,7 +19,7 @@ void nvgClearWithColor(NVGcontext* ctx, NVGcolor color);
 void nvgClearRectWithColor(NVGcontext* ctx, NVGcolor color, int* rect);
 void nvgResetFrameBuffer(NVGcontext* ctx, int width, int height);
 float nvgDevicePixelRatio(NVGcontext* ctx);
-void nvgPresent(NVGcontext* ctx);
+void nvgPresent(NVGcontext* ctx, int flags);
 void* nvgCreateFramebuffer(NVGcontext* ctx, int w, int h, int flags);
 void nvgBindFramebuffer(NVGcontext* ctx, void* fb);
 void nvgDeleteFramebuffer(NVGcontext* ctx, void* fb);
@@ -44,6 +44,9 @@ NVGpaint nvgFramebufferPattern(
 #endif
 
 #if defined(NANOVG_USE_GL)
+#ifdef NANOVG_GLEW
+#include <GL/glew.h>
+#endif
 #if defined(NANOVG_USE_GL2)
 #define NANOVG_GL2_IMPLEMENTATION
 #elif defined(NANOVG_USE_GL3)
@@ -153,7 +156,7 @@ float nvgDevicePixelRatio(NVGcontext* ctx) {
 #endif
 }
 
-void nvgPresent(NVGcontext* ctx) {
+void nvgPresent(NVGcontext* ctx, int flags) {
     SDL_Window* window = (SDL_Window*)nvgGetUserPtr(ctx);
     SDL_GL_SwapWindow(window);
 }
@@ -222,7 +225,6 @@ NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int* rect) {
     return tex;
 }
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
 bool nvgScreenshotSave(NVGcontext* ctx, NVGScreenshotTexture* tex, char *out) {
@@ -301,8 +303,8 @@ void nvgClearWithColor(NVGcontext* ctx, NVGcolor color) {
     ClearD3D11WithColor((D3D11Context*)nvgGetUserPtr(ctx), color.rgba);
 }
 
-void nvgPresent(NVGcontext* ctx) {
-    D3D11Present((D3D11Context*)nvgGetUserPtr(ctx), 1);
+void nvgPresent(NVGcontext* ctx, int flags) {
+    D3D11Present((D3D11Context*)nvgGetUserPtr(ctx), flags);
 }
 
 NVGScreenshotTexture* nvgScreenshotTexture(NVGcontext* ctx, int *rect) {
@@ -356,7 +358,7 @@ void nvgResetFrameBuffer(NVGcontext* ctx, int width, int height) {
 float nvgDevicePixelRatio(NVGcontext* ctx) {
     return GetMetalScaleFactor((MetalContext*)nvgGetUserPtr(ctx));
 }
-void nvgPresent(NVGcontext* ctx) {}
+void nvgPresent(NVGcontext* ctx, int flags) {}
 
 void* nvgCreateFramebuffer(NVGcontext* ctx, int w, int h, int flags) {
     return mnvgCreateFramebuffer(ctx, w, h, flags);

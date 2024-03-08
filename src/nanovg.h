@@ -730,6 +730,8 @@ void* nvgGetUserPtr(NVGcontext* ctx);
 void nvgSetRendererInfo(NVGcontext* ctx, NVGrendererInfo info);
 NVGrendererInfo nvgGetRendererInfo(NVGcontext* ctx);
 
+int nvgTextureBytesPer(enum NVGtexture texType);
+
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif

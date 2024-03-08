@@ -815,6 +815,8 @@ static int glnvg__renderCreateTexture(void* uptr, int type, int w, int h, int im
 
 	if (type == NVG_TEXTURE_RGBA)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    else if (type == NVG_TEXTURE_BGRA)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
 	else
 #if defined(NANOVG_GLES2) || defined (NANOVG_GL2)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data);
@@ -897,16 +899,15 @@ static int glnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int w
 	glPixelStorei(GL_UNPACK_SKIP_ROWS, y);
 #else
 	// No support for all of skip, need to update a whole row at a time.
-	if (tex->type == NVG_TEXTURE_RGBA)
-		data += y*tex->width*4;
-	else
-		data += y*tex->width;
+	data += y*tex->width*nvgTextureBytesPer(tex->type);
 	x = 0;
 	w = tex->width;
 #endif
 
 	if (tex->type == NVG_TEXTURE_RGBA)
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    else if (tex->type == NVG_TEXTURE_BGRA)
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_BGRA, GL_UNSIGNED_BYTE, data);
 	else
 #if defined(NANOVG_GLES2) || defined(NANOVG_GL2)
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_LUMINANCE, GL_UNSIGNED_BYTE, data);
@@ -1008,7 +1009,7 @@ static int glnvg__convertPaint(GLNVGcontext* gl, GLNVGfragUniforms* frag, NVGpai
 		frag->type = NSVG_SHADER_FILLIMG;
 
 		#if NANOVG_GL_USE_UNIFORMBUFFER
-		if (tex->type == NVG_TEXTURE_RGBA)
+		if (nvgTextureBytesPer(tex->type) == 4)
 			if (scissor->stencilFlag)
 				frag->texType = 3;
 			else
@@ -1016,7 +1017,7 @@ static int glnvg__convertPaint(GLNVGcontext* gl, GLNVGfragUniforms* frag, NVGpai
 		else
 			frag->texType = 2;
 		#else
-		if (tex->type == NVG_TEXTURE_RGBA)
+		if (nvgTextureBytesPer(tex->type) == 4)
 			if (scissor->stencilFlag)
 				frag->texType = 3.0f;
 			else

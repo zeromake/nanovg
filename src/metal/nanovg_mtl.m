@@ -604,12 +604,7 @@ void mnvgReadPixels(NVGcontext* ctx, int image, int x, int y, int width,
   MNVGtexture* tex = [mtl findTexture:image];
   if (tex == nil) return;
 
-  NSUInteger bytesPerRow;
-  if (tex->type == NVG_TEXTURE_RGBA || tex->type == NVG_TEXTURE_BGRA) {
-    bytesPerRow = tex->tex.width * 4;
-  } else {
-    bytesPerRow = tex->tex.width;
-  }
+  NSUInteger bytesPerRow = tex->tex.width * nvgTextureBytesPer(tex->type);
 
   // Makes sure the command execution for the image has been done.
   for (MNVGbuffers* buffers in mtl.cbuffers) {
@@ -882,7 +877,7 @@ void mnvgCopyCurrentTexture(NVGcontext* ctx, int image) {
     }
     frag->type = MNVG_SHADER_FILLIMG;
 
-    if (tex->type == NVG_TEXTURE_RGBA || tex->type == NVG_TEXTURE_BGRA)
+    if (nvgTextureBytesPer(tex->type) == 4)
       frag->texType = (tex->flags & NVG_IMAGE_PREMULTIPLIED) ? 0 : 1;
     else
       frag->texType = 2;
@@ -1345,12 +1340,7 @@ void mnvgCopyCurrentTexture(NVGcontext* ctx, int image) {
   tex->tex = [_metalLayer.device newTextureWithDescriptor:textureDescriptor];
 
   if (data != NULL) {
-    NSUInteger bytesPerRow;
-    if (tex->type == NVG_TEXTURE_RGBA || tex->type == NVG_TEXTURE_BGRA) {
-      bytesPerRow = width * 4;
-    } else {
-      bytesPerRow = width;
-    }
+    NSUInteger bytesPerRow = width * nvgTextureBytesPer(tex->type);
 
     if (textureDescriptor.storageMode == MTLStorageModePrivate) {
       const NSUInteger kBufferSize = bytesPerRow * height;
@@ -1794,15 +1784,9 @@ error:
 
   if (tex == nil) return 0;
 
-  unsigned char* bytes;
-  NSUInteger bytesPerRow;
-  if (tex->type == NVG_TEXTURE_RGBA || tex->type == NVG_TEXTURE_BGRA) {
-    bytesPerRow = tex->tex.width * 4;
-    bytes = (unsigned char*)data + y * bytesPerRow + x * 4;
-  } else {
-    bytesPerRow = tex->tex.width;
-    bytes = (unsigned char*)data + y * bytesPerRow + x;
-  }
+  int bytesPer = nvgTextureBytesPer(tex->type);
+  NSUInteger bytesPerRow = tex->tex.width * bytesPer;
+  unsigned char* bytes = (unsigned char*)data + y * bytesPerRow + x * bytesPer;
 
 #if TARGET_OS_SIMULATOR
   const NSUInteger kBufferSize = bytesPerRow * height;

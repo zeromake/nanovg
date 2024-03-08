@@ -479,7 +479,7 @@ int main(int argc, char **argv) {
             printf("fps: %f\n", avg > 0 ? 1.0f / avg : 0);
 		    updateGraph(&fps, dt);
 #endif
-            nvgPresent(vg);
+            nvgPresent(vg, 1);
             if (!nextChange) {
                 change = false;
             }

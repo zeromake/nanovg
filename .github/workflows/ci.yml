@@ -15,7 +15,7 @@ jobs:
         run: |
           Invoke-Expression (Invoke-Webrequest 'https://xmake.io/psget.text' -UseBasicParsing).Content
           xmake --version
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: pre-repo
         shell: powershell
         run: |
@@ -32,7 +32,7 @@ jobs:
           cp ./build/windows/x64/release/example.exe ./dist/
           cp ./build/windows/x64/release/example_d3d11.exe ./dist/
           cp ./build/windows/x64/release/example_gles.exe ./dist/
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: windows-${{ github.run_id }}
           path: |
@@ -47,7 +47,7 @@ jobs:
         run: |
           brew install xmake
           xmake --version
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: pre-repo
         run: |
           mkdir -p dist
@@ -60,7 +60,7 @@ jobs:
           cp ./build/macosx/x86_64/release/example ./dist/
           cp ./build/macosx/x86_64/release/example_metal ./dist/
           cp ./build/macosx/x86_64/release/example_gles ./dist/
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: osx-${{ github.run_id }}
           path: |
@@ -71,7 +71,7 @@ jobs:
     name: linux build
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: install-xmake
         run: |
           sudo apt-get install libglfw3-dev tree
@@ -118,7 +118,7 @@ jobs:
           ./gradlew assembleDebug
           cp ./app/build/outputs/apk/debug/app-debug.apk ../../dist/app.apk
           cd -
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: linux-${{ github.run_id }}
           path: |

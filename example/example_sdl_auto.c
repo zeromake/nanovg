@@ -69,12 +69,15 @@ int main(int argc, char **argv)
     SDL_GetWindowSizeInPixels(window, &fbWidth, &fbHeight);
     float fbRatio = nvgDevicePixelRatio(vg);
     nvgResetFrameBuffer(vg, fbWidth, fbHeight);
+
+#ifndef __APPLE__
     if (fbRatio > 1) {
         winWidth *= fbRatio;
         winHeight *= fbRatio;
         SDL_SetWindowSize(window, winWidth, winHeight);
         SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
     }
+#endif
     SDL_ShowWindow(window);
     int quit = 0;
     SDL_Event event;
@@ -129,15 +132,26 @@ int main(int argc, char **argv)
             }
             break;
         case SDL_MOUSEMOTION:
-            mx = event.motion.x / fbRatio;
-            my = event.motion.y / fbRatio;
+            mx = event.motion.x;
+            my = event.motion.y;
+#ifndef __APPLE__
+            mx /= fbRatio;
+            mx /= fbRatio;
+#endif
         }
 
         nvgClearWithColor(vg, bgColor);
         nvgBeginFrame(vg, fbWidth, fbHeight, frameDevicePixelRatio);
-    	nvgScale(vg, fbRatio, fbRatio);
 
-        renderDemo(vg, mx, my, winWidth / fbRatio, winHeight / fbRatio, t, blowup, &data);
+        int w = winWidth;
+        int h = winHeight;
+#ifndef __APPLE__
+        w /= fbRatio;
+        h /= fbRatio;
+    	nvgScale(vg, fbRatio, fbRatio);
+#endif
+
+        renderDemo(vg, mx, my, w, h, t, blowup, &data);
         renderGraph(vg, 5,5, &fps);
 		renderGraph(vg, 5+200+5,5, &cpuGraph);
 		if (gpuTimer.supported)

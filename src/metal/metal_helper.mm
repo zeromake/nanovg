@@ -156,6 +156,8 @@ struct MetalContext *CreateMetalContext(void* window) {
     mtl->layer.device = mtl->device;
     mtl->layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
     mtl->layer.framebufferOnly = false;
+    // 开启 Core Animation 事务机制，可以在 60hz 的设备上跑到 120fps
+    mtl->layer.presentsWithTransaction = true;
     nswin.contentView.layer = mtl->layer;
     nswin.contentView.wantsLayer = YES;
     char name[256] = {0};

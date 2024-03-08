@@ -92,6 +92,13 @@ target("nanovg_d3d11")
     add_files("src/d3d11/d3d11_helper.c")
 target_end()
 
+target("nanovg_wrapper")
+    set_kind("object")
+    if is_plat("macosx") then
+        add_files("src/nanovg_wrapper.mm")
+    end
+target_end()
+
 if get_config("example") then
     add_defines("DEMO_USE_CJK")
     add_requires("sokol")
@@ -125,7 +132,7 @@ if get_config("example") then
             add_packages("glew")
         end
         add_packages("sdl2", "stb")
-        add_deps("nanovg")
+        add_deps("nanovg", "nanovg_wrapper")
         if is_plat("android") then
             if is_arch("arm64-v8a") then
                 add_syslinks("GLESv3")
@@ -181,7 +188,7 @@ if get_config("example") then
             "example/example_sdl_gles3.c"
         )
         add_packages("sdl2", "stb")
-        add_deps("nanovg")
+        add_deps("nanovg", "nanovg_wrapper")
         if is_plat("android") then
             if is_arch("arm64-v8a") then
                 add_syslinks("GLESv3")

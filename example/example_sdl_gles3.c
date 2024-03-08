@@ -66,6 +66,7 @@
 
 #include <SDL2/SDL.h>
 #include "nanovg.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #define NANOVG_IMPLEMENTATION
 #include "nanovg_wrapper.h"
 

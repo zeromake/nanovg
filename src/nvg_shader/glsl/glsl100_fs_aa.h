@@ -66,7 +66,7 @@ const char __shader_fs_aa[] =
 "            bool _327;\n"
 "            if (_321)\n"
 "            {\n"
-"                _327 = color.w == 0.0;\n"
+"                _327 = color.w == 1.0;\n"
 "            }\n"
 "            else\n"
 "            {\n"

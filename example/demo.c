@@ -845,7 +845,7 @@ int loadDemoData(NVGcontext* vg, DemoData* data)
 			return -1;
 		}
 	}
-    const char * file = EXAMPLE_PATH "images/mask_image.png";
+    const char * file = EXAMPLE_PATH "images/image1.png";
     data->maskImage = nvgCreateImage(vg, file, 0);
     if (data->maskImage == 0) {
         printf("Could not load %s.\n", file);
@@ -1113,9 +1113,11 @@ void drawScissor(NVGcontext* vg, float x, float y, float t)
 
 void drawStencil(NVGcontext* vg, float x, float y, float width, int maskImage) {
     // 测试遮罩
+    int imageW = 200;
+    int imageH = 150;
     nvgBeginPath(vg);
-    NVGpaint paint = nvgImagePattern(vg, x, y, 150, 100, 0, maskImage, 1.0);
-    nvgRect(vg, x, y, 150, 100);
+    NVGpaint paint = nvgImagePattern(vg, x, y, imageW, imageH, 0, maskImage, 1.0);
+    nvgRect(vg, x, y, imageW, imageH);
     nvgFillPaint(vg, paint);
     nvgStencil(vg);
     // nvgFill(vg);
@@ -1128,7 +1130,7 @@ void drawStencil(NVGcontext* vg, float x, float y, float width, int maskImage) {
     nvgTextBox(vg, x, y, 200, text, NULL);
 
     nvgBeginPath(vg);
-    nvgRect(vg, x, y, 150, 100);
+    nvgRect(vg, x, y, imageW, imageH);
     nvgStencilClear(vg);
 }
 

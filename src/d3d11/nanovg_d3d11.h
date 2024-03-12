@@ -1049,24 +1049,24 @@ static void D3Dnvg__convexFill(struct D3DNVGcontext* D3D, struct D3DNVGcall* cal
 
 static void D3Dnvg__convexFillStencil(struct D3DNVGcontext* D3D, struct D3DNVGcall* call)
 {
-	D3D_API_2(D3D->pDeviceContext, OMSetDepthStencilState, D3D->pDepthStencilDrawShapes, 0);
-	D3D_API_3(D3D->pDeviceContext, OMSetBlendState, D3D->pBSNoWrite, NULL, 0xFFFFFFFF);
+	D3D_API(D3D->pDeviceContext, OMSetDepthStencilState, D3D->pDepthStencilDrawShapes, 0);
+	D3D_API(D3D->pDeviceContext, OMSetBlendState, D3D->pBSNoWrite, NULL, 0xFFFFFFFF);
 
 	D3Dnvg__convexFill(D3D, call);
 
-	D3D_API_3(D3D->pDeviceContext, OMSetBlendState, D3D->pBSBlend, NULL, 0xFFFFFFFF);
-	D3D_API_2(D3D->pDeviceContext, OMSetDepthStencilState, D3D->pDepthStencilDrawAA, 0);
+	D3D_API(D3D->pDeviceContext, OMSetBlendState, D3D->pBSBlend, NULL, 0xFFFFFFFF);
+	D3D_API(D3D->pDeviceContext, OMSetDepthStencilState, D3D->pDepthStencilDrawAA, 0);
 }
 
 static void D3Dnvg__convexFillStencilClear(struct D3DNVGcontext* D3D, struct D3DNVGcall* call)
 {
-	D3D_API_2(D3D->pDeviceContext, OMSetDepthStencilState, D3D->pDepthStencilFill, 0);
-	D3D_API_3(D3D->pDeviceContext, OMSetBlendState, D3D->pBSNoWrite, NULL, 0xFFFFFFFF);
+	D3D_API(D3D->pDeviceContext, OMSetDepthStencilState, D3D->pDepthStencilFill, 0);
+	D3D_API(D3D->pDeviceContext, OMSetBlendState, D3D->pBSNoWrite, NULL, 0xFFFFFFFF);
 
 	D3Dnvg__convexFill(D3D, call);
 
-	D3D_API_3(D3D->pDeviceContext, OMSetBlendState, D3D->pBSBlend, NULL, 0xFFFFFFFF);
-	D3D_API_2(D3D->pDeviceContext, OMSetDepthStencilState, D3D->pDepthStencilDefault, 0);
+	D3D_API(D3D->pDeviceContext, OMSetBlendState, D3D->pBSBlend, NULL, 0xFFFFFFFF);
+	D3D_API(D3D->pDeviceContext, OMSetDepthStencilState, D3D->pDepthStencilDefault, 0);
 }
 
 static void D3Dnvg__stroke(struct D3DNVGcontext* D3D, struct D3DNVGcall* call)

@@ -7,5 +7,9 @@ for($i=0; $i -lt $files.Length; $i++)
     $file = $files[$i]
     $type = $types[$i]
     echo "${file}.hlsl generate to ${file}.h"
-    fxc /Fh "${file}.h" /T $type /E "${file}_Main" "${file}.hlsl"
+    if ([System.Environment]::OSVersion.Platform -ceq "Unix") {
+        wine64 ../../../build/bin/fxc.exe /Fh "${file}.h" /T $type /E "${file}_Main" "${file}.hlsl"
+    } else {
+        fxc /Fh "${file}.h" /T $type /E "${file}_Main" "${file}.hlsl"
+    }
 }

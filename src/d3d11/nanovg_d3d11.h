@@ -153,7 +153,9 @@ enum D3DNVGcallType {
 	D3DNVG_FILL,
 	D3DNVG_CONVEXFILL,
 	D3DNVG_STROKE,
-	D3DNVG_TRIANGLES
+	D3DNVG_TRIANGLES,
+	D3DNVG_CONVEXFILL_STENCIL,
+	D3DNVG_CONVEXFILL_STENCIL_CLEAR,
 };
 
 struct D3DNVGcall {
@@ -885,22 +887,17 @@ static int D3Dnvg__convertPaint(struct D3DNVGcontext* D3D, struct D3DNVGfragUnif
 			nvgTransformInverse(invxform, paint->xform);
 		}
 		frag->type = NSVG_SHADER_FILLIMG;
-
-		#if NANOVG_GL_USE_UNIFORMBUFFER
 		if (tex->type == NVG_TEXTURE_RGBA)
 		{
-			frag->texType = (tex->flags & NVG_IMAGE_PREMULTIPLIED) ? 0 : 1;
+            if (scissor->stencilFlag)
+                frag->texType = 3;
+            else
+			    frag->texType = (tex->flags & NVG_IMAGE_PREMULTIPLIED) ? 0 : 1;
 		}
 		else
 		{
 			frag->texType = 2;
 		}
-		#else
-		if (tex->type == NVG_TEXTURE_RGBA)
-			frag->texType = (tex->flags & NVG_IMAGE_PREMULTIPLIED) ? 0.0f : 1.0f;
-		else
-			frag->texType = 2.0f;
-		#endif
 	}
 	else
 	{
@@ -1050,6 +1047,28 @@ static void D3Dnvg__convexFill(struct D3DNVGcontext* D3D, struct D3DNVGcall* cal
 	}
 }
 
+static void D3Dnvg__convexFillStencil(struct D3DNVGcontext* D3D, struct D3DNVGcall* call)
+{
+	D3D_API_2(D3D->pDeviceContext, OMSetDepthStencilState, D3D->pDepthStencilDrawShapes, 0);
+	D3D_API_3(D3D->pDeviceContext, OMSetBlendState, D3D->pBSNoWrite, NULL, 0xFFFFFFFF);
+
+	D3Dnvg__convexFill(D3D, call);
+
+	D3D_API_3(D3D->pDeviceContext, OMSetBlendState, D3D->pBSBlend, NULL, 0xFFFFFFFF);
+	D3D_API_2(D3D->pDeviceContext, OMSetDepthStencilState, D3D->pDepthStencilDrawAA, 0);
+}
+
+static void D3Dnvg__convexFillStencilClear(struct D3DNVGcontext* D3D, struct D3DNVGcall* call)
+{
+	D3D_API_2(D3D->pDeviceContext, OMSetDepthStencilState, D3D->pDepthStencilFill, 0);
+	D3D_API_3(D3D->pDeviceContext, OMSetBlendState, D3D->pBSNoWrite, NULL, 0xFFFFFFFF);
+
+	D3Dnvg__convexFill(D3D, call);
+
+	D3D_API_3(D3D->pDeviceContext, OMSetBlendState, D3D->pBSBlend, NULL, 0xFFFFFFFF);
+	D3D_API_2(D3D->pDeviceContext, OMSetDepthStencilState, D3D->pDepthStencilDefault, 0);
+}
+
 static void D3Dnvg__stroke(struct D3DNVGcontext* D3D, struct D3DNVGcall* call)
 {
 	struct D3DNVGpath* paths = &D3D->paths[call->pathOffset];
@@ -1157,6 +1176,10 @@ static void D3Dnvg__renderFlush(void* uptr)
 				D3Dnvg__stroke(D3D, call);
 			else if (call->type == D3DNVG_TRIANGLES)
 				D3Dnvg__triangles(D3D, call);
+			else if (call->type == D3DNVG_CONVEXFILL_STENCIL)
+				D3Dnvg__convexFillStencil(D3D, call);
+			else if (call->type == D3DNVG_CONVEXFILL_STENCIL_CLEAR)
+				D3Dnvg__convexFillStencilClear(D3D, call);
 		}
 	}
 
@@ -1275,7 +1298,12 @@ static void D3Dnvg__renderFill(void* uptr, struct NVGpaint* paint, NVGcompositeO
 
 	if (npaths == 1 && paths[0].convex)
 	{
-		call->type = D3DNVG_CONVEXFILL;
+		if (scissor->stencilFlag == NVG_STENCIL_DEFAULT)
+			call->type = D3DNVG_CONVEXFILL;
+		else if (scissor->stencilFlag == NVG_STENCIL_ENABLE)
+			call->type = D3DNVG_CONVEXFILL_STENCIL;
+		else if (scissor->stencilFlag == NVG_STENCIL_CLEAR)
+			call->type = D3DNVG_CONVEXFILL_STENCIL_CLEAR;
 		call->triangleCount = 0;	// Bounding box fill quad not needed for convex fill
 	}
 

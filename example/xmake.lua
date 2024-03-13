@@ -109,7 +109,7 @@ target("example.gles")
     end
     after_build(function (target)
         if target:is_plat("android") then
-            local outDir = "../project/android/app/libs/"..target:arch().."/"
+            local outDir = path.join(os.scriptdir(), "../project/android/app/libs", target:arch()).."/"
             for _, pkg in pairs(target:pkgs()) do
                 for _, f in ipairs(pkg:libraryfiles()) do
                     if f ~= nil and f:endswith(".so") then

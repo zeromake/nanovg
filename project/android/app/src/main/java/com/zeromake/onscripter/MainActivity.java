@@ -19,7 +19,7 @@ public class MainActivity extends SDLActivity implements OnPermissionCallback {
     protected String[] getLibraries() {
         return new String[]{
                 "sdl2",
-                "example_gles"
+                "example.gles"
         };
     }
 

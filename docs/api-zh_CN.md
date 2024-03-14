@@ -84,6 +84,15 @@
 |3|角度渐变|`NVGpaint nvgRadialGradient(NVGcontext* ctx, float cx, float cy, float inr, float outr, NVGcolor icol, NVGcolor ocol);`|
 |4|指定的图像填充（和 nvgFillPaint，nvgStrokePaint 配合使用）|`NVGpaint nvgImagePattern(NVGcontext* ctx, float ox, float oy, float ex, float ey, float angle, int image, float alpha);`|
 
+### 5.1 nvgLinearGradient
+
+> 与 css 的线性渐变不同，坐标必须是真实坐标()
+
+- `sx` 起始 x 坐标
+- `sy` 起始 y 坐标
+- `ex` 结束 y 坐标，横向渐变 (ex-sx > 0 && ey-sy == 0)
+- `ey` 结束 y 坐标，纵向渐变 (ex-sx == 0 && ey-sy > 0)
+
 ## 6.Scissoring(裁剪)
 
 | 序号 | 说明 | 方法 |

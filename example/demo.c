@@ -5,7 +5,7 @@
 #ifdef NANOVG_GLEW
 #  include <GL/glew.h>
 #endif
-#ifndef NANOVG_DISABLE_GL
+#ifndef NANOVG_DISABLE_GLFW
 #include <GLFW/glfw3.h>
 #endif
 #include "nanovg.h"
@@ -752,6 +752,27 @@ void drawColorwheel(NVGcontext* vg, float x, float y, float w, float h, float t)
 	nvgRestore(vg);
 
 	nvgRestore(vg);
+
+    // Render hue label
+	const float tw = 50;
+	const float th = 25;
+	r1 += 0.5f*sqrt(tw*tw+th*th);
+	nvgBeginPath(vg);
+	nvgFillColor(vg, nvgRGB(32,32,32));
+	ax = cx + r1*cosf(hue*NVG_PI*2);
+	ay = cy + r1*sinf(hue*NVG_PI*2);
+	nvgRoundedRect(vg, ax - tw*0.5f, ay -th*0.5f, tw, th,5.0f);
+	nvgFill(vg);
+
+	nvgTextAlign(vg, NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+	nvgFontSize(vg, th);
+	nvgFontFace(vg, "sans");
+	nvgFillColor(vg, nvgRGB(255,255,255));
+	char str[128];
+	snprintf(str, 127, "%d%%", (int)(100.0f * (hue + 1.0f)) % 100);
+	nvgBeginPath(vg);
+	nvgText(vg, ax, ay+2.0f, str, 0);
+	nvgFill(vg);
 }
 
 void drawLines(NVGcontext* vg, float x, float y, float w, float h, float t)
@@ -824,7 +845,12 @@ int loadDemoData(NVGcontext* vg, DemoData* data)
 			return -1;
 		}
 	}
-
+    const char * file = EXAMPLE_PATH "images/image1.png";
+    data->maskImage = nvgCreateImage(vg, file, 0);
+    if (data->maskImage == 0) {
+        printf("Could not load %s.\n", file);
+        return -1;
+    }
 	data->fontIcons = nvgCreateFont(vg, "icons", EXAMPLE_PATH "entypo.ttf");
 	if (data->fontIcons == -1) {
 		printf("Could not add font icons.\n");
@@ -872,6 +898,7 @@ void freeDemoData(NVGcontext* vg, DemoData* data)
 
 	for (i = 0; i < 12; i++)
 		nvgDeleteImage(vg, data->images[i]);
+    nvgDeleteImage(vg, data->maskImage);
 }
 
 void drawParagraph(NVGcontext* vg, float x, float y, float width, float height, float mx, float my)
@@ -1084,6 +1111,29 @@ void drawScissor(NVGcontext* vg, float x, float y, float t)
 	nvgRestore(vg);
 }
 
+void drawStencil(NVGcontext* vg, float x, float y, float width, int maskImage) {
+    // 测试遮罩
+    int imageW = 200;
+    int imageH = 150;
+    nvgBeginPath(vg);
+    NVGpaint paint = nvgImagePattern(vg, x, y, imageW, imageH, 0, maskImage, 1.0);
+    nvgRect(vg, x, y, imageW, imageH);
+    nvgFillPaint(vg, paint);
+    nvgStencil(vg);
+    // nvgFill(vg);
+    const char* text = "Test Stencil Test Stencil Test Stencil Test Stencil Test Stencil";
+
+    nvgFillColor(vg, nvgRGBA(0xff,0xff,0xff,255));
+    nvgFontSize(vg, 14.0f);
+    nvgFontFace(vg, "sans");
+    nvgTextAlign(vg, NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
+    nvgTextBox(vg, x, y, 200, text, NULL);
+
+    nvgBeginPath(vg);
+    nvgRect(vg, x, y, imageW, imageH);
+    nvgStencilClear(vg);
+}
+
 void renderDemo(NVGcontext* vg, float mx, float my, float width, float height,
 				float t, int blowup, DemoData* data)
 {
@@ -1143,6 +1193,7 @@ void renderDemo(NVGcontext* vg, float mx, float my, float width, float height,
 
 	// Thumbnails box
 	drawThumbnails(vg, 365, popy-30, 160, 300, data->images, 12, t);
+    drawStencil(vg, width - 250, 200, 150, data->maskImage);
 
 	nvgRestore(vg);
 }
@@ -1234,7 +1285,7 @@ static void flipHorizontal(unsigned char* image, int w, int h, int stride)
 	}
 }
 
-#ifndef NANOVG_DISABLE_GL
+#ifndef NANOVG_DISABLE_GLFW
 
 void saveScreenShot(int w, int h, int premult, const char* name)
 {

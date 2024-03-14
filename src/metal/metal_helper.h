@@ -1,6 +1,8 @@
 #ifndef METAL_HELPER_H
 #define METAL_HELPER_H
 
+#include "nanovg.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,6 +19,11 @@ void *GetMetalLayer(MetalContext *ctx);
 void ResizeMetalDrawable(MetalContext *ctx, int width, int height);
 // 获取窗口 dpi
 float GetMetalScaleFactor(MetalContext *ctx);
+
+int GetMetalScreenshotTexture(NVGcontext* ctx, int w, int h);
+
+NVGrendererInfo MetalGetRenderInfo(MetalContext *ctx);
+
 #ifdef __cplusplus
 }
 #endif

@@ -899,6 +899,10 @@ void fonsClearState(FONScontext* stash)
 static void fons__freeFont(FONSfont* font)
 {
 	if (font == NULL) return;
+// https://github.com/memononen/nanovg/issues/657
+#ifdef FONS_USE_FREETYPE
+    if (font->font.font) FT_Done_Face(font->font.font);
+#endif
 	if (font->glyphs) free(font->glyphs);
 	if (font->freeData && font->data) free(font->data);
 	free(font);

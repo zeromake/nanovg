@@ -37,22 +37,22 @@
 #include "nanovg.h"
 
 #ifdef NVG_USE_SHD_SHADER
-#if TARGET_OS_SIMULATOR
-#  include "mnvg_bitcode/simulator_fs.h"
-#  include "mnvg_bitcode/simulator_fs_aa.h"
-#  include "mnvg_bitcode/simulator_vs.h"
+#if TARGET_OS_OSX
+#  include "nvg_shader/metal/macos_fs.h"
+#  include "nvg_shader/metal/macos_fs_aa.h"
+#  include "nvg_shader/metal/macos_vs.h"
 #elif TARGET_OS_IOS
-#  include "mnvg_bitcode/ios_fs.h"
-#  include "mnvg_bitcode/ios_fs_aa.h"
-#  include "mnvg_bitcode/ios_vs.h"
-#elif TARGET_OS_OSX
-#  include "mnvg_bitcode/macos_fs.h"
-#  include "mnvg_bitcode/macos_fs_aa.h"
-#  include "mnvg_bitcode/macos_vs.h"
+#  include "nvg_shader/metal/ios_fs.h"
+#  include "nvg_shader/metal/ios_fs_aa.h"
+#  include "nvg_shader/metal/ios_vs.h"
+#elif TARGET_OS_SIMULATOR
+#  include "nvg_shader/metal/simulator_fs.h"
+#  include "nvg_shader/metal/simulator_fs_aa.h"
+#  include "nvg_shader/metal/simulator_vs.h"
 #elif TARGET_OS_TV
-#  include "mnvg_bitcode/tvos_fs.h"
-#  include "mnvg_bitcode/tvos_fs_aa.h"
-#  include "mnvg_bitcode/tvos_vs.h"
+#  include "nvg_shader/metal/tvos_fs.h"
+#  include "nvg_shader/metal/tvos_fs_aa.h"
+#  include "nvg_shader/metal/tvos_vs.h"
 #else
 #  define MNVG_INVALID_TARGET
 #endif
@@ -171,6 +171,7 @@ typedef struct MNVGfragUniforms MNVGfragUniforms;
 @property (nonatomic, strong) id<MTLCommandQueue> commandQueue;
 @property (nonatomic, strong) CAMetalLayer* metalLayer;
 @property (nonatomic, strong) id <MTLRenderCommandEncoder> renderEncoder;
+@property (nonatomic, assign) MNVGframebuffer* framebuffer;
 
 @property (nonatomic, assign) int fragSize;
 @property (nonatomic, assign) int indexSize;
@@ -217,6 +218,9 @@ typedef struct MNVGfragUniforms MNVGfragUniforms;
 -(void)fill:(MNVGcall*)call;
 
 - (MNVGtexture*)findTexture:(int)id;
+
+- (vector_uint2)currentTextureSize;
+- (void)copyCurrentTexture:(int)image;
 
 - (void)renderCancel;
 
@@ -282,7 +286,7 @@ typedef struct MNVGfragUniforms MNVGfragUniforms;
 @end
 
 // Keeps the weak reference to the currently binded framebuffer.
-MNVGframebuffer* s_framebuffer = NULL;
+// MNVGframebuffer* s_framebuffer = NULL;
 
 const MTLResourceOptions kMetalBufferOptions = \
     (MTLResourceCPUCacheModeWriteCombined | MTLResourceStorageModeShared);
@@ -517,8 +521,9 @@ void nvgDeleteMTL(NVGcontext* ctx) {
   nvgDeleteInternal(ctx);
 }
 
-void mnvgBindFramebuffer(MNVGframebuffer* framebuffer) {
-  s_framebuffer = framebuffer;
+void mnvgBindFramebuffer(NVGcontext* ctx, MNVGframebuffer* framebuffer) {
+  MNVGcontext* mtl = (__bridge MNVGcontext*)nvgInternalParams(ctx)->userPtr;
+  mtl.framebuffer = framebuffer;
 }
 
 MNVGframebuffer* mnvgCreateFramebuffer(NVGcontext* ctx, int width,
@@ -599,12 +604,7 @@ void mnvgReadPixels(NVGcontext* ctx, int image, int x, int y, int width,
   MNVGtexture* tex = [mtl findTexture:image];
   if (tex == nil) return;
 
-  NSUInteger bytesPerRow;
-  if (tex->type == NVG_TEXTURE_RGBA) {
-    bytesPerRow = tex->tex.width * 4;
-  } else {
-    bytesPerRow = tex->tex.width;
-  }
+  NSUInteger bytesPerRow = tex->tex.width * nvgTextureBytesPer(tex->type);
 
   // Makes sure the command execution for the image has been done.
   for (MNVGbuffers* buffers in mtl.cbuffers) {
@@ -664,7 +664,49 @@ enum MNVGTarget mnvgTarget() {
 @implementation MNVGbuffers
 @end
 
+
+vector_uint2 mnvgCurrentTextureSize(NVGcontext* ctx) {
+    MNVGcontext* mtl = (__bridge MNVGcontext*)nvgInternalParams(ctx)->userPtr;
+    return [mtl currentTextureSize];
+}
+void mnvgCopyCurrentTexture(NVGcontext* ctx, int image) {
+    MNVGcontext* mtl = (__bridge MNVGcontext*)nvgInternalParams(ctx)->userPtr;
+    return [mtl copyCurrentTexture:image];
+}
+
 @implementation MNVGcontext
+
+- (vector_uint2)currentTextureSize {
+    if (_framebuffer == NULL) {
+        return _viewPortSize;
+    }
+    MNVGtexture* tex = [self findTexture:_framebuffer->image];
+    id<MTLTexture> colorTexture = tex->tex;
+    return (vector_uint2){(uint)colorTexture.width,(uint)colorTexture.height};
+}
+
+- (void)copyCurrentTexture:(int)image {
+    id<MTLCommandBuffer> commandBuffer = [_commandQueue commandBuffer];
+    id<MTLBlitCommandEncoder> blitEncoder = [commandBuffer blitCommandEncoder];
+    id<MTLTexture> colorTexture = nil;
+    id<CAMetalDrawable> drawable = nil;
+    if (_framebuffer != NULL) {
+        MNVGtexture* tex = [self findTexture:_framebuffer->image];
+        colorTexture = tex->tex;
+    } else {
+        drawable = _metalLayer.nextDrawable;
+        colorTexture = drawable.texture;
+    }
+    MNVGtexture* targetTex = [self findTexture:image];
+    id<MTLTexture> targetTexture = targetTex->tex;
+    [blitEncoder copyFromTexture: colorTexture toTexture:targetTexture];
+    [blitEncoder endEncoding];
+    if (drawable != nil) {
+        [commandBuffer presentDrawable: drawable];
+    }
+    [commandBuffer commit];
+    [commandBuffer waitUntilCompleted];
+}
 
 - (MNVGcall*)allocCall {
   MNVGcall* ret = NULL;
@@ -835,7 +877,7 @@ enum MNVGTarget mnvgTarget() {
     }
     frag->type = MNVG_SHADER_FILLIMG;
 
-    if (tex->type == NVG_TEXTURE_RGBA)
+    if (nvgTextureBytesPer(tex->type) == 4)
       frag->texType = (tex->flags & NVG_IMAGE_PREMULTIPLIED) ? 0 : 1;
     else
       frag->texType = 2;
@@ -1270,9 +1312,15 @@ enum MNVGTarget mnvgTarget() {
 
   if (tex == nil) return 0;
 
-  MTLPixelFormat pixelFormat = MTLPixelFormatRGBA8Unorm;
-  if (type == NVG_TEXTURE_ALPHA) {
+  MTLPixelFormat pixelFormat;
+  if (type == NVG_TEXTURE_RGBA) {
+    pixelFormat = MTLPixelFormatRGBA8Unorm;
+  } else if (type == NVG_TEXTURE_BGRA) {
+    pixelFormat = MTLPixelFormatBGRA8Unorm;
+  } else if (type == NVG_TEXTURE_ALPHA) {
     pixelFormat = MTLPixelFormatR8Unorm;
+  } else {
+    return 0;
   }
 
   tex->type = type;
@@ -1292,12 +1340,7 @@ enum MNVGTarget mnvgTarget() {
   tex->tex = [_metalLayer.device newTextureWithDescriptor:textureDescriptor];
 
   if (data != NULL) {
-    NSUInteger bytesPerRow;
-    if (tex->type == NVG_TEXTURE_RGBA) {
-      bytesPerRow = width * 4;
-    } else {
-      bytesPerRow = width;
-    }
+    NSUInteger bytesPerRow = width * nvgTextureBytesPer(tex->type);
 
     if (textureDescriptor.storageMode == MTLStorageModePrivate) {
       const NSUInteger kBufferSize = bytesPerRow * height;
@@ -1541,12 +1584,11 @@ error:
       dispatch_semaphore_signal(self.semaphore);
   }];
 
-  if (s_framebuffer == NULL ||
-      nvgInternalParams(s_framebuffer->ctx)->userPtr != (__bridge void*)self) {
+  if (_framebuffer == NULL) {
     textureSize = _viewPortSize;
   } else {  // renders in framebuffer
-    buffers.image = s_framebuffer->image;
-    MNVGtexture* tex = [self findTexture:s_framebuffer->image];
+    buffers.image = _framebuffer->image;
+    MNVGtexture* tex = [self findTexture:_framebuffer->image];
     colorTexture = tex->tex;
     textureSize = (vector_uint2){(uint)colorTexture.width,
                                  (uint)colorTexture.height};
@@ -1588,7 +1630,7 @@ error:
 
 #if TARGET_OS_OSX
   // Makes mnvgReadPixels() work as expected on Mac.
-  if (s_framebuffer != NULL) {
+  if (_framebuffer != NULL) {
     id<MTLBlitCommandEncoder> blitCommandEncoder = [_buffers.commandBuffer
         blitCommandEncoder];
     [blitCommandEncoder synchronizeResource:colorTexture];
@@ -1742,15 +1784,9 @@ error:
 
   if (tex == nil) return 0;
 
-  unsigned char* bytes;
-  NSUInteger bytesPerRow;
-  if (tex->type == NVG_TEXTURE_RGBA) {
-    bytesPerRow = tex->tex.width * 4;
-    bytes = (unsigned char*)data + y * bytesPerRow + x * 4;
-  } else {
-    bytesPerRow = tex->tex.width;
-    bytes = (unsigned char*)data + y * bytesPerRow + x;
-  }
+  int bytesPer = nvgTextureBytesPer(tex->type);
+  NSUInteger bytesPerRow = tex->tex.width * bytesPer;
+  unsigned char* bytes = (unsigned char*)data + y * bytesPerRow + x * bytesPer;
 
 #if TARGET_OS_SIMULATOR
   const NSUInteger kBufferSize = bytesPerRow * height;
@@ -1786,10 +1822,9 @@ error:
   return 1;
 }
 
-struct VS_CONSTANTS {
-	vector_float2 viewSize;
-};
-typedef struct VS_CONSTANTS VS_CONSTANTS;
+typedef struct VS_CONSTANTS {
+	vector_float4 viewSize;
+} VS_CONSTANTS;
 
 - (void)renderViewportWithWidth:(float)width
                          height:(float)height
@@ -1813,7 +1848,7 @@ typedef struct VS_CONSTANTS VS_CONSTANTS;
         options:kMetalBufferOptions];
   }
   VS_CONSTANTS* vs_constants = (VS_CONSTANTS*)[_buffers.viewSizeBuffer contents];
-  vs_constants->viewSize = simd_make_float2(width, height);
+  vs_constants->viewSize = simd_make_float4(width, height, 0, 0);
 }
 
 - (void)setUniforms:(int)uniformOffset image:(int)image {

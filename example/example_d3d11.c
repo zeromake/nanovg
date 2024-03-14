@@ -27,6 +27,9 @@
 #include <windows.h>
 #include <windowsx.h>
 
+__declspec(dllimport) UINT __stdcall GetDpiForSystem();
+__declspec(dllimport) UINT __stdcall GetDpiForWindow(HWND hwnd);
+
 int blowup = 0;
 int screenshot = 0;
 int premult = 0;
@@ -147,10 +150,12 @@ void Draw(HWND hWnd)
 
     // Ration 1/1 for now.  Not sure how to support retina on Windows.
     pxRatio = 1.0f;
+    float scale = (float)GetDpiForWindow(hWnd) / 96.0f;
 
     nvgBeginFrame(vg, xWin, yWin, pxRatio);
 
-    renderDemo(vg, (float)xm, (float)ym, (float)xWin, (float)yWin, (float)t, blowup, &data);
+    nvgScale(vg, scale, scale);
+    renderDemo(vg, (float)xm / scale, (float)ym / scale, (float)xWin / scale, (float)yWin / scale, (float)t, blowup, &data);
 
     renderGraph(vg, 5,5, &fps);
 	renderGraph(vg, 5+200+5,5, &cpuGraph);
@@ -226,7 +231,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
         break;
-	
+
         // Mouse pos
         case WM_MOUSEMOVE:
         {
@@ -301,11 +306,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, HWND* hWnd)
     RECT rcWin;
 
     hInst = hInstance; // Store instance handle in our global variable
-    UINT dpi = GetDpiForSystem() / 96.0f;
+
+    float dpi = (float)GetDpiForSystem() / 96.0f;
     rcWin.left = 0;
-    rcWin.right = 1000 * dpi;
+    rcWin.right = 1000.0f * dpi;
     rcWin.top = 0;
-    rcWin.bottom = 600 * dpi;
+    rcWin.bottom = 600.0f * dpi;
 
     AdjustWindowRectEx(&rcWin, WS_OVERLAPPEDWINDOW, FALSE, 0);
 
@@ -373,7 +379,7 @@ int main()
 	}
 
     ZeroMemory(&msg, sizeof(msg));
-	
+
     // Main message loop:
     while (msg.message != WM_QUIT)
     {
@@ -495,7 +501,7 @@ BOOL InitializeDX(unsigned int x, unsigned int y)
         for (i = 1; i <= D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT; i++)
         {
             UINT Quality;
-            if SUCCEEDED(ID3D11Device_CheckMultisampleQualityLevels(pDevice, DXGI_FORMAT_B8G8R8A8_UNORM, i, &Quality))
+            if SUCCEEDED(ID3D11Device_CheckMultisampleQualityLevels(pDevice, DXGI_FORMAT_R8B8G8A8_UNORM, i, &Quality))
             {
                 if (Quality > 0)
                 {
@@ -510,7 +516,7 @@ BOOL InitializeDX(unsigned int x, unsigned int y)
 
         swapDesc.BufferDesc.Width = x;
         swapDesc.BufferDesc.Height = y;
-        swapDesc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         swapDesc.BufferDesc.RefreshRate.Numerator = 60;
         swapDesc.BufferDesc.RefreshRate.Denominator = 1;
         swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -574,7 +580,7 @@ HRESULT ResizeWindow(unsigned int x, unsigned int y)
     D3D_API_RELEASE(pDepthStencilView);
 
     // Resize render target buffers
-    hr = IDXGISwapChain_ResizeBuffers(pSwapChain, 1, x, y, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
+    hr = IDXGISwapChain_ResizeBuffers(pSwapChain, 1, x, y, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
     if (FAILED(hr))
     {
         return hr;
@@ -591,7 +597,7 @@ HRESULT ResizeWindow(unsigned int x, unsigned int y)
         return hr;
     }
 
-    renderDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    renderDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     renderDesc.ViewDimension = (swapDesc.SampleDesc.Count>1) ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D;
     renderDesc.Texture2D.MipSlice = 0;
 
@@ -658,4 +664,4 @@ double getCPUTime(void)
     return (double)(getRawTime() - cpuTimerBase) *
         cpuTimerResolution;
 }
-	
+

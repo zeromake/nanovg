@@ -119,6 +119,8 @@ fragment float4 fragmentShader(RasterizerData in [[stage_in]],
       color = float4(color.xyz * color.w, color.w);
     else if (uniforms.texType == 2)
       color = float4(color.x);
+    else if (uniforms.texType == 3 && color.a == 0.0)
+      discard_fragment();
     color *= scissor;
     return color * uniforms.innerCol;
   } else if (uniforms.type == 2) {
@@ -142,7 +144,7 @@ fragment float4 fragmentShaderAA(RasterizerData in [[stage_in]],
                                  sampler sampler [[sampler(0)]]) {
   float scissor = scissorMask(uniforms, in.fpos);
   if (scissor == 0)
-    discard_fragment();
+    return float4(0);
 
   float strokeAlpha = strokeMask(uniforms, in.ftcoord);
   if (strokeAlpha < uniforms.strokeThr) {
@@ -164,6 +166,9 @@ fragment float4 fragmentShaderAA(RasterizerData in [[stage_in]],
       color = float4(color.xyz * color.w, color.w);
     else if (uniforms.texType == 2)
       color = float4(color.x);
+    else if (uniforms.texType == 3 && color.a == 0.0)
+      discard_fragment();
+
     color *= scissor;
     color *= strokeAlpha;
     return color * uniforms.innerCol;
@@ -178,5 +183,5 @@ fragment float4 fragmentShaderAA(RasterizerData in [[stage_in]],
     color *= scissor;
     return color * uniforms.innerCol;
   }
-  return float4();
+  return float4(0);
 }

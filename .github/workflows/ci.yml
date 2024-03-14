@@ -10,16 +10,12 @@ jobs:
     name: windows build
     runs-on: windows-latest
     steps:
-      - name: Setup Windows 10 SDK
-        uses: GuillaumeFalourd/setup-windows10-sdk-action@v1.11
-        with:
-          sdk-version: 20348
       - name: Install NSIS
         shell: powershell
         run: |
           Invoke-Expression (Invoke-Webrequest 'https://xmake.io/psget.text' -UseBasicParsing).Content
           xmake --version
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: pre-repo
         shell: powershell
         run: |
@@ -30,16 +26,19 @@ jobs:
         run: |
           $env:path+=";C:\Users\$($env:username)\xmake"
           xmake f -c -y --example=y
-          xmake build example
-          xmake build example_d3d11
-          cp ./build/windows/x64/release/example.exe ./dist/
-          cp ./build/windows/x64/release/example_d3d11.exe ./dist/
-      - uses: actions/upload-artifact@v3
+          xmake build example.gl
+          xmake build example.d3d11
+          xmake build example.gles
+          cp ./build/windows/x64/release/example.gl.exe ./dist/
+          cp ./build/windows/x64/release/example.d3d11.exe ./dist/
+          cp ./build/windows/x64/release/example.gles.exe ./dist/
+      - uses: actions/upload-artifact@v4
         with:
-          name: onscripter-windows-${{ github.run_id }}
+          name: windows-${{ github.run_id }}
           path: |
-            dist/example.exe
-            dist/example_d3d11.exe
+            dist/example.gl.exe
+            dist/example.d3d11.exe
+            dist/example.gles.exe
   build-osx:
     name: macos build
     runs-on: macos-latest
@@ -48,28 +47,31 @@ jobs:
         run: |
           brew install xmake
           xmake --version
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: pre-repo
         run: |
           mkdir -p dist
       - name: build
         run: |
           xmake f -c -y --example=y
-          xmake build example
-          xmake build example_metal
-          cp ./build/macosx/x86_64/release/example ./dist/
-          cp ./build/macosx/x86_64/release/example_metal ./dist/
-      - uses: actions/upload-artifact@v3
+          xmake build example.gl
+          xmake build example.metal
+          xmake build example.gles
+          cp ./build/macosx/x86_64/release/example.gl ./dist/
+          cp ./build/macosx/x86_64/release/example.metal ./dist/
+          cp ./build/macosx/x86_64/release/example.gles ./dist/
+      - uses: actions/upload-artifact@v4
         with:
-          name: onscripter-osx-${{ github.run_id }}
+          name: osx-${{ github.run_id }}
           path: |
-            dist/example
-            dist/example_metal
+            dist/example.gl
+            dist/example.metal
+            dist/example.gles
   build-linux:
     name: linux build
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: install-xmake
         run: |
           sudo apt-get install libglfw3-dev tree
@@ -83,8 +85,10 @@ jobs:
       - name: build
         run: |
           xmake f -c -y --example=y
-          xmake build example
-          cp ./build/linux/x86_64/release/example ./dist/
+          xmake build example.gl
+          xmake build example.gles
+          cp ./build/linux/x86_64/release/example.gl ./dist/
+          cp ./build/linux/x86_64/release/example.gles ./dist/
       - name: cert
         env:
           CERT_TEXT: ${{ secrets.CERT_TEXT }}
@@ -99,14 +103,14 @@ jobs:
           cd ../../
       - name: build-arm-so
         run: |
-          xmake f -p android -a armeabi-v7a --ndk_sdkver=16 --ndk=${ANDROID_HOME}/ndk/23.2.8568313 -y -c --example=y
-          xmake build example_gles
+          xmake f -p android -a armeabi-v7a --ndk_sdkver=21 --ndk=${ANDROID_NDK} -y -c --example=y --pkg='sdl2'
+          xmake build example.gles
       - name: build-arm64-so
         env:
           VERSION: ${{ github.ref_name }}
         run: |
-          xmake f -p android -a arm64-v8a --ndk_sdkver=21 --ndk=${ANDROID_NDK} -y -c --example=y
-          xmake build example_gles
+          xmake f -p android -a arm64-v8a --ndk_sdkver=21 --ndk=${ANDROID_NDK} -y -c --example=y --pkg='sdl2'
+          xmake build example.gles
       - name: build-apk
         run: |
           export JAVA_HOME=$JAVA_HOME_11_X64
@@ -114,9 +118,10 @@ jobs:
           ./gradlew assembleDebug
           cp ./app/build/outputs/apk/debug/app-debug.apk ../../dist/app.apk
           cd -
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: onscripter-linux-${{ github.run_id }}
+          name: linux-${{ github.run_id }}
           path: |
             dist/app.apk
-            dist/example
+            dist/example.gl
+            dist/example.gles

@@ -168,9 +168,6 @@ void nvgCancelFrame(NVGcontext* ctx);
 // Ends drawing flushing remaining render state.
 void nvgEndFrame(NVGcontext* ctx);
 
-
-void nvgClearWithColor(NVGcontext* ctx, NVGcolor color);
-
 //
 // Composite operation
 //
@@ -389,6 +386,8 @@ int nvgCreateImageMem(NVGcontext* ctx, int imageFlags, unsigned char* data, int 
 // Creates image from specified image data.
 // Returns handle to the image.
 int nvgCreateImageRGBA(NVGcontext* ctx, int w, int h, int imageFlags, const unsigned char* data);
+
+int nvgCreateImageBGRA(NVGcontext* ctx, int w, int h, int imageFlags, const unsigned char* data);
 
 // Updates image data specified by image handle.
 void nvgUpdateImage(NVGcontext* ctx, int image, const unsigned char* data);
@@ -655,6 +654,7 @@ void nvgStencilClear(NVGcontext* ctx);
 enum NVGtexture {
 	NVG_TEXTURE_ALPHA = 0x01,
 	NVG_TEXTURE_RGBA = 0x02,
+	NVG_TEXTURE_BGRA = 0x03,
 };
 
 struct NVGscissor {
@@ -701,6 +701,20 @@ struct NVGparams {
 };
 typedef struct NVGparams NVGparams;
 
+
+#ifndef NVG_RENDER_NAME_SIZE
+#define NVG_RENDER_NAME_SIZE 128
+#endif
+struct NVGrendererInfo
+{
+    char rendererName[NVG_RENDER_NAME_SIZE];
+    char shaderName[NVG_RENDER_NAME_SIZE];
+    char vendorName[NVG_RENDER_NAME_SIZE];
+    char deviceName[NVG_RENDER_NAME_SIZE];
+};
+
+typedef struct NVGrendererInfo NVGrendererInfo;
+
 // Constructor and destructor, called by the render back-end.
 NVGcontext* nvgCreateInternal(NVGparams* params);
 void nvgDeleteInternal(NVGcontext* ctx);
@@ -712,6 +726,11 @@ void nvgDebugDumpPathCache(NVGcontext* ctx);
 
 void nvgSetUserPtr(NVGcontext* ctx, void* userPtr);
 void* nvgGetUserPtr(NVGcontext* ctx);
+
+void nvgSetRendererInfo(NVGcontext* ctx, NVGrendererInfo info);
+NVGrendererInfo nvgGetRendererInfo(NVGcontext* ctx);
+
+int nvgTextureBytesPer(enum NVGtexture texType);
 
 #ifdef _MSC_VER
 #pragma warning(pop)

@@ -24,6 +24,11 @@ public class CrashHandler extends Activity {
         Button button = findViewById(R.id.task_button);
         button.setOnClickListener(v -> {
             final AsyncTask<Void, Void, Void> task = new LogTask(CrashHandler.this).execute();
+            try {
+                task.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         });
     }
 

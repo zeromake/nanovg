@@ -22,6 +22,14 @@
 extern "C" {
 #endif
 
+#ifdef ANDROID
+#include <android/log.h>
+#define LOG_TAG "com.zeromake.nanovg.gl"
+#define NANOVG_LOG(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
+#else
+#define NANOVG_LOG(...) printf(__VA_ARGS__)
+#endif
+
 // Create flags
 
 enum NVGcreateFlags {
@@ -233,7 +241,7 @@ typedef struct GLNVGfragUniforms GLNVGfragUniforms;
 struct GLNVGcontext {
 	GLNVGshader shader;
 	GLNVGtexture* textures;
-	float view[2];
+	float view[4];
 	int ntextures;
 	int ctextures;
 	int textureId;
@@ -290,11 +298,6 @@ static unsigned int glnvg__nearestPow2(unsigned int num)
 	return n;
 }
 #endif
-
-void nvgClearWithColor(NVGcontext* ctx, NVGcolor color) {
-	glClearColor(color.r, color.g, color.b, color.a);
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-}
 
 static void glnvg__bindTexture(GLNVGcontext* gl, GLuint tex)
 {
@@ -411,7 +414,7 @@ static void glnvg__dumpShaderError(GLuint shader, const char* name, const char* 
 	glGetShaderInfoLog(shader, 512, &len, str);
 	if (len > 512) len = 512;
 	str[len] = '\0';
-	printf("Shader %s/%s error:\n%s\n", name, type, str);
+	NANOVG_LOG("Shader %s/%s error:\n%s\n", name, type, str);
 }
 
 static void glnvg__dumpProgramError(GLuint prog, const char* name)
@@ -421,7 +424,7 @@ static void glnvg__dumpProgramError(GLuint prog, const char* name)
 	glGetProgramInfoLog(prog, 512, &len, str);
 	if (len > 512) len = 512;
 	str[len] = '\0';
-	printf("Program %s error:\n%s\n", name, str);
+	NANOVG_LOG("Program %s error:\n%s\n", name, str);
 }
 
 static void glnvg__checkError(GLNVGcontext* gl, const char* str)
@@ -430,7 +433,7 @@ static void glnvg__checkError(GLNVGcontext* gl, const char* str)
 	if ((gl->flags & NVG_DEBUG) == 0) return;
 	err = glGetError();
 	if (err != GL_NO_ERROR) {
-		printf("Error %08x after %s\n", err, str);
+		NANOVG_LOG("Error %08x after %s\n", err, str);
 		return;
 	}
 }
@@ -440,7 +443,7 @@ static int glnvg__createShader(GLNVGshader* shader, const char* name, const char
 	GLint status;
 	GLuint prog, vert, frag;
 	const char* str[3];
-	str[0] = header;
+	str[0] = header != NULL ? header : "";
 	str[1] = opts != NULL ? opts : "";
 
 	memset(shader, 0, sizeof(*shader));
@@ -497,17 +500,45 @@ static void glnvg__deleteShader(GLNVGshader* shader)
 		glDeleteShader(shader->frag);
 }
 
-static void glnvg__getUniforms(GLNVGshader* shader)
+static int glnvg__getUniforms(GLNVGshader* shader)
 {
 	shader->loc[GLNVG_LOC_VIEWSIZE] = glGetUniformLocation(shader->prog, "viewSize");
+#ifdef NVG_USE_SHD_SHADER
+	shader->loc[GLNVG_LOC_TEX] = glGetUniformLocation(shader->prog, "tex_smp");
+#else
 	shader->loc[GLNVG_LOC_TEX] = glGetUniformLocation(shader->prog, "tex");
+#endif
 
 #if NANOVG_GL_USE_UNIFORMBUFFER
 	shader->loc[GLNVG_LOC_FRAG] = glGetUniformBlockIndex(shader->prog, "frag");
 #else
 	shader->loc[GLNVG_LOC_FRAG] = glGetUniformLocation(shader->prog, "frag");
 #endif
+    int n = sizeof(shader->loc) / sizeof(shader->loc[0]);
+    for (int i = 0; i < n; i++) {
+        if (shader->loc[i] == -1) {
+            NANOVG_LOG("uniform %d location error %d\n", i, shader->loc[i]);
+            return 0;
+        }
+    }
+    return 1;
 }
+
+#ifdef NVG_USE_SHD_SHADER
+#if defined NANOVG_GL3 || defined NANOVG_GL2
+#include "nvg_shader/glsl/glsl330_vs.h"
+#include "nvg_shader/glsl/glsl330_fs.h"
+#include "nvg_shader/glsl/glsl330_fs_aa.h"
+#elif defined NANOVG_GLES2
+#include "nvg_shader/glsl/glsl100_vs.h"
+#include "nvg_shader/glsl/glsl100_fs.h"
+#include "nvg_shader/glsl/glsl100_fs_aa.h"
+#elif defined NANOVG_GLES3
+#include "nvg_shader/glsl/glsl300es_vs.h"
+#include "nvg_shader/glsl/glsl300es_fs.h"
+#include "nvg_shader/glsl/glsl300es_fs_aa.h"
+#endif
+#endif
 
 static int glnvg__renderCreateTexture(void* uptr, int type, int w, int h, int imageFlags, const unsigned char* data);
 
@@ -520,9 +551,10 @@ static int glnvg__renderCreate(void* uptr)
 	// see the following discussion: https://github.com/memononen/nanovg/issues/46
 	static const char* shaderHeader =
 #if defined NANOVG_GL2
+		"#version 110\n"
 		"#define NANOVG_GL2 1\n"
 #elif defined NANOVG_GL3
-		"#version 150 core\n"
+		"#version 330\n"
 		"#define NANOVG_GL3 1\n"
 #elif defined NANOVG_GLES2
 		"#version 100\n"
@@ -539,9 +571,10 @@ static int glnvg__renderCreate(void* uptr)
 #endif
 	"\n";
 
+#ifndef NVG_USE_SHD_SHADER
 	static const char* fillVertShader =
 		"#ifdef NANOVG_GL3\n"
-		"	uniform vec2 viewSize;\n"
+		"	uniform vec4 viewSize[1];\n"
 		"	in vec2 vertex;\n"
 		"	in vec2 tcoord;\n"
 		"	out vec2 ftcoord;\n"
@@ -556,7 +589,7 @@ static int glnvg__renderCreate(void* uptr)
 		"void main(void) {\n"
 		"	ftcoord = tcoord;\n"
 		"	fpos = vertex;\n"
-		"	gl_Position = vec4(2.0*vertex.x/viewSize.x - 1.0, 1.0 - 2.0*vertex.y/viewSize.y, 0, 1);\n"
+		"	gl_Position = vec4(2.0*vertex.x/viewSize[0].x - 1.0, 1.0 - 2.0*vertex.y/viewSize[0].y, 0, 1);\n"
 		"}\n";
 
 	static const char* fillFragShader =
@@ -659,7 +692,9 @@ static int glnvg__renderCreate(void* uptr)
 		"#endif\n"
 		"		if (texType == 1) color = vec4(color.xyz*color.w,color.w);"
 		"		if (texType == 2) color = vec4(color.x);"
-		"		if (texType == 3 && color.a == 0.0) discard;"
+#ifndef __PSV__
+		"		if (texType == 3 && color.a == 1.0) discard;"
+#endif
 		"		// Apply color tint and alpha.\n"
 		"		color *= innerCol;\n"
 		"		// Combine alpha\n"
@@ -684,19 +719,32 @@ static int glnvg__renderCreate(void* uptr)
 		"	gl_FragColor = result;\n"
 		"#endif\n"
 		"}\n";
+#endif
 
 	glnvg__checkError(gl, "init");
 
+#ifdef NVG_USE_SHD_SHADER
 	if (gl->flags & NVG_ANTIALIAS) {
+		if (glnvg__createShader(&gl->shader, "shader", shaderHeader, NULL, (const char *)__shader_vs, (const char *)__shader_fs_aa) == 0)
+			return 0;
+	} else {
+		if (glnvg__createShader(&gl->shader, "shader", shaderHeader, NULL, (const char *)__shader_vs, (const char *)__shader_fs) == 0)
+			return 0;
+	}
+#else
+    if (gl->flags & NVG_ANTIALIAS) {
 		if (glnvg__createShader(&gl->shader, "shader", shaderHeader, "#define EDGE_AA 1\n", fillVertShader, fillFragShader) == 0)
 			return 0;
 	} else {
 		if (glnvg__createShader(&gl->shader, "shader", shaderHeader, NULL, fillVertShader, fillFragShader) == 0)
 			return 0;
 	}
+#endif
 
 	glnvg__checkError(gl, "uniform locations");
-	glnvg__getUniforms(&gl->shader);
+	if (!glnvg__getUniforms(&gl->shader)) {
+        return 0;
+    }
 
 	// Create dynamic vertex array
 #if defined NANOVG_GL3
@@ -735,12 +783,12 @@ static int glnvg__renderCreateTexture(void* uptr, int type, int w, int h, int im
 	if (glnvg__nearestPow2(w) != (unsigned int)w || glnvg__nearestPow2(h) != (unsigned int)h) {
 		// No repeat
 		if ((imageFlags & NVG_IMAGE_REPEATX) != 0 || (imageFlags & NVG_IMAGE_REPEATY) != 0) {
-			printf("Repeat X/Y is not supported for non power-of-two textures (%d x %d)\n", w, h);
+			NANOVG_LOG("Repeat X/Y is not supported for non power-of-two textures (%d x %d)\n", w, h);
 			imageFlags &= ~(NVG_IMAGE_REPEATX | NVG_IMAGE_REPEATY);
 		}
 		// No mips.
 		if (imageFlags & NVG_IMAGE_GENERATE_MIPMAPS) {
-			printf("Mip-maps is not support for non power-of-two textures (%d x %d)\n", w, h);
+			NANOVG_LOG("Mip-maps is not support for non power-of-two textures (%d x %d)\n", w, h);
 			imageFlags &= ~NVG_IMAGE_GENERATE_MIPMAPS;
 		}
 	}
@@ -851,10 +899,7 @@ static int glnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int w
 	glPixelStorei(GL_UNPACK_SKIP_ROWS, y);
 #else
 	// No support for all of skip, need to update a whole row at a time.
-	if (tex->type == NVG_TEXTURE_RGBA)
-		data += y*tex->width*4;
-	else
-		data += y*tex->width;
+	data += y*tex->width*nvgTextureBytesPer(tex->type);
 	x = 0;
 	w = tex->width;
 #endif
@@ -962,7 +1007,7 @@ static int glnvg__convertPaint(GLNVGcontext* gl, GLNVGfragUniforms* frag, NVGpai
 		frag->type = NSVG_SHADER_FILLIMG;
 
 		#if NANOVG_GL_USE_UNIFORMBUFFER
-		if (tex->type == NVG_TEXTURE_RGBA)
+		if (nvgTextureBytesPer(tex->type) == 4)
 			if (scissor->stencilFlag)
 				frag->texType = 3;
 			else
@@ -970,7 +1015,7 @@ static int glnvg__convertPaint(GLNVGcontext* gl, GLNVGfragUniforms* frag, NVGpai
 		else
 			frag->texType = 2;
 		#else
-		if (tex->type == NVG_TEXTURE_RGBA)
+		if (nvgTextureBytesPer(tex->type) == 4)
 			if (scissor->stencilFlag)
 				frag->texType = 3.0f;
 			else
@@ -978,7 +1023,7 @@ static int glnvg__convertPaint(GLNVGcontext* gl, GLNVGfragUniforms* frag, NVGpai
 		else
 			frag->texType = 2.0f;
 		#endif
-//		printf("frag->texType = %d\n", frag->texType);
+//		NANOVG_LOG("frag->texType = %d\n", frag->texType);
 	} else {
 		frag->type = NSVG_SHADER_FILLGRAD;
 		frag->radius = paint->radius;
@@ -1086,13 +1131,20 @@ static void glnvg__convexFill(GLNVGcontext* gl, GLNVGcall* call)
 static void glnvg__convexFillStencil(GLNVGcontext* gl, GLNVGcall* call)
 {
 	glEnable(GL_STENCIL_TEST);
-	glnvg__stencilFunc(gl, GL_EQUAL, 1, 0xFF);
-	glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
+	glnvg__stencilFunc(gl, GL_ALWAYS, 1, 0xFF);
+	glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 	glnvg__convexFill(gl, call);
 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    #ifdef PS4
+		// todo: update ps4 shader
+		// I'm currently unable to update the ps4 prebuilt shader, so just keep it as before
+		glnvg__stencilFunc(gl, GL_EQUAL, 1, 0xFF);
+	#else
+		glnvg__stencilFunc(gl, GL_EQUAL, 0, 0xFF);
+	#endif
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 }
 
@@ -1262,7 +1314,7 @@ static void glnvg__renderFlush(void* uptr)
 
 		// Set view and texture just once per frame.
 		glUniform1i(gl->shader.loc[GLNVG_LOC_TEX], 0);
-		glUniform2fv(gl->shader.loc[GLNVG_LOC_VIEWSIZE], 1, gl->view);
+		glUniform4fv(gl->shader.loc[GLNVG_LOC_VIEWSIZE], 1, gl->view);
 
 #if NANOVG_GL_USE_UNIFORMBUFFER
 		glBindBuffer(GL_UNIFORM_BUFFER, gl->fragBuf);

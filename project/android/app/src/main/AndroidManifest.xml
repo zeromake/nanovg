@@ -62,7 +62,7 @@
             android:value="true" />
         <activity android:name=".MainActivity"
             android:alwaysRetainTaskState="true"
-            android:screenOrientation="landscape"
+            android:screenOrientation="fullSensor"
             android:launchMode="singleInstance"
             android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden"
             android:exported="true">

@@ -645,8 +645,8 @@ static int D3Dnvg__renderCreateTexture(void* uptr, int type, int w, int h, int i
 	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	texDesc.CPUAccessFlags = 0;
 	texDesc.MipLevels = 1;
-	if (type == NVG_TEXTURE_RGBA) {
-		texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	if (nvgTextureBytesPer(type) == 4) {
+		texDesc.Format = type == NVG_TEXTURE_RGBA ? DXGI_FORMAT_R8G8B8A8_UNORM : DXGI_FORMAT_B8G8R8A8_UNORM;
 		pixelWidthBytes = 4;
 
 		// Mip maps
@@ -727,14 +727,7 @@ static int D3Dnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int 
 	box.front = 0;
 	box.back = 1;
 
-	if (tex->type == NVG_TEXTURE_RGBA)
-	{
-		pixelWidthBytes = 4;
-	}
-	else
-	{
-		pixelWidthBytes = 1;
-	}
+    pixelWidthBytes = nvgTextureBytesPer(tex->type);
 
 	if (tex->flags & NVG_IMAGE_COPY_SWAP) {
 		ID3D11Texture2D *stagingTexture;
@@ -887,7 +880,7 @@ static int D3Dnvg__convertPaint(struct D3DNVGcontext* D3D, struct D3DNVGfragUnif
 			nvgTransformInverse(invxform, paint->xform);
 		}
 		frag->type = NSVG_SHADER_FILLIMG;
-		if (tex->type == NVG_TEXTURE_RGBA)
+		if (nvgTextureBytesPer(tex->type) == 4)
 		{
             if (scissor->stencilFlag)
                 frag->texType = 3;

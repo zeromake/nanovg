@@ -1,5 +1,7 @@
 add_rules("mode.debug", "mode.release")
 
+includes("xmake/toolchains.lua")
+
 option("example")
     set_default(false)
     set_showmenu(true)
@@ -26,6 +28,7 @@ add_repositories("zeromake https://github.com/zeromake/xrepo.git")
 
 add_requires("stb")
 add_defines("NVG_USE_SHD_SHADER")
+set_toolchains("devkit")
 
 rule("sokol_shader")
     set_extensions(".glsl")

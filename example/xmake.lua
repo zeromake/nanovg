@@ -33,6 +33,9 @@ target("example.sdl_flags")
         if is_plat("mingw") then
             add_ldflags("-static-libgcc", "-static-libstdc++")
         end
+    elseif is_plat("cross") then
+        add_defines("NANOVG_GLAD", {public = true})
+        add_links("SDL2", "EGL", "stdc++", "glapi", "drm_nouveau", "nx", "pthread", "glad", {public = true})
     else
         add_defines("NANOVG_GLEW", {public = true})
         add_packages("glew", {public = true})

@@ -51,6 +51,9 @@ float GetScaleFactor(void* win);
 #ifdef NANOVG_GLEW
 #include <GL/glew.h>
 #endif
+#ifdef NANOVG_GLAD
+#include <glad/glad.h>
+#endif
 #if defined(NANOVG_USE_GL2)
 #define NANOVG_GL2_IMPLEMENTATION
 #elif defined(NANOVG_USE_GL3)
@@ -92,6 +95,9 @@ NVGcontext* nvgCreate(int flags, void* params) {
 		printf("Could not init glew.\n");
 		return NULL;
 	}
+#endif
+#ifdef NANOVG_GLAD
+    gladLoadGL();
 #endif
     NVGcontext *vg = NULL;
 #if defined(NANOVG_USE_GL2)

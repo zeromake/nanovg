@@ -25,7 +25,8 @@ static void init(void* ptr) {
     state->scaleFactor = sapp_dpi_scale();
     nvgFrequencyInitTimer();
     sg_setup(&(sg_desc){
-        .context = sapp_sgcontext(),
+        // .context = sapp_sgcontext(),
+        .environment = sglue_environment(),
         .logger.func = slog_func,
         .pipeline_pool_size = 1024,
     });
@@ -59,7 +60,8 @@ static void demo2(State* state) {
 
 static void frame(void* ptr) {
     State* state = (State*)ptr;
-    sg_begin_default_pass(&state->pass_action, sapp_width(), sapp_height());
+    // sg_begin_default_pass(&state->pass_action, sapp_width(), sapp_height());
+    sg_begin_pass(&(sg_pass){ .action = state->pass_action, .swapchain = sglue_swapchain() });
 
     nvgBeginFrame(state->vg, sapp_width(), sapp_height(), state->scaleFactor);
     demo1(state);

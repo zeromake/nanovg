@@ -106,6 +106,13 @@ target("nanovg_wrapper")
     end
 target_end()
 
+add_rules("sokol_shader")
+target("sokol_shader")
+    set_kind("object")
+    add_files("src/shd.glsl", "src/shd.aa.glsl")
+    add_files()
+target_end()
+
 if get_config("example") then
     includes("example/xmake.lua")
 end

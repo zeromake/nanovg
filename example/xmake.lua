@@ -190,7 +190,7 @@ target("example.sokol")
         "frequency.c"
     )
     add_packages("stb", "sokol")
-    add_deps("nanovg")
+    add_deps("nanovg", "sokol_shader")
     if is_plat("mingw") then
         add_ldflags("-static-libgcc", "-static-libstdc++")
     end

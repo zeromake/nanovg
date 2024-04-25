@@ -3041,7 +3041,7 @@ NVGrendererInfo nvgGetRendererInfo(NVGcontext* ctx) {
     return ctx->renderInfo;
 }
 
-int nvgTextureBytesPer(enum NVGtexture texType) {
-    return texType == NVG_TEXTURE_ALPHA ? 1 : 4;
+int nvgTextureBytesPer(int texType) {
+    return texType == (int)NVG_TEXTURE_ALPHA ? 1 : 4;
 }
 // vim: ft=c nu noet ts=4

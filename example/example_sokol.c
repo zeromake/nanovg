@@ -52,6 +52,17 @@ static void demo1(State* state) {
     nvgClosePath(vg);
 }
 
+static void demo3(State* state) {
+    NVGcontext *vg = state->vg;
+    nvgScale(state->vg, state->scaleFactor, state->scaleFactor);
+    nvgTranslate(vg, 50, 50);
+	nvgRotate(vg, nvgDegToRad(5));
+	nvgBeginPath(vg);
+	nvgRect(vg, -10,-10,120,80);
+	nvgFillColor(vg, nvgRGBA(255,0,0,255));
+	nvgFill(vg);
+}
+
 static void demo2(State* state) {
     double t = nvgFrequencyGetTime();
     nvgScale(state->vg, state->scaleFactor, state->scaleFactor);
@@ -64,7 +75,7 @@ static void frame(void* ptr) {
     sg_begin_pass(&(sg_pass){ .action = state->pass_action, .swapchain = sglue_swapchain() });
 
     nvgBeginFrame(state->vg, sapp_width(), sapp_height(), state->scaleFactor);
-    demo1(state);
+    demo3(state);
     nvgEndFrame(state->vg);
 
     sg_end_pass();

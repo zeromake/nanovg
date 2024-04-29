@@ -69,7 +69,6 @@ if is_plat("windows", "mingw") then
         add_includedirs("src")
         add_headerfiles("src/d3d11/*.h")
         add_headerfiles("src/d3d11/nvg_shader/*.h", {prefixdir="nvg_shader"})
-        add_files("src/d3d11/d3d11_helper.c")
     target_end()
 end
 
@@ -77,6 +76,9 @@ target("nanovg_wrapper")
     set_kind("object")
     if is_plat("macosx") then
         add_files("src/nanovg_wrapper.mm")
+    end
+    if is_plat("windows", "mingw") then
+        add_files("src/d3d11/d3d11_helper.c")
     end
 target_end()
 

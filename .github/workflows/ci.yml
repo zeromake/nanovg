@@ -53,7 +53,7 @@ jobs:
           mkdir -p dist
       - name: build
         run: |
-          xmake f -c -y --example=y
+          xmake f -a x86_64 -c -y --example=y
           xmake build example.gl
           xmake build example.metal
           xmake build example.gles

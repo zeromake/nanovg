@@ -25,7 +25,7 @@ option_end()
 add_repositories("zeromake https://github.com/zeromake/xrepo.git")
 
 add_requires("stb", "sokol-shdc")
-add_defines("NVG_USE_SHD_SHADER")
+add_defines("NVG_USE_SHD_SHADER", "DEMO_USE_CJK")
 
 if get_config("freetype") then
     add_requires("freetype", {system=false,configs={

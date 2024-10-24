@@ -75,7 +75,7 @@ static void frame(void* ptr) {
     sg_begin_pass(&(sg_pass){ .action = state->pass_action, .swapchain = sglue_swapchain() });
 
     nvgBeginFrame(state->vg, sapp_width(), sapp_height(), state->scaleFactor);
-    demo3(state);
+    demo2(state);
     nvgEndFrame(state->vg);
 
     sg_end_pass();

@@ -872,13 +872,30 @@ int loadDemoData(NVGcontext* vg, DemoData* data)
 		return -1;
 	}
 #ifdef DEMO_USE_CJK
+	const char *cjkFonts[] = {
 #if defined(_WIN32)
-	data->fontCJK = nvgCreateFont(vg, "cjk", "C:\\Windows\\Fonts\\msyh.ttc");
+	"C:\\Windows\\Fonts\\msyh.ttc",
+	"C:\\Windows\\Fonts\\msyh.ttf",
+	"C:\\Windows\\Fonts\\simsun.ttc"
 #elif defined(__APPLE__)
-	data->fontCJK = nvgCreateFont(vg, "cjk", "/System/Library/Fonts/PingFang.ttc");
+	"/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+	"/System/Library/Fonts/STHeiti Medium.ttc",
+	"/System/Library/Fonts/PingFang.ttc"
 #elif defined(ANDROID)
-	data->fontCJK = nvgCreateFont(vg, "cjk", "/system/fonts/DroidSansFallback.ttf");
+	"/system/fonts/NotoSansSC-Regular.otf",
+	"/system/fonts/NotoSansCJK-Regular.ttc",
+	"/system/fonts/DroidSansFallback.ttf",
+	"/system/fonts/DroidSansChinese.ttf"
 #endif
+	};
+	int n = sizeof(cjkFonts) / sizeof(cjkFonts[0]);
+	for (i = 0; i < n; i++) {
+		data->fontCJK = nvgCreateFont(vg, "cjk", cjkFonts[i]);
+		if (data->fontCJK > 0) {
+			printf("CJK font `%s` loaded.\n", cjkFonts[i]);
+			break;
+		}
+	}
 	if (data->fontCJK > 0) {
 		nvgAddFallbackFontId(vg, data->fontNormal, data->fontCJK);
 	}

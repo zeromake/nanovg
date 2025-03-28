@@ -132,6 +132,7 @@ struct NVGtextRow {
 	const char* next;	// Pointer to the beginning of the next row.
 	float width;		// Logical width of the row.
 	float minx, maxx;	// Actual bounds of the row. Logical with and bounds can differ because of kerning and some parts over extending.
+    int size;           // Number of characters in the row.
 };
 typedef struct NVGtextRow NVGtextRow;
 
@@ -607,11 +608,13 @@ void nvgFontFace(NVGcontext* ctx, const char* font);
 
 // Draws text string at specified location. If end is specified only the sub-string up to the end is drawn.
 float nvgText(NVGcontext* ctx, float x, float y, const char* string, const char* end);
+float nvgTextWithCursor(NVGcontext* ctx, float x, float y, const char* string, const char* end, int cursor);
 
 // Draws multi-line text string at specified location wrapped at the specified width. If end is specified only the sub-string up to the end is drawn.
 // The text is split at word boundaries or when new-line characters are encountered.
 // Words longer than the max width are slit at nearest character (i.e. no hyphenation).
 void nvgTextBox(NVGcontext* ctx, float x, float y, float breakRowWidth, const char* string, const char* end);
+void nvgTextBoxWithCursor(NVGcontext* ctx, float x, float y, float breakRowWidth, const char* string, const char* end, int cursor);
 
 // Measures the specified text string. Parameter bounds should be a pointer to float[4],
 // if the bounding box of the text should be returned. The bounds value are [xmin,ymin, xmax,ymax]

@@ -26,65 +26,65 @@ void DestroyMetalContext(struct MetalContext *ctx) {
 }
 
 #if TARGET_OS_IOS
-static void GetFeatureSetsForIOS(const MTLFeatureSet*& fsets, std::size_t& count, MTLFeatureSet& fsetDefault)
+static void GetFeatureSetsForIOS(const MTLGPUFamily*& fsets, std::size_t& count, MTLGPUFamily& fsetDefault)
 {
-    static const MTLFeatureSet g_featureSetsIOS[] =
+    static const MTLGPUFamily g_featureSetsIOS[] =
     {
-        static_cast<const MTLFeatureSet>(16),
-        static_cast<const MTLFeatureSet>(15),
-        static_cast<const MTLFeatureSet>(14),
-        static_cast<const MTLFeatureSet>(13),
-        static_cast<const MTLFeatureSet>(12),
+        static_cast<const MTLGPUFamily>(16),
+        static_cast<const MTLGPUFamily>(15),
+        static_cast<const MTLGPUFamily>(14),
+        static_cast<const MTLGPUFamily>(13),
+        static_cast<const MTLGPUFamily>(12),
 
-        static_cast<const MTLFeatureSet>(11),
-        static_cast<const MTLFeatureSet>(10),
-        static_cast<const MTLFeatureSet>(9),
-        static_cast<const MTLFeatureSet>(8),
+        static_cast<const MTLGPUFamily>(11),
+        static_cast<const MTLGPUFamily>(10),
+        static_cast<const MTLGPUFamily>(9),
+        static_cast<const MTLGPUFamily>(8),
 
-        static_cast<const MTLFeatureSet>(7),
-        static_cast<const MTLFeatureSet>(6),
-        static_cast<const MTLFeatureSet>(5),
+        static_cast<const MTLGPUFamily>(7),
+        static_cast<const MTLGPUFamily>(6),
+        static_cast<const MTLGPUFamily>(5),
 
-        static_cast<const MTLFeatureSet>(4),
-        static_cast<const MTLFeatureSet>(3),
-        static_cast<const MTLFeatureSet>(2),
+        static_cast<const MTLGPUFamily>(4),
+        static_cast<const MTLGPUFamily>(3),
+        static_cast<const MTLGPUFamily>(2),
 
-        static_cast<const MTLFeatureSet>(1),
-        static_cast<const MTLFeatureSet>(0),
+        static_cast<const MTLGPUFamily>(1),
+        static_cast<const MTLGPUFamily>(0),
     };
 
     fsets       = g_featureSetsIOS;
     count       = sizeof(g_featureSetsIOS)/sizeof(g_featureSetsIOS[0]);
-    fsetDefault = static_cast<const MTLFeatureSet>(0);
+    fsetDefault = static_cast<const MTLGPUFamily>(0);
 }
 
 #else
 
-static void GetFeatureSetsForMacOS(const MTLFeatureSet*& fsets, std::size_t& count, MTLFeatureSet& fsetDefault)
+static void GetFeatureSetsForMacOS(const MTLGPUFamily*& fsets, std::size_t& count, MTLGPUFamily& fsetDefault)
 {
-    static const MTLFeatureSet g_featureSetsMacOS[] =
+    static const MTLGPUFamily g_featureSetsMacOS[] =
     {
-        static_cast<const MTLFeatureSet>(10005),
-        static_cast<const MTLFeatureSet>(10004),
-        static_cast<const MTLFeatureSet>(10003),
-        static_cast<const MTLFeatureSet>(10002),
-        static_cast<const MTLFeatureSet>(10001),
-        static_cast<const MTLFeatureSet>(10000),
+        static_cast<const MTLGPUFamily>(10005),
+        static_cast<const MTLGPUFamily>(10004),
+        static_cast<const MTLGPUFamily>(10003),
+        static_cast<const MTLGPUFamily>(10002),
+        static_cast<const MTLGPUFamily>(10001),
+        static_cast<const MTLGPUFamily>(10000),
     };
 
     fsets       = g_featureSetsMacOS;
     count       = sizeof(g_featureSetsMacOS)/sizeof(g_featureSetsMacOS[0]);
-    fsetDefault = static_cast<const MTLFeatureSet>(10000);
+    fsetDefault = static_cast<MTLGPUFamily>(10000);
 }
 
 #endif // TARGET_OS_IOS
 
-static MTLFeatureSet QueryHighestFeatureSet(id<MTLDevice> device_)
+static MTLGPUFamily QueryHighestFeatureSet(id<MTLDevice> device_)
 {
     /* Get list of feature sets for macOS or iOS */
-    const MTLFeatureSet* fsets;
+    const MTLGPUFamily* fsets;
     std::size_t count;
-    MTLFeatureSet fsetDefault;
+    MTLGPUFamily fsetDefault;
     #if TARGET_OS_IOS
     GetFeatureSetsForIOS(fsets, count, fsetDefault);
     #else

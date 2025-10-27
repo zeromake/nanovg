@@ -40,6 +40,7 @@ target("example.sdl_flags")
     add_packages("sdl2", "stb", {public = true})
     add_deps("nanovg", "nanovg_wrapper", {public = true})
     add_includedirs("../src", {public = true})
+target_end()
 
 target("example.sdl")
     add_files(
@@ -47,6 +48,7 @@ target("example.sdl")
         "demo.c"
     )
     add_deps("example.sdl_flags")
+target_end()
 
 target("example.gl")
     add_includedirs("../src")
@@ -66,6 +68,7 @@ target("example.gl")
     elseif is_plat("macosx") then
         add_frameworks("OpenGL")
     end
+target_end()
 
 target("example.gles")
     if is_plat("android") then
@@ -122,6 +125,7 @@ target("example.gles")
             return
         end
     end)
+target_end()
 
 target("example.vulkan")
     add_deps("nanovg")
@@ -142,6 +146,7 @@ target("example.vulkan")
         "demo.c",
         "perf.c"
     )
+target_end()
 
 if is_plat("macosx") then
 target("example.metal")
@@ -157,6 +162,7 @@ target("example.metal")
     add_frameworks("Metal", "MetalKit", "QuartzCore")
     add_packages("glfw", "stb")
     add_defines("NANOVG_DISABLE_GLFW")
+target_end()
 end
 
 target("example.d3d11")
@@ -177,6 +183,7 @@ target("example.d3d11")
     end
     add_defines("NANOVG_DISABLE_GLFW")
     add_syslinks("user32", "d3d11")
+target_end()
 
 add_requires("sokol-shdc")
 
@@ -226,3 +233,4 @@ target("example.sokol")
     else
         add_defines("SOKOL_GLCORE33")
     end
+target_end()

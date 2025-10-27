@@ -30,32 +30,32 @@ static void GetFeatureSetsForIOS(const MTLFeatureSet*& fsets, std::size_t& count
 {
     static const MTLFeatureSet g_featureSetsIOS[] =
     {
-        16,
-        15,
-        14,
-        13,
-        12,
+        static_cast<const MTLFeatureSet>(16),
+        static_cast<const MTLFeatureSet>(15),
+        static_cast<const MTLFeatureSet>(14),
+        static_cast<const MTLFeatureSet>(13),
+        static_cast<const MTLFeatureSet>(12),
 
-        11,
-        10,
-        9,
-        8,
+        static_cast<const MTLFeatureSet>(11),
+        static_cast<const MTLFeatureSet>(10),
+        static_cast<const MTLFeatureSet>(9),
+        static_cast<const MTLFeatureSet>(8),
 
-        7,
-        6,
-        5,
+        static_cast<const MTLFeatureSet>(7),
+        static_cast<const MTLFeatureSet>(6),
+        static_cast<const MTLFeatureSet>(5),
 
-        4,
-        3,
-        2,
+        static_cast<const MTLFeatureSet>(4),
+        static_cast<const MTLFeatureSet>(3),
+        static_cast<const MTLFeatureSet>(2),
 
-        1,
-        0,
+        static_cast<const MTLFeatureSet>(1),
+        static_cast<const MTLFeatureSet>(0),
     };
 
     fsets       = g_featureSetsIOS;
     count       = sizeof(g_featureSetsIOS)/sizeof(g_featureSetsIOS[0]);
-    fsetDefault = 0;
+    fsetDefault = static_cast<const MTLFeatureSet>(0);
 }
 
 #else

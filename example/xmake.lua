@@ -178,6 +178,14 @@ target("example.d3d11")
     add_defines("NANOVG_DISABLE_GLFW")
     add_syslinks("user32", "d3d11")
 
+add_requires("sokol-shdc")
+
+target("sokol_shader")
+    set_kind("object")
+    add_packages("sokol-shdc")
+    add_rules("@sokol-shdc/shader")
+    add_files("../src/shd.glsl", "../src/shd.aa.glsl")
+target_end()
 
 target("example.sokol")
     add_includedirs("../src")

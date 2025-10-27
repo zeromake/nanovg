@@ -74,7 +74,7 @@ static void GetFeatureSetsForMacOS(const MTLFeatureSet*& fsets, std::size_t& cou
 
     fsets       = g_featureSetsMacOS;
     count       = sizeof(g_featureSetsMacOS)/sizeof(g_featureSetsMacOS[0]);
-    fsetDefault = 10000;
+    fsetDefault = static_cast<const MTLFeatureSet>(10000);
 }
 
 #endif // TARGET_OS_IOS

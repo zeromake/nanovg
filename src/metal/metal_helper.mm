@@ -64,12 +64,12 @@ static void GetFeatureSetsForMacOS(const MTLFeatureSet*& fsets, std::size_t& cou
 {
     static const MTLFeatureSet g_featureSetsMacOS[] =
     {
-        10005,
-        10004,
-        10003,
-        10002,
-        10001,
-        10000,
+        static_cast<const MTLFeatureSet>(10005),
+        static_cast<const MTLFeatureSet>(10004),
+        static_cast<const MTLFeatureSet>(10003),
+        static_cast<const MTLFeatureSet>(10002),
+        static_cast<const MTLFeatureSet>(10001),
+        static_cast<const MTLFeatureSet>(10000),
     };
 
     fsets       = g_featureSetsMacOS;
@@ -103,7 +103,7 @@ static MTLFeatureSet QueryHighestFeatureSet(id<MTLDevice> device_)
 
 const char* QueryMetalVersion(id<MTLDevice> device_)
 {
-    const MTLFeatureSet featureSet = QueryHighestFeatureSet(device_);
+    const int featureSet = static_cast<const int>(QueryHighestFeatureSet(device_));
 
     #if TARGET_OS_IOS
     switch (featureSet)

@@ -26,9 +26,9 @@ jobs:
         run: |
           $env:path+=";C:\Users\$($env:username)\xmake"
           xmake f -c -y --example=y
-          xmake build example.gl
-          xmake build example.d3d11
-          xmake build example.gles
+          xmake build -y example.gl
+          xmake build -y example.d3d11
+          xmake build -y example.gles
           cp ./build/windows/x64/release/example.gl.exe ./dist/
           cp ./build/windows/x64/release/example.d3d11.exe ./dist/
           cp ./build/windows/x64/release/example.gles.exe ./dist/
@@ -54,9 +54,9 @@ jobs:
       - name: build
         run: |
           xmake f -a x86_64 -c -y --example=y
-          xmake build example.gl
-          xmake build example.metal
-          xmake build example.gles
+          xmake build -y example.gl
+          xmake build -y example.metal
+          xmake build -y example.gles
           cp ./build/macosx/x86_64/release/example.gl ./dist/
           cp ./build/macosx/x86_64/release/example.metal ./dist/
           cp ./build/macosx/x86_64/release/example.gles ./dist/
@@ -85,8 +85,8 @@ jobs:
       - name: build
         run: |
           xmake f -c -y --example=y
-          xmake build example.gl
-          xmake build example.gles
+          xmake build -y example.gl
+          xmake build -y example.gles
           cp ./build/linux/x86_64/release/example.gl ./dist/
           cp ./build/linux/x86_64/release/example.gles ./dist/
       - name: cert
@@ -104,13 +104,13 @@ jobs:
       - name: build-arm-so
         run: |
           xmake f -p android -a armeabi-v7a --ndk_sdkver=21 --ndk=${ANDROID_NDK} -y -c --example=y --pkg='sdl2'
-          xmake build example.gles
+          xmake build -y example.gles
       - name: build-arm64-so
         env:
           VERSION: ${{ github.ref_name }}
         run: |
           xmake f -p android -a arm64-v8a --ndk_sdkver=21 --ndk=${ANDROID_NDK} -y -c --example=y --pkg='sdl2'
-          xmake build example.gles
+          xmake build -y example.gles
       - name: build-apk
         run: |
           export JAVA_HOME=$JAVA_HOME_11_X64
